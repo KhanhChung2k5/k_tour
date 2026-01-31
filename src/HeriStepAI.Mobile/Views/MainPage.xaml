@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HeriStepAI.Mobile.Views.MainPage"
+             xmlns:viewmodel="clr-namespace:HeriStepAI.Mobile.ViewModels"
+             xmlns:converters="clr-namespace:HeriStepAI.Mobile.Converters"
+             x:DataType="viewmodel:MainPageViewModel"
+             Title="Trang chủ">
+    <ContentPage.Resources>
+        <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="20">
+            <Label Text="HeriStepAI" 
+                   FontSize="32" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center" />
+
+            <Label Text="Hệ thống Thuyết minh Tự động" 
+                   FontSize="18" 
+                   HorizontalOptions="Center" 
+                   TextColor="Gray" />
+
+            <Frame BackgroundColor="LightBlue" 
+                   Padding="15" 
+                   CornerRadius="10">
+                <StackLayout>
+                    <Label Text="Vị trí hiện tại:" 
+                           FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentLocationText}" />
+                    <Label Text="{Binding IsLocationEnabled, StringFormat='GPS: {0}'}" />
+                </StackLayout>
+            </Frame>
+
+            <Frame BackgroundColor="LightGreen" 
+                   Padding="15" 
+                   CornerRadius="10"
+                   IsVisible="{Binding CurrentPOI, Converter={StaticResource IsNotNullConverter}}">
+                <StackLayout>
+                    <Label Text="Điểm thuyết minh:" 
+                           FontAttributes="Bold" />
+                    <Label Text="{Binding CurrentPOI.Name}" 
+                           FontSize="18" />
+                    <Label Text="{Binding CurrentPOI.Description}" />
+                </StackLayout>
+            </Frame>
+
+            <Button Text="Làm mới POI" 
+                    Command="{Binding RefreshPOIsCommand}" 
+                    BackgroundColor="Blue" 
+                    TextColor="White" />
+        </StackLayout>
+    </ScrollView>
+
+</ContentPage>

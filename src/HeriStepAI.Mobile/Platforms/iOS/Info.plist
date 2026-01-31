@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>App cần quyền truy cập vị trí để cung cấp thuyết minh tự động khi bạn đến gần các địa điểm.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>App cần quyền truy cập vị trí nền để cung cấp thuyết minh tự động ngay cả khi app đang chạy nền.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
+</dict>
+</plist>

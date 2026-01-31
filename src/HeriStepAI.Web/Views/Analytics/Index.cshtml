@@ -1,0 +1,65 @@
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics - HeriStepAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Analytics Dashboard</span>
+            <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-light">Về Dashboard</a>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h2>Thống kê Chi tiết</h2>
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Top Địa điểm được truy cập nhiều nhất</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="topPOIsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Dữ liệu từ ViewBag sẽ được render ở đây
+        const topPOIsData = @Html.Raw(Json.Serialize(ViewBag.TopPOIs ?? new Dictionary<int, int>()));
+        const ctx = document.getElementById('topPOIsChart').getContext('2d');
+        
+        const labels = Object.keys(topPOIsData).map(id => `POI ${id}`);
+        const data = Object.values(topPOIsData);
+        
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Số lượt truy cập',
+                    data: data,
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HeriStepAI.Mobile.Views.SettingsPage"
+             xmlns:viewmodel="clr-namespace:HeriStepAI.Mobile.ViewModels"
+             x:DataType="viewmodel:SettingsPageViewModel"
+             Title="Cài đặt">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="20">
+            <Label Text="Cài đặt" 
+                   FontSize="24" 
+                   FontAttributes="Bold" />
+
+            <Frame BackgroundColor="LightGray" 
+                   Padding="15" 
+                   CornerRadius="10">
+                <StackLayout>
+                    <Label Text="Ngôn ngữ thuyết minh:" 
+                           FontAttributes="Bold" />
+                    <Picker ItemsSource="{Binding AvailableLanguages}" 
+                            SelectedItem="{Binding SelectedLanguage}" />
+                </StackLayout>
+            </Frame>
+
+            <Frame BackgroundColor="LightGray" 
+                   Padding="15" 
+                   CornerRadius="10">
+                <StackLayout>
+                    <Label Text="Trạng thái GPS:" 
+                           FontAttributes="Bold" />
+                    <Label Text="{Binding IsLocationEnabled, StringFormat='GPS: {0}'}" />
+                </StackLayout>
+            </Frame>
+        </StackLayout>
+    </ScrollView>
+
+</ContentPage>
