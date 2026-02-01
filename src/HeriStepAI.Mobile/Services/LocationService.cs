@@ -30,13 +30,16 @@ public class LocationService : ILocationService
         return status == PermissionStatus.Granted;
     }
 
-    public async Task<Location?> GetCurrentLocationAsync()
+    /// <summary>
+    /// Lấy vị trí - tối ưu pin với Medium accuracy, dùng Best khi cần chính xác.
+    /// </summary>
+    public async Task<Location?> GetCurrentLocationAsync(GeolocationAccuracy accuracy = GeolocationAccuracy.Medium)
     {
         try
         {
             var request = new GeolocationRequest
             {
-                DesiredAccuracy = GeolocationAccuracy.Best,
+                DesiredAccuracy = accuracy,
                 Timeout = TimeSpan.FromSeconds(10)
             };
 

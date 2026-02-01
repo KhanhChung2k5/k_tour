@@ -5,47 +5,264 @@
              xmlns:viewmodel="clr-namespace:HeriStepAI.Mobile.ViewModels"
              xmlns:models="clr-namespace:HeriStepAI.Mobile.Models"
              x:DataType="viewmodel:MapPageViewModel"
-             Title="Bản đồ">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource PageBackground}">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <Grid RowDefinitions="Auto,*,Auto">
+        
+        <!-- Top Bar with Search -->
+        <Frame Grid.Row="0"
+               BackgroundColor="{StaticResource White}"
+               CornerRadius="0"
+               Padding="16,50,16,12"
+               HasShadow="True"
+               ZIndex="10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Back Button -->
+                <Frame Grid.Column="0"
+                       BackgroundColor="{StaticResource Gray100}"
+                       CornerRadius="20"
+                       WidthRequest="40"
+                       HeightRequest="40"
+                       Padding="0"
+                       HasShadow="False"
+                       Margin="0,0,12,0">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoBackCommand}" />
+                    </Frame.GestureRecognizers>
+                    <Label Text="←"
+                           FontSize="20"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Frame>
+                
+                <!-- Search Entry -->
+                <Frame Grid.Column="1"
+                       BackgroundColor="{StaticResource Gray100}"
+                       CornerRadius="25"
+                       Padding="16,0"
+                       HasShadow="False">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Label Text="🔍"
+                               FontSize="16"
+                               VerticalOptions="Center"
+                               Margin="0,0,8,0" />
+                        <Entry Grid.Column="1"
+                               Placeholder="Tìm kiếm..."
+                               Text="{Binding SearchText}"
+                               BackgroundColor="Transparent"
+                               FontSize="16"
+                               VerticalOptions="Center" />
+                    </Grid>
+                </Frame>
+                
+                <!-- List View Button -->
+                <Frame Grid.Column="2"
+                       BackgroundColor="{StaticResource Primary}"
+                       CornerRadius="20"
+                       WidthRequest="40"
+                       HeightRequest="40"
+                       Padding="0"
+                       HasShadow="False"
+                       Margin="12,0,0,0">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ShowListCommand}" />
+                    </Frame.GestureRecognizers>
+                    <Label Text="≡"
+                           TextColor="{StaticResource White}"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Frame>
+            </Grid>
+        </Frame>
 
-        <!-- Map View - Using WebView with Leaflet + OpenStreetMap (Free) -->
-        <WebView Grid.Row="0" 
-                 x:Name="MapWebView" />
+        <!-- Map View - Full Screen -->
+        <WebView Grid.Row="1" 
+                 x:Name="MapWebView"
+                 Margin="0,-60,0,0"
+                 ZIndex="1" />
+        
+        <!-- Floating My Location Button -->
+        <Frame Grid.Row="1"
+               BackgroundColor="{StaticResource White}"
+               CornerRadius="25"
+               WidthRequest="50"
+               HeightRequest="50"
+               Padding="0"
+               HasShadow="True"
+               HorizontalOptions="End"
+               VerticalOptions="End"
+               Margin="0,0,16,16"
+               ZIndex="5">
+            <Frame.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CenterOnLocationCommand}" />
+            </Frame.GestureRecognizers>
+            <Label Text="📍"
+                   FontSize="24"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+        </Frame>
 
-        <!-- POI List -->
-        <Frame Grid.Row="1" 
-               BackgroundColor="White" 
-               Padding="10"
-               HasShadow="True">
-            <ScrollView Orientation="Horizontal">
-                <StackLayout Orientation="Horizontal" Spacing="10">
-                    <CollectionView ItemsSource="{Binding POIs}" 
-                                    SelectionMode="Single"
-                                    SelectionChanged="OnPOISelected">
-                        <CollectionView.ItemTemplate>
+        <!-- Bottom Sheet - Selected POI Info -->
+        <Frame Grid.Row="2"
+               BackgroundColor="{StaticResource White}"
+               CornerRadius="24,24,0,0"
+               Padding="0"
+               HasShadow="True"
+               IsVisible="{Binding HasSelectedPOI}"
+               ZIndex="10">
+            <VerticalStackLayout Padding="20" Spacing="12">
+                
+                <!-- Handle Bar -->
+                <BoxView Color="{StaticResource Gray300}"
+                         WidthRequest="40"
+                         HeightRequest="4"
+                         CornerRadius="2"
+                         HorizontalOptions="Center"
+                         Margin="0,0,0,8" />
+                
+                <!-- POI Header -->
+                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                    <Label Grid.Column="0"
+                           Text="{Binding SelectedPOI.Name}"
+                           Style="{StaticResource TitleLabel}"
+                           FontSize="18" />
+                    
+                    <!-- Distance Badge -->
+                    <Frame Grid.Column="1"
+                           BackgroundColor="{StaticResource PrimaryLight}"
+                           CornerRadius="12"
+                           Padding="10,4"
+                           HasShadow="False">
+                        <Label Text="{Binding SelectedPOI.DistanceText}"
+                               TextColor="{StaticResource PrimaryDark}"
+                               FontSize="12"
+                               FontAttributes="Bold" />
+                    </Frame>
+                    
+                    <!-- Address -->
+                    <Label Grid.Row="1"
+                           Grid.ColumnSpan="2"
+                           Text="{Binding SelectedPOI.Address}"
+                           Style="{StaticResource CaptionLabel}"
+                           LineBreakMode="TailTruncation"
+                           MaxLines="2"
+                           Margin="0,4,0,0" />
+                </Grid>
+                
+                <!-- Rating and Time -->
+                <HorizontalStackLayout Spacing="16">
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="⭐" FontSize="14" />
+                        <Label Text="{Binding SelectedPOI.RatingText}"
+                               Style="{StaticResource BodyLabel}" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="⏱" FontSize="14" TextColor="{StaticResource Primary}" />
+                        <Label Text="{Binding SelectedPOI.EstimatedMinutes, StringFormat='{0} phút'}"
+                               Style="{StaticResource BodyLabel}" />
+                    </HorizontalStackLayout>
+                    <HorizontalStackLayout Spacing="4">
+                        <Label Text="📂" FontSize="14" />
+                        <Label Text="{Binding SelectedPOI.CategoryText}"
+                               Style="{StaticResource BodyLabel}" />
+                    </HorizontalStackLayout>
+                </HorizontalStackLayout>
+                
+                <!-- Action Buttons -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Button Grid.Column="0"
+                            Text="🔊 Nghe thuyết minh"
+                            Command="{Binding PlayNarrationCommand}"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="{StaticResource White}"
+                            CornerRadius="25"
+                            HeightRequest="50" />
+                    <Button Grid.Column="1"
+                            Text="Chỉ đường"
+                            Command="{Binding NavigateCommand}"
+                            BackgroundColor="{StaticResource White}"
+                            TextColor="{StaticResource Primary}"
+                            BorderColor="{StaticResource Primary}"
+                            BorderWidth="2"
+                            CornerRadius="25"
+                            HeightRequest="50" />
+                </Grid>
+            </VerticalStackLayout>
+        </Frame>
+        
+        <!-- POI Quick List (when no POI selected) -->
+        <Frame Grid.Row="2"
+               BackgroundColor="{StaticResource White}"
+               CornerRadius="24,24,0,0"
+               Padding="0"
+               HasShadow="True"
+               IsVisible="{Binding HasSelectedPOI, Converter={StaticResource InvertBoolConverter}}"
+               ZIndex="10">
+            <VerticalStackLayout Padding="20,12,20,20" Spacing="8">
+                
+                <!-- Handle Bar -->
+                <BoxView Color="{StaticResource Gray300}"
+                         WidthRequest="40"
+                         HeightRequest="4"
+                         CornerRadius="2"
+                         HorizontalOptions="Center"
+                         Margin="0,0,0,4" />
+                
+                <Label Text="Địa điểm gần bạn"
+                       Style="{StaticResource SectionHeader}"
+                       Margin="0" />
+                
+                <ScrollView Orientation="Horizontal" 
+                            HorizontalScrollBarVisibility="Never">
+                    <HorizontalStackLayout Spacing="12" 
+                                           BindableLayout.ItemsSource="{Binding NearbyPOIs}">
+                        <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:POI">
-                                <Frame BackgroundColor="LightBlue" 
-                                       Padding="10"
-                                       CornerRadius="5"
-                                       WidthRequest="200">
-                                    <StackLayout>
-                                        <Label Text="{Binding Name}" 
-                                               FontAttributes="Bold" />
-                                        <Label Text="{Binding Description}" 
-                                               FontSize="12" />
-                                    </StackLayout>
+                                <Frame Style="{StaticResource CardFrame}"
+                                       WidthRequest="140"
+                                       HeightRequest="120"
+                                       Padding="0">
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MapPageViewModel}}, Path=POISelectedCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Frame.GestureRecognizers>
+                                    <Grid RowDefinitions="70,*">
+                                        <Image Source="{Binding ImageUrl}"
+                                               Aspect="AspectFill"
+                                               HeightRequest="70" />
+                                        <VerticalStackLayout Grid.Row="1"
+                                                             Padding="8,6"
+                                                             Spacing="2">
+                                            <Label Text="{Binding Name}"
+                                                   FontSize="12"
+                                                   FontAttributes="Bold"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="1" />
+                                            <HorizontalStackLayout Spacing="4">
+                                                <Label Text="{Binding DistanceText}"
+                                                       FontSize="10"
+                                                       TextColor="{StaticResource Primary}" />
+                                                <Label Text="•"
+                                                       FontSize="10"
+                                                       TextColor="{StaticResource TextMuted}" />
+                                                <Label Text="{Binding RatingText, StringFormat='⭐ {0}'}"
+                                                       FontSize="10"
+                                                       TextColor="{StaticResource TextMuted}" />
+                                            </HorizontalStackLayout>
+                                        </VerticalStackLayout>
+                                    </Grid>
                                 </Frame>
                             </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                </StackLayout>
-            </ScrollView>
+                        </BindableLayout.ItemTemplate>
+                    </HorizontalStackLayout>
+                </ScrollView>
+            </VerticalStackLayout>
         </Frame>
+
     </Grid>
 
 </ContentPage>

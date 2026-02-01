@@ -11,10 +11,19 @@ namespace HeriStepAI.API.Controllers;
 public class POIController : ControllerBase
 {
     private readonly IPOIService _poiService;
+    private readonly IGeocodingService _geocodingService;
 
-    public POIController(IPOIService poiService)
+    public POIController(IPOIService poiService, IGeocodingService geocodingService)
     {
         _poiService = poiService;
+        _geocodingService = geocodingService;
+    }
+
+    [HttpGet("geocode")]
+    public async Task<IActionResult> Geocode([FromQuery] double lat, [FromQuery] double lng)
+    {
+        var address = await _geocodingService.GetAddressFromCoordinatesAsync(lat, lng);
+        return Ok(new { Latitude = lat, Longitude = lng, Address = address ?? "Không xác định" });
     }
 
     [HttpGet]

@@ -4,18 +4,55 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <Color x:Key="Primary">#512BD4</Color>
-    <Color x:Key="Secondary">#DFD8F7</Color>
-    <Color x:Key="Tertiary">#2B0B98</Color>
-    <Color x:Key="White">White</Color>
-    <Color x:Key="Black">Black</Color>
-    <Color x:Key="Gray100">#E4E4E4</Color>
-    <Color x:Key="Gray200">#C8C8C8</Color>
-    <Color x:Key="Gray300">#ACACAC</Color>
-    <Color x:Key="Gray400">#919191</Color>
-    <Color x:Key="Gray500">#757575</Color>
-    <Color x:Key="Gray600">#595959</Color>
-    <Color x:Key="Gray900">#2C2C2C</Color>
-    <Color x:Key="Gray950">#1C1C1C</Color>
+    <!-- Primary Theme Colors (Coral/Salmon) -->
+    <Color x:Key="Primary">#E07B4C</Color>
+    <Color x:Key="PrimaryDark">#C96A3E</Color>
+    <Color x:Key="PrimaryLight">#F5A882</Color>
+    
+    <!-- Secondary Theme Colors (Teal/Green) -->
+    <Color x:Key="Secondary">#4CAF50</Color>
+    <Color x:Key="SecondaryDark">#388E3C</Color>
+    <Color x:Key="SecondaryLight">#81C784</Color>
+    
+    <!-- Accent Colors -->
+    <Color x:Key="Accent">#FF6B35</Color>
+    <Color x:Key="AccentLight">#FF9B6B</Color>
+    
+    <!-- Background Colors -->
+    <Color x:Key="PageBackground">#F8F9FA</Color>
+    <Color x:Key="CardBackground">#FFFFFF</Color>
+    <Color x:Key="SurfaceColor">#FFFFFF</Color>
+    
+    <!-- Text Colors -->
+    <Color x:Key="TextPrimary">#212121</Color>
+    <Color x:Key="TextSecondary">#757575</Color>
+    <Color x:Key="TextLight">#FFFFFF</Color>
+    <Color x:Key="TextMuted">#9E9E9E</Color>
+    
+    <!-- Status Colors -->
+    <Color x:Key="Success">#4CAF50</Color>
+    <Color x:Key="Warning">#FFC107</Color>
+    <Color x:Key="Error">#F44336</Color>
+    <Color x:Key="Info">#2196F3</Color>
+    
+    <!-- Rating Star Color -->
+    <Color x:Key="StarColor">#FFB800</Color>
+    
+    <!-- Gray Scale -->
+    <Color x:Key="Gray50">#FAFAFA</Color>
+    <Color x:Key="Gray100">#F5F5F5</Color>
+    <Color x:Key="Gray200">#EEEEEE</Color>
+    <Color x:Key="Gray300">#E0E0E0</Color>
+    <Color x:Key="Gray400">#BDBDBD</Color>
+    <Color x:Key="Gray500">#9E9E9E</Color>
+    <Color x:Key="Gray600">#757575</Color>
+    <Color x:Key="Gray700">#616161</Color>
+    <Color x:Key="Gray800">#424242</Color>
+    <Color x:Key="Gray900">#212121</Color>
+    
+    <!-- Standard Colors -->
+    <Color x:Key="White">#FFFFFF</Color>
+    <Color x:Key="Black">#000000</Color>
+    <Color x:Key="Transparent">Transparent</Color>
 
 </ResourceDictionary>

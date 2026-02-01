@@ -1,13 +1,47 @@
 <?xml version = "1.0" encoding = "UTF-8" ?>
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:HeriStepAI.Mobile.Converters"
              x:Class="HeriStepAI.Mobile.App">
     <Application.Resources>
         <ResourceDictionary>
+            <!-- Màu cơ bản - đặt trước MergedDictionaries để luôn có sẵn -->
+            <Color x:Key="Primary">#E07B4C</Color>
+            <Color x:Key="White">#FFFFFF</Color>
+            <Color x:Key="Black">#000000</Color>
+            <Color x:Key="SecondaryLight">#81C784</Color>
+            <Color x:Key="Gray500">#9E9E9E</Color>
+            <Color x:Key="PageBackground">#F8F9FA</Color>
+            <Color x:Key="TextPrimary">#212121</Color>
+            <Color x:Key="TextSecondary">#757575</Color>
+            <Color x:Key="TextMuted">#9E9E9E</Color>
+            <Color x:Key="Gray100">#F5F5F5</Color>
+            <Color x:Key="Gray200">#EEEEEE</Color>
+            <Color x:Key="Gray300">#E0E0E0</Color>
+            <Color x:Key="Error">#F44336</Color>
+            <Color x:Key="StarColor">#FFB800</Color>
+            <Color x:Key="PrimaryLight">#F5A882</Color>
+            <Color x:Key="PrimaryDark">#C96A3E</Color>
+            <Color x:Key="Secondary">#4CAF50</Color>
+            <Color x:Key="CardBackground">#FFFFFF</Color>
+            <Color x:Key="Transparent">Transparent</Color>
+            
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Converters -->
+            <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
+            <converters:GenderColorConverter x:Key="GenderColorConverter" />
+            <converters:GenderTextColorConverter x:Key="GenderTextColorConverter" />
+            <converters:RegionColorConverter x:Key="RegionColorConverter" />
+            <converters:RegionTextColorConverter x:Key="RegionTextColorConverter" />
+            <converters:CategoryColorConverter x:Key="CategoryColorConverter" />
+            <converters:CategoryTextColorConverter x:Key="CategoryTextColorConverter" />
+            <converters:InvertBoolConverter x:Key="InvertBoolConverter" />
+            <converters:BoolToColorConverter x:Key="BoolToColorConverter" />
+            <converters:BoolToStatusConverter x:Key="BoolToStatusConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

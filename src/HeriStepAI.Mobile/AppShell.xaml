@@ -4,18 +4,16 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:HeriStepAI.Mobile.Views"
-    Shell.FlyoutBehavior="Flyout">
+    Shell.FlyoutBehavior="Disabled"
+    Shell.TabBarBackgroundColor="{StaticResource White}"
+    Shell.TabBarTitleColor="{StaticResource Primary}"
+    Shell.TabBarUnselectedColor="{StaticResource Gray500}">
 
     <TabBar>
-        <ShellContent
-            Title="Trang chủ"
-            ContentTemplate="{DataTemplate local:MainPage}" />
-        <ShellContent
-            Title="Bản đồ"
-            ContentTemplate="{DataTemplate local:MapPage}" />
-        <ShellContent
-            Title="Cài đặt"
-            ContentTemplate="{DataTemplate local:SettingsPage}" />
+        <ShellContent x:Name="MainTab" Title="Trang chủ" Icon="home" Route="MainPage" />
+        <ShellContent x:Name="MapTab" Title="Bản đồ" Icon="map" Route="MapPage" />
+        <ShellContent x:Name="POIListTab" Title="Địa điểm" Icon="location" Route="POIListPage" />
+        <ShellContent x:Name="SettingsTab" Title="Cài đặt" Icon="settings" Route="SettingsPage" />
     </TabBar>
 
 </Shell>

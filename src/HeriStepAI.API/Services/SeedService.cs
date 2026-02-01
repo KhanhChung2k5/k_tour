@@ -8,9 +8,50 @@ public class SeedService
 {
     private readonly ApplicationDbContext _context;
 
+    private const string AdminEmail = "admin@heristepai.com";
+    private const string AdminPassword = "admin123";
+
     public SeedService(ApplicationDbContext context)
     {
         _context = context;
+    }
+
+    /// <summary>
+    /// Đảm bảo có admin. force=true: reset mật khẩu admin về admin123.
+    /// </summary>
+    public async Task<(bool Created, string Message)> EnsureAdminAsync(bool force = false)
+    {
+        var admin = await _context.Users.FirstOrDefaultAsync(u => u.Email == AdminEmail);
+        if (admin != null)
+        {
+            if (force)
+            {
+                admin.PasswordHash = BCrypt.Net.BCrypt.HashPassword(AdminPassword);
+                admin.IsActive = true;
+                await _context.SaveChangesAsync();
+                return (false, "Admin password reset. Login: admin@heristepai.com / admin123");
+            }
+            return (false, "Admin exists. Login: admin@heristepai.com / admin123");
+        }
+
+        if (!await _context.Users.AnyAsync())
+        {
+            await SeedAsync();
+            return (true, "Seed completed. Login: admin@heristepai.com / admin123");
+        }
+
+        var newAdmin = new User
+        {
+            Username = "admin",
+            Email = AdminEmail,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(AdminPassword),
+            Role = UserRole.Admin,
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
+        };
+        _context.Users.Add(newAdmin);
+        await _context.SaveChangesAsync();
+        return (true, "Admin created. Login: admin@heristepai.com / admin123");
     }
 
     public async Task SeedAsync()
@@ -18,12 +59,11 @@ public class SeedService
         if (await _context.Users.AnyAsync())
             return;
 
-        // Create admin user
         var admin = new User
         {
             Username = "admin",
-            Email = "admin@heristepai.com",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
+            Email = AdminEmail,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(AdminPassword),
             Role = UserRole.Admin,
             CreatedAt = DateTime.UtcNow,
             IsActive = true

@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using HeriStepAI.API.Data;
 using HeriStepAI.API.Models;
 using Microsoft.EntityFrameworkCore;
@@ -60,7 +61,12 @@ public class AuthService : IAuthService
     private string GenerateJwtToken(User user)
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
-        var secretKey = jwtSettings["SecretKey"] ?? "YourSuperSecretKeyForJWTTokenGeneration12345";
+        // Đồng bộ với .env - Web và API phải dùng cùng secret
+        var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+            ?? jwtSettings["SecretKey"]
+            ?? "YourSuperSecretKeyForJWTTokenGeneration12345";
+        var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? jwtSettings["Issuer"] ?? "HeriStepAI";
+        var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? jwtSettings["Audience"] ?? "HeriStepAIUsers";
         var expirationMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "1440");
 
         var claims = new[]
@@ -71,12 +77,16 @@ public class AuthService : IAuthService
             new Claim(ClaimTypes.Role, user.Role.ToString())
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+        // HS256 yêu cầu key >= 256 bit (32 bytes)
+        var keyBytes = Encoding.UTF8.GetBytes(secretKey);
+        if (keyBytes.Length < 32)
+            keyBytes = SHA256.HashData(keyBytes);
+        var key = new SymmetricSecurityKey(keyBytes);
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: jwtSettings["Issuer"],
-            audience: jwtSettings["Audience"],
+            issuer: issuer,
+            audience: audience,
             claims: claims,
             expires: DateTime.UtcNow.AddMinutes(expirationMinutes),
             signingCredentials: credentials

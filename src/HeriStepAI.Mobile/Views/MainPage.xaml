@@ -3,54 +3,249 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="HeriStepAI.Mobile.Views.MainPage"
              xmlns:viewmodel="clr-namespace:HeriStepAI.Mobile.ViewModels"
-             xmlns:converters="clr-namespace:HeriStepAI.Mobile.Converters"
+             xmlns:models="clr-namespace:HeriStepAI.Mobile.Models"
              x:DataType="viewmodel:MainPageViewModel"
-             Title="Trang chủ">
-    <ContentPage.Resources>
-        <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
-    </ContentPage.Resources>
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
-        <StackLayout Padding="20" Spacing="20">
-            <Label Text="HeriStepAI" 
-                   FontSize="32" 
-                   FontAttributes="Bold" 
-                   HorizontalOptions="Center" />
-
-            <Label Text="Hệ thống Thuyết minh Tự động" 
-                   FontSize="18" 
-                   HorizontalOptions="Center" 
-                   TextColor="Gray" />
-
-            <Frame BackgroundColor="LightBlue" 
-                   Padding="15" 
-                   CornerRadius="10">
-                <StackLayout>
-                    <Label Text="Vị trí hiện tại:" 
-                           FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentLocationText}" />
-                    <Label Text="{Binding IsLocationEnabled, StringFormat='GPS: {0}'}" />
-                </StackLayout>
+        <Grid RowDefinitions="Auto,*" Padding="0">
+            
+            <!-- Header Section with Coral Background -->
+            <Frame Grid.Row="0" 
+                   BackgroundColor="{StaticResource Primary}" 
+                   CornerRadius="0"
+                   Padding="20,50,20,30"
+                   HasShadow="False"
+                   Margin="0,0,0,0">
+                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+                    
+                    <!-- App Title -->
+                    <VerticalStackLayout Grid.Row="0" Grid.Column="0" Spacing="4">
+                        <Label Text="HERISTEP AI"
+                               TextColor="{StaticResource White}"
+                               FontSize="28"
+                               FontAttributes="Bold" />
+                        <Label Text="ĐÀ NẴNG"
+                               TextColor="{StaticResource White}"
+                               FontSize="20"
+                               FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                    
+                    <!-- Location Icon -->
+                    <Frame Grid.Row="0" Grid.Column="1"
+                           BackgroundColor="{StaticResource White}"
+                           CornerRadius="20"
+                           WidthRequest="40"
+                           HeightRequest="40"
+                           Padding="0"
+                           HasShadow="False"
+                           VerticalOptions="Start">
+                        <Label Text="📍" 
+                               FontSize="20"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Frame>
+                    
+                    <!-- Welcome Message -->
+                    <VerticalStackLayout Grid.Row="1" Grid.ColumnSpan="2" Margin="0,20,0,0" Spacing="4">
+                        <Label Text="Chào mừng bạn đến với"
+                               TextColor="{StaticResource White}"
+                               FontSize="14" />
+                        <Label Text="HeriStepAI"
+                               TextColor="{StaticResource White}"
+                               FontSize="16"
+                               FontAttributes="Bold" />
+                        <Label Text="Ứng dụng thuyết minh tự động cho chuyến đi của bạn"
+                               TextColor="{StaticResource White}"
+                               FontSize="13"
+                               Opacity="0.9" />
+                    </VerticalStackLayout>
+                    
+                    <!-- Voice Selection Section -->
+                    <VerticalStackLayout Grid.Row="2" Grid.ColumnSpan="2" Margin="0,20,0,0" Spacing="12">
+                        <Label Text="Giọng thuyết minh"
+                               TextColor="{StaticResource White}"
+                               FontSize="14"
+                               FontAttributes="Bold" />
+                        
+                        <!-- Gender Selection -->
+                        <HorizontalStackLayout Spacing="8">
+                            <Button Text="Nam"
+                                    Command="{Binding SelectGenderCommand}"
+                                    CommandParameter="male"
+                                    WidthRequest="80"
+                                    HeightRequest="36"
+                                    CornerRadius="18"
+                                    Padding="0"
+                                    BackgroundColor="{Binding SelectedGender, Converter={StaticResource GenderColorConverter}, ConverterParameter='male'}"
+                                    TextColor="{Binding SelectedGender, Converter={StaticResource GenderTextColorConverter}, ConverterParameter='male'}" />
+                            <Button Text="Nữ"
+                                    Command="{Binding SelectGenderCommand}"
+                                    CommandParameter="female"
+                                    WidthRequest="80"
+                                    HeightRequest="36"
+                                    CornerRadius="18"
+                                    Padding="0"
+                                    BackgroundColor="{Binding SelectedGender, Converter={StaticResource GenderColorConverter}, ConverterParameter='female'}"
+                                    TextColor="{Binding SelectedGender, Converter={StaticResource GenderTextColorConverter}, ConverterParameter='female'}" />
+                        </HorizontalStackLayout>
+                        
+                        <!-- Region Selection -->
+                        <HorizontalStackLayout Spacing="8">
+                            <Button Text="Miền Bắc"
+                                    Command="{Binding SelectRegionCommand}"
+                                    CommandParameter="north"
+                                    HeightRequest="36"
+                                    CornerRadius="18"
+                                    Padding="16,0"
+                                    BackgroundColor="{Binding SelectedRegion, Converter={StaticResource RegionColorConverter}, ConverterParameter='north'}"
+                                    TextColor="{Binding SelectedRegion, Converter={StaticResource RegionTextColorConverter}, ConverterParameter='north'}" />
+                            <Button Text="Miền Trung"
+                                    Command="{Binding SelectRegionCommand}"
+                                    CommandParameter="central"
+                                    HeightRequest="36"
+                                    CornerRadius="18"
+                                    Padding="16,0"
+                                    BackgroundColor="{Binding SelectedRegion, Converter={StaticResource RegionColorConverter}, ConverterParameter='central'}"
+                                    TextColor="{Binding SelectedRegion, Converter={StaticResource RegionTextColorConverter}, ConverterParameter='central'}" />
+                            <Button Text="Miền Nam"
+                                    Command="{Binding SelectRegionCommand}"
+                                    CommandParameter="south"
+                                    HeightRequest="36"
+                                    CornerRadius="18"
+                                    Padding="16,0"
+                                    BackgroundColor="{Binding SelectedRegion, Converter={StaticResource RegionColorConverter}, ConverterParameter='south'}"
+                                    TextColor="{Binding SelectedRegion, Converter={StaticResource RegionTextColorConverter}, ConverterParameter='south'}" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Grid>
             </Frame>
-
-            <Frame BackgroundColor="LightGreen" 
-                   Padding="15" 
-                   CornerRadius="10"
-                   IsVisible="{Binding CurrentPOI, Converter={StaticResource IsNotNullConverter}}">
-                <StackLayout>
-                    <Label Text="Điểm thuyết minh:" 
-                           FontAttributes="Bold" />
-                    <Label Text="{Binding CurrentPOI.Name}" 
-                           FontSize="18" />
-                    <Label Text="{Binding CurrentPOI.Description}" />
-                </StackLayout>
-            </Frame>
-
-            <Button Text="Làm mới POI" 
-                    Command="{Binding RefreshPOIsCommand}" 
-                    BackgroundColor="Blue" 
-                    TextColor="White" />
-        </StackLayout>
+            
+            <!-- Content Section -->
+            <VerticalStackLayout Grid.Row="1" Padding="16,20" Spacing="16">
+                
+                <!-- Tour Selection Section -->
+                <Label Text="Chọn Tour"
+                       Style="{StaticResource SectionHeader}" />
+                
+                <!-- Tour Cards Horizontal Scroll -->
+                <ScrollView Orientation="Horizontal" 
+                            HorizontalScrollBarVisibility="Never">
+                    <HorizontalStackLayout Spacing="12" BindableLayout.ItemsSource="{Binding Tours}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:Tour">
+                                <Frame Style="{StaticResource CardFrame}"
+                                       WidthRequest="160"
+                                       HeightRequest="120"
+                                       Padding="0">
+                                    <Frame.GestureRecognizers>
+                                        <TapGestureRecognizer 
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MainPageViewModel}}, Path=SelectTourCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Frame.GestureRecognizers>
+                                    <Grid>
+                                        <!-- Tour Image Background -->
+                                        <Image Source="{Binding ImageUrl}"
+                                               Aspect="AspectFill"
+                                               Opacity="0.8" />
+                                        <!-- Overlay -->
+                                        <BoxView Color="{StaticResource Black}" Opacity="0.3" />
+                                        <!-- Tour Name -->
+                                        <Label Text="{Binding Name}"
+                                               TextColor="{StaticResource White}"
+                                               FontSize="14"
+                                               FontAttributes="Bold"
+                                               VerticalOptions="End"
+                                               Margin="12" />
+                                    </Grid>
+                                </Frame>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </HorizontalStackLayout>
+                </ScrollView>
+                
+                <!-- Create New Tour Button -->
+                <Button Text="Tạo Tour mới"
+                        Command="{Binding CreateTourCommand}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource White}"
+                        CornerRadius="25"
+                        HeightRequest="50"
+                        Margin="0,8,0,0" />
+                
+                <!-- Recent Tours Section -->
+                <Label Text="Tour gần đây"
+                       Style="{StaticResource SectionHeader}" />
+                
+                <CollectionView ItemsSource="{Binding RecentTours}"
+                                SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Tour">
+                            <Frame Style="{StaticResource CardFrame}"
+                                   Margin="0,0,0,12"
+                                   Padding="0">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer 
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MainPageViewModel}}, Path=SelectTourCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Frame.GestureRecognizers>
+                                <Grid ColumnDefinitions="100,*" HeightRequest="80">
+                                    <!-- Tour Image -->
+                                    <Image Source="{Binding ImageUrl}"
+                                           Aspect="AspectFill"
+                                           WidthRequest="100" />
+                                    
+                                    <!-- Tour Info -->
+                                    <VerticalStackLayout Grid.Column="1" 
+                                                         Padding="12"
+                                                         VerticalOptions="Center"
+                                                         Spacing="4">
+                                        <Label Text="{Binding Name}"
+                                               Style="{StaticResource TitleLabel}"
+                                               FontSize="15"
+                                               LineBreakMode="TailTruncation" />
+                                        <HorizontalStackLayout Spacing="8">
+                                            <Label Text="⏱"
+                                                   TextColor="{StaticResource TextMuted}"
+                                                   FontSize="12" />
+                                            <Label Text="{Binding EstimatedMinutes, StringFormat='{0} phút'}"
+                                                   Style="{StaticResource CaptionLabel}" />
+                                            <Label Text="📍"
+                                                   TextColor="{StaticResource TextMuted}"
+                                                   FontSize="12" />
+                                            <Label Text="{Binding POICount, StringFormat='{0} điểm'}"
+                                                   Style="{StaticResource CaptionLabel}" />
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+                
+                <!-- Current Location Status (hidden when not needed) -->
+                <Frame BackgroundColor="{StaticResource SecondaryLight}"
+                       Padding="12"
+                       CornerRadius="12"
+                       IsVisible="{Binding ShowLocationStatus}"
+                       HasShadow="False">
+                    <HorizontalStackLayout Spacing="8">
+                        <Label Text="📍" FontSize="16" />
+                        <Label Text="{Binding CurrentLocationText}"
+                               Style="{StaticResource BodyLabel}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Frame>
+                
+                <!-- Loading Indicator -->
+                <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                   IsVisible="{Binding IsLoading}"
+                                   Color="{StaticResource Primary}"
+                                   HorizontalOptions="Center" />
+                
+            </VerticalStackLayout>
+        </Grid>
     </ScrollView>
 
 </ContentPage>

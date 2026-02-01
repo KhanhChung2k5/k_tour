@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HeriStepAI.Mobile.Views.POIListPage"
+             xmlns:viewmodel="clr-namespace:HeriStepAI.Mobile.ViewModels"
+             xmlns:models="clr-namespace:HeriStepAI.Mobile.Models"
+             x:DataType="viewmodel:POIListViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource PageBackground}">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+        
+        <!-- Search Bar Section -->
+        <Frame Grid.Row="0"
+               BackgroundColor="{StaticResource White}"
+               CornerRadius="0"
+               Padding="16,50,16,16"
+               HasShadow="True">
+            <Grid ColumnDefinitions="Auto,*">
+                <!-- Back Button -->
+                <Frame Grid.Column="0"
+                       BackgroundColor="{StaticResource Gray100}"
+                       CornerRadius="20"
+                       WidthRequest="40"
+                       HeightRequest="40"
+                       Padding="0"
+                       HasShadow="False"
+                       Margin="0,0,12,0">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoBackCommand}" />
+                    </Frame.GestureRecognizers>
+                    <Label Text="←"
+                           FontSize="20"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Frame>
+                
+                <!-- Search Entry -->
+                <Frame Grid.Column="1"
+                       BackgroundColor="{StaticResource Gray100}"
+                       CornerRadius="25"
+                       Padding="16,0"
+                       HasShadow="False">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Label Text="🔍"
+                               FontSize="16"
+                               VerticalOptions="Center"
+                               Margin="0,0,8,0" />
+                        <Entry Grid.Column="1"
+                               Placeholder="Tìm kiếm địa điểm..."
+                               Text="{Binding SearchText}"
+                               BackgroundColor="Transparent"
+                               FontSize="16"
+                               VerticalOptions="Center" />
+                    </Grid>
+                </Frame>
+            </Grid>
+        </Frame>
+        
+        <!-- Category Tabs -->
+        <ScrollView Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalScrollBarVisibility="Never"
+                    BackgroundColor="{StaticResource White}">
+            <HorizontalStackLayout Padding="16,8" Spacing="8">
+                <Button Text="Tất cả"
+                        Command="{Binding SelectCategoryCommand}"
+                        CommandParameter="0"
+                        HeightRequest="36"
+                        CornerRadius="18"
+                        Padding="16,0"
+                        BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='0'}"
+                        TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='0'}" />
+                <Button Text="Tham quan"
+                        Command="{Binding SelectCategoryCommand}"
+                        CommandParameter="1"
+                        HeightRequest="36"
+                        CornerRadius="18"
+                        Padding="16,0"
+                        BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='1'}"
+                        TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='1'}" />
+                <Button Text="Ẩm thực"
+                        Command="{Binding SelectCategoryCommand}"
+                        CommandParameter="2"
+                        HeightRequest="36"
+                        CornerRadius="18"
+                        Padding="16,0"
+                        BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='2'}"
+                        TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='2'}" />
+                <Button Text="Nghỉ dưỡng"
+                        Command="{Binding SelectCategoryCommand}"
+                        CommandParameter="3"
+                        HeightRequest="36"
+                        CornerRadius="18"
+                        Padding="16,0"
+                        BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='3'}"
+                        TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='3'}" />
+            </HorizontalStackLayout>
+        </ScrollView>
+        
+        <!-- POI List -->
+        <RefreshView Grid.Row="2"
+                     Command="{Binding RefreshCommand}"
+                     IsRefreshing="{Binding IsRefreshing}">
+            <CollectionView ItemsSource="{Binding FilteredPOIs}"
+                            SelectionMode="None"
+                            Margin="16,8">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:POI">
+                        <Frame Style="{StaticResource CardFrame}"
+                               Margin="0,0,0,12"
+                               Padding="0">
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer 
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectPOICommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Frame.GestureRecognizers>
+                            
+                            <Grid ColumnDefinitions="120,*" HeightRequest="100">
+                                <!-- POI Image -->
+                                <Frame Grid.Column="0"
+                                       CornerRadius="16"
+                                       Padding="0"
+                                       HasShadow="False"
+                                       IsClippedToBounds="True">
+                                    <Image Source="{Binding ImageUrl}"
+                                           Aspect="AspectFill"
+                                           WidthRequest="120"
+                                           HeightRequest="100" />
+                                </Frame>
+                                
+                                <!-- POI Info -->
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Padding="12,8"
+                                                     Spacing="4"
+                                                     VerticalOptions="Center">
+                                    <!-- Name -->
+                                    <Label Text="{Binding Name}"
+                                           Style="{StaticResource TitleLabel}"
+                                           FontSize="16"
+                                           LineBreakMode="TailTruncation"
+                                           MaxLines="2" />
+                                    
+                                    <!-- Rating -->
+                                    <HorizontalStackLayout Spacing="4">
+                                        <Label Text="⭐"
+                                               FontSize="12"
+                                               TextColor="{StaticResource StarColor}" />
+                                        <Label Text="{Binding RatingText}"
+                                               FontSize="12"
+                                               TextColor="{StaticResource TextSecondary}" />
+                                        <Label Text="{Binding ReviewCount, StringFormat='({0})'}"
+                                               FontSize="12"
+                                               TextColor="{StaticResource TextMuted}" />
+                                    </HorizontalStackLayout>
+                                    
+                                    <!-- Time and Distance -->
+                                    <HorizontalStackLayout Spacing="12">
+                                        <HorizontalStackLayout Spacing="4">
+                                            <Label Text="⏱"
+                                                   FontSize="11"
+                                                   TextColor="{StaticResource Primary}" />
+                                            <Label Text="{Binding EstimatedMinutes, StringFormat='{0} phút'}"
+                                                   FontSize="12"
+                                                   TextColor="{StaticResource TextSecondary}" />
+                                        </HorizontalStackLayout>
+                                        <HorizontalStackLayout Spacing="4">
+                                            <Label Text="📍"
+                                                   FontSize="11"
+                                                   TextColor="{StaticResource Primary}" />
+                                            <Label Text="{Binding DistanceText}"
+                                                   FontSize="12"
+                                                   TextColor="{StaticResource TextSecondary}" />
+                                        </HorizontalStackLayout>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+                
+                <!-- Empty State -->
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout VerticalOptions="Center"
+                                         HorizontalOptions="Center"
+                                         Spacing="12"
+                                         Padding="40">
+                        <Label Text="📍"
+                               FontSize="48"
+                               HorizontalOptions="Center" />
+                        <Label Text="Không tìm thấy địa điểm"
+                               Style="{StaticResource TitleLabel}"
+                               HorizontalOptions="Center" />
+                        <Label Text="Thử tìm với từ khóa khác"
+                               Style="{StaticResource BodyLabel}"
+                               HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+            </CollectionView>
+        </RefreshView>
+        
+        <!-- Loading Overlay -->
+        <Grid Grid.RowSpan="3"
+              BackgroundColor="#80000000"
+              IsVisible="{Binding IsLoading}">
+            <ActivityIndicator IsRunning="{Binding IsLoading}"
+                               Color="{StaticResource White}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"
+                               WidthRequest="50"
+                               HeightRequest="50" />
+        </Grid>
+    </Grid>
+
+</ContentPage>

@@ -13,7 +13,12 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error in MainPage constructor: {ex}");
+            System.Diagnostics.Debug.WriteLine($"[MainPage] Error: {ex}");
+            Content = new VerticalStackLayout
+            {
+                Padding = 20,
+                Children = { new Label { Text = $"Lỗi MainPage: {ex.Message}", TextColor = Colors.Red } }
+            };
         }
     }
 }

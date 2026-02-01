@@ -1,5 +1,7 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
@@ -8,12 +10,10 @@ namespace HeriStepAI.Web.Controllers;
 public class AuthController : Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IConfiguration _configuration;
 
-    public AuthController(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+    public AuthController(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
-        _configuration = configuration;
     }
 
     [HttpGet]
@@ -26,37 +26,79 @@ public class AuthController : Controller
     public async Task<IActionResult> Login(string email, string password)
     {
         var client = _httpClientFactory.CreateClient("API");
-        var loginRequest = new { Email = email, Password = password };
-        var json = JsonSerializer.Serialize(loginRequest);
+        var json = JsonSerializer.Serialize(new { Email = email, Password = password });
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await client.PostAsync("auth/login", content);
+        HttpResponseMessage response;
+        try
+        {
+            response = await client.PostAsync("auth/login", content);
+        }
+        catch (Exception ex)
+        {
+            ViewBag.Error = "Không kết nối được API. Kiểm tra API đang chạy (port 5000).";
+            return View();
+        }
+
         if (response.IsSuccessStatusCode)
         {
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<LoginResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            
-            // Store token in cookie
-            Response.Cookies.Append("AuthToken", result!.Token, new CookieOptions
+            var body = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<LoginResponse>(body, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            if (result?.Token == null) { ViewBag.Error = "Lỗi đăng nhập."; return View(); }
+
+            // Lấy claims từ JWT (phần payload giữa 2 dấu chấm)
+            var claims = GetClaimsFromJwt(result.Token);
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, new AuthenticationProperties
             {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTimeOffset.UtcNow.AddDays(1)
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(1)
             });
+
+            // Lưu token cho các gọi API từ server
+            Response.Cookies.Append("AuthToken", result.Token, new CookieOptions { HttpOnly = true, Secure = Request.IsHttps, SameSite = SameSiteMode.Lax, Path = "/", Expires = DateTimeOffset.UtcNow.AddDays(1) });
 
             return RedirectToAction("Dashboard", "Home");
         }
 
-        ViewBag.Error = "Invalid credentials";
+        ViewBag.Error = response.StatusCode == System.Net.HttpStatusCode.Unauthorized
+            ? "Email hoặc mật khẩu không đúng. Dùng admin@heristepai.com / admin123."
+            : $"Lỗi API ({(int)response.StatusCode}).";
         return View();
     }
 
     [HttpPost]
-    public IActionResult Logout()
+    public async Task<IActionResult> Logout()
     {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         Response.Cookies.Delete("AuthToken");
         return RedirectToAction("Index", "Home");
+    }
+
+    private static List<Claim> GetClaimsFromJwt(string token)
+    {
+        var claims = new List<Claim> { new(ClaimTypes.Name, "Admin") };
+        try
+        {
+            var parts = token.Split('.');
+            if (parts.Length >= 2)
+            {
+                var payload = parts[1];
+                payload = payload.Replace('-', '+').Replace('_', '/');
+                switch (payload.Length % 4) { case 2: payload += "=="; break; case 3: payload += "="; break; }
+                var bytes = Convert.FromBase64String(payload);
+                var json = Encoding.UTF8.GetString(bytes);
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+                if (root.TryGetProperty("nameid", out var nameId)) claims.Add(new Claim(ClaimTypes.NameIdentifier, nameId.GetString() ?? ""));
+                if (root.TryGetProperty("email", out var email)) claims.Add(new Claim(ClaimTypes.Email, email.GetString() ?? ""));
+                if (root.TryGetProperty("role", out var role)) claims.Add(new Claim(ClaimTypes.Role, role.GetString() ?? ""));
+            }
+        }
+        catch { /* fallback claims */ }
+        return claims;
     }
 }
 

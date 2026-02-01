@@ -8,6 +8,8 @@ public partial class MapPage : ContentPage
 {
     private readonly MapPageViewModel _viewModel;
 
+    public MapPage() : this(GetViewModel()) { }
+
     public MapPage(MapPageViewModel viewModel)
     {
         try
@@ -20,12 +22,24 @@ public partial class MapPage : ContentPage
             
             // Subscribe to POI selection from map
             MapWebView.Navigating += OnMapNavigating;
+            
+            // Subscribe to map update requests
+            _viewModel.MapNeedsUpdate += OnMapNeedsUpdate;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error in MapPage constructor: {ex}");
             _viewModel = viewModel ?? throw new InvalidOperationException("ViewModel cannot be null");
         }
+    }
+
+    static MapPageViewModel GetViewModel() =>
+        App.Services?.GetService<MapPageViewModel>()
+        ?? throw new InvalidOperationException("MapPageViewModel not found. Check DI.");
+
+    private void OnMapNeedsUpdate(object? sender, EventArgs e)
+    {
+        LoadMapAsync();
     }
 
     private async void LoadMapAsync()
@@ -62,10 +76,107 @@ public partial class MapPage : ContentPage
         sb.AppendLine("<link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' />");
         sb.AppendLine("<script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>");
         sb.AppendLine("<style>");
-        sb.AppendLine("body { margin: 0; padding: 0; }");
-        sb.AppendLine("#map { width: 100%; height: 100vh; }");
-        sb.AppendLine(".custom-marker { background-color: #ff0000; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; }");
-        sb.AppendLine(".current-location-marker { background-color: #0066ff; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; }");
+        sb.AppendLine("* { margin: 0; padding: 0; box-sizing: border-box; }");
+        sb.AppendLine("body { margin: 0; padding: 0; overflow: hidden; }");
+        sb.AppendLine("#map { width: 100vw; height: 100vh; }");
+        sb.AppendLine(@"
+            .poi-marker {
+                background: linear-gradient(135deg, #E07B4C 0%, #C96A3E 100%);
+                width: 36px;
+                height: 36px;
+                border-radius: 50% 50% 50% 0;
+                transform: rotate(-45deg);
+                border: 3px solid white;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .poi-marker-inner {
+                transform: rotate(45deg);
+                font-size: 16px;
+            }
+            .nearest-marker {
+                background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+                width: 44px;
+                height: 44px;
+                border-radius: 50% 50% 50% 0;
+                transform: rotate(-45deg);
+                border: 4px solid #FFD700;
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+                animation: pulse 2s infinite;
+            }
+            @keyframes pulse {
+                0% { box-shadow: 0 0 10px rgba(76, 175, 80, 0.6); }
+                50% { box-shadow: 0 0 25px rgba(76, 175, 80, 0.8); }
+                100% { box-shadow: 0 0 10px rgba(76, 175, 80, 0.6); }
+            }
+            .current-location {
+                background: #2196F3;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                border: 4px solid white;
+                box-shadow: 0 0 15px rgba(33, 150, 243, 0.7);
+            }
+            .popup-content {
+                padding: 12px;
+                min-width: 220px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            }
+            .popup-title {
+                font-size: 16px;
+                font-weight: 700;
+                color: #212121;
+                margin-bottom: 6px;
+            }
+            .popup-address {
+                font-size: 12px;
+                color: #757575;
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+            .popup-desc {
+                font-size: 13px;
+                color: #424242;
+                margin-bottom: 10px;
+                line-height: 1.4;
+            }
+            .popup-meta {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 12px;
+                font-size: 12px;
+                color: #757575;
+            }
+            .popup-btn {
+                width: 100%;
+                padding: 12px;
+                background: linear-gradient(135deg, #E07B4C 0%, #C96A3E 100%);
+                color: white;
+                border: none;
+                border-radius: 25px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+            }
+            .popup-btn:active {
+                transform: scale(0.98);
+            }
+            .leaflet-popup-content-wrapper {
+                border-radius: 16px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            }
+            .leaflet-popup-tip {
+                background: white;
+            }
+        ");
         sb.AppendLine("</style>");
         sb.AppendLine("</head>");
         sb.AppendLine("<body>");
@@ -76,9 +187,9 @@ public partial class MapPage : ContentPage
         var centerLng = currentLocation?.Longitude ?? 108.2022;
 
         // Initialize Leaflet map with OpenStreetMap
-        sb.AppendLine($"var map = L.map('map').setView([{centerLat}, {centerLng}], 14);");
+        sb.AppendLine($"var map = L.map('map', {{ zoomControl: false }}).setView([{centerLat}, {centerLng}], 15);");
         sb.AppendLine("L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {");
-        sb.AppendLine("  attribution: '© OpenStreetMap contributors',");
+        sb.AppendLine("  attribution: '© OpenStreetMap',");
         sb.AppendLine("  maxZoom: 19");
         sb.AppendLine("}).addTo(map);");
 
@@ -86,33 +197,58 @@ public partial class MapPage : ContentPage
         if (currentLocation != null)
         {
             sb.AppendLine($"var currentLocationIcon = L.divIcon({{");
-            sb.AppendLine("  className: 'current-location-marker',");
-            sb.AppendLine("  iconSize: [20, 20]");
+            sb.AppendLine("  className: 'current-location',");
+            sb.AppendLine("  iconSize: [20, 20],");
+            sb.AppendLine("  iconAnchor: [10, 10]");
             sb.AppendLine("});");
             sb.AppendLine($"var currentMarker = L.marker([{currentLocation.Latitude}, {currentLocation.Longitude}], {{ icon: currentLocationIcon }}).addTo(map);");
-            sb.AppendLine("currentMarker.bindPopup('<b>Vị trí của bạn</b>').openPopup();");
+            sb.AppendLine("currentMarker.bindPopup('<div class=\"popup-content\"><div class=\"popup-title\">📍 Vị trí của bạn</div></div>');");
         }
+
+        // Find nearest POI to highlight
+        var nearestPoiId = currentLocation != null && pois.Any()
+            ? pois.OrderBy(p => HaversineDistance(currentLocation.Latitude, currentLocation.Longitude, p.Latitude, p.Longitude)).First().Id
+            : (int?)null;
 
         // Add POI markers
         foreach (var poi in pois)
         {
-            var escapedName = poi.Name.Replace("'", "\\'").Replace("\"", "\\\"");
-            var escapedDesc = poi.Description.Replace("'", "\\'").Replace("\"", "\\\"");
+            var escapedName = EscapeJs(poi.Name);
+            var escapedDesc = EscapeJs(poi.Description);
+            var escapedAddr = EscapeJs(poi.Address ?? "");
+            var isNearest = poi.Id == nearestPoiId;
+            var distance = currentLocation != null 
+                ? HaversineDistance(currentLocation.Latitude, currentLocation.Longitude, poi.Latitude, poi.Longitude) 
+                : 0;
+            var distanceText = distance < 1000 ? $"{distance:F0}m" : $"{distance / 1000:F1}km";
+            var rating = poi.Rating?.ToString("F1") ?? "4.5";
 
             sb.AppendLine($"var poiIcon{poi.Id} = L.divIcon({{");
-            sb.AppendLine("  className: 'custom-marker',");
-            sb.AppendLine("  iconSize: [20, 20]");
+            sb.AppendLine($"  className: '{(isNearest ? "nearest-marker" : "poi-marker")}',");
+            sb.AppendLine($"  iconSize: [{(isNearest ? 44 : 36)}, {(isNearest ? 44 : 36)}],");
+            sb.AppendLine($"  iconAnchor: [{(isNearest ? 22 : 18)}, {(isNearest ? 44 : 36)}],");
+            sb.AppendLine($"  popupAnchor: [0, {(isNearest ? -44 : -36)}],");
+            sb.AppendLine($"  html: '<div class=\"poi-marker-inner\">📍</div>'");
             sb.AppendLine("});");
             
             sb.AppendLine($"var marker{poi.Id} = L.marker([{poi.Latitude}, {poi.Longitude}], {{ icon: poiIcon{poi.Id} }}).addTo(map);");
             
-            sb.AppendLine($"var popup{poi.Id} = L.popup().setContent('<div style=\"padding: 10px;\"><h3 style=\"margin: 0 0 10px 0;\">{escapedName}</h3><p style=\"margin: 0;\">{escapedDesc}</p><button onclick=\"selectPOI({poi.Id})\" style=\"margin-top: 10px; padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;\">Xem chi tiết</button></div>');");
-            sb.AppendLine($"marker{poi.Id}.bindPopup(popup{poi.Id});");
-
-            // Click event to trigger POI selection
-            sb.AppendLine($"marker{poi.Id}.on('click', function() {{");
-            sb.AppendLine($"  selectPOI({poi.Id});");
-            sb.AppendLine($"}});");
+            var addrHtml = string.IsNullOrEmpty(poi.Address) ? "" : $"<div class=\"popup-address\">📍 {escapedAddr}</div>";
+            var popupHtml = $@"
+                <div class=\""popup-content\"">
+                    <div class=\""popup-title\"">{escapedName}</div>
+                    {addrHtml}
+                    <div class=\""popup-desc\"">{escapedDesc}</div>
+                    <div class=\""popup-meta\"">
+                        <span>⭐ {rating}</span>
+                        <span>📍 {distanceText}</span>
+                        <span>⏱ {poi.EstimatedMinutes} phút</span>
+                    </div>
+                    <button class=\""popup-btn\"" onclick=\""selectPOI({poi.Id})\"">🔊 Nghe thuyết minh</button>
+                </div>
+            ".Replace("\n", "").Replace("\r", "");
+            
+            sb.AppendLine($"marker{poi.Id}.bindPopup('{popupHtml}');");
         }
 
         // Function to handle POI selection
@@ -127,11 +263,25 @@ public partial class MapPage : ContentPage
         return sb.ToString();
     }
 
-    private async void OnPOISelected(object? sender, SelectionChangedEventArgs e)
+    private static string EscapeJs(string text)
     {
-        if (e.CurrentSelection.FirstOrDefault() is POI poi)
-        {
-            await _viewModel.POISelectedCommand.ExecuteAsync(poi);
-        }
+        return text
+            .Replace("\\", "\\\\")
+            .Replace("'", "\\'")
+            .Replace("\"", "\\\"")
+            .Replace("\r", "")
+            .Replace("\n", " ");
+    }
+
+    private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)
+    {
+        const double R = 6371000;
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                Math.Cos(lat1 * Math.PI / 180) * Math.Cos(lat2 * Math.PI / 180) *
+                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        return R * c;
     }
 }

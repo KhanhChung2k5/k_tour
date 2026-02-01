@@ -1,37 +1,27 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using DotNetEnv;
+using Microsoft.AspNetCore.Authentication.Cookies;
+
+// Load .env
+var envPaths = new[]
+{
+    Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env"),
+    Path.Combine(Directory.GetCurrentDirectory(), ".env")
+};
+foreach (var p in envPaths) { if (File.Exists(p)) { Env.Load(p); break; } }
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
+builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(5001));
 builder.Services.AddControllersWithViews();
 
-// JWT Authentication
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"] ?? "YourSuperSecretKeyForJWTTokenGeneration12345";
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultSignInScheme = "Cookies";
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+// Cookie authentication - đơn giản, ổn định hơn JWT Bearer cho Web MVC
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"] ?? "HeriStepAI",
-        ValidAudience = jwtSettings["Audience"] ?? "HeriStepAIUsers",
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
-    };
-})
-.AddCookie("Cookies");
-
+        options.LoginPath = "/Auth/Login";
+        options.ExpireTimeSpan = TimeSpan.FromDays(1);
+        options.SlidingExpiration = true;
+    });
 builder.Services.AddAuthorization();
 
 // HTTP Client for API
@@ -50,7 +40,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Bỏ HTTPS redirect khi dùng HTTP local
+// app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();

@@ -7,10 +7,12 @@ namespace HeriStepAI.API.Services;
 public class POIService : IPOIService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IGeocodingService _geocodingService;
 
-    public POIService(ApplicationDbContext context)
+    public POIService(ApplicationDbContext context, IGeocodingService geocodingService)
     {
         _context = context;
+        _geocodingService = geocodingService;
     }
 
     public async Task<List<POI>> GetAllPOIsAsync()
@@ -33,6 +35,8 @@ public class POIService : IPOIService
     {
         poi.CreatedAt = DateTime.UtcNow;
         poi.UpdatedAt = DateTime.UtcNow;
+        if (string.IsNullOrEmpty(poi.Address))
+            poi.Address = await _geocodingService.GetAddressFromCoordinatesAsync(poi.Latitude, poi.Longitude);
         _context.POIs.Add(poi);
         await _context.SaveChangesAsync();
         return poi;
@@ -51,6 +55,10 @@ public class POIService : IPOIService
         existing.Priority = poi.Priority;
         existing.ImageUrl = poi.ImageUrl;
         existing.MapLink = poi.MapLink;
+        if (string.IsNullOrEmpty(poi.Address))
+            existing.Address = await _geocodingService.GetAddressFromCoordinatesAsync(poi.Latitude, poi.Longitude);
+        else
+            existing.Address = poi.Address;
         existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();

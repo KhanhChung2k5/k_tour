@@ -4,14 +4,17 @@ public partial class App : Application
 {
     private const string LogTag = "HeriStepAI";
 
-    public App()
+    public static IServiceProvider? Services { get; private set; }
+
+    public App(IServiceProvider serviceProvider)
     {
         try
         {
+            Services = serviceProvider;
             LogToDebug("App: InitializeComponent...");
             InitializeComponent();
             LogToDebug("App: Creating AppShell...");
-            MainPage = new AppShell();
+            MainPage = serviceProvider.GetRequiredService<AppShell>();
             LogToDebug("App: Started successfully");
         }
         catch (Exception ex)

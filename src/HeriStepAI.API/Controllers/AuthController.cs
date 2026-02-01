@@ -1,3 +1,4 @@
+using HeriStepAI.API.Data;
 using HeriStepAI.API.Models;
 using HeriStepAI.API.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -10,18 +11,36 @@ namespace HeriStepAI.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly ApplicationDbContext _context;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, ApplicationDbContext context)
     {
         _authService = authService;
+        _context = context;
+    }
+
+    /// <summary>
+    /// Seed admin. ?force=1 để reset mật khẩu admin về admin123.
+    /// GET http://localhost:5000/api/auth/seed
+    /// </summary>
+    [HttpGet("seed")]
+    public async Task<IActionResult> Seed([FromQuery] bool force = false)
+    {
+        var seedService = new SeedService(_context);
+        var (created, message) = await seedService.EnsureAdminAsync(force);
+        return Ok(new { Created = created, Message = message });
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest? request)
     {
+        if (request == null || string.IsNullOrWhiteSpace(request.Email))
+        {
+            return BadRequest(new { Message = "Email and password required" });
+        }
         try
         {
-            var token = await _authService.LoginAsync(request.Email, request.Password);
+            var token = await _authService.LoginAsync(request.Email, request.Password ?? "");
             return Ok(new { Token = token });
         }
         catch (UnauthorizedAccessException)

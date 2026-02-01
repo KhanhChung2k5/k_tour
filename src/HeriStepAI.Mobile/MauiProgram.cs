@@ -31,11 +31,14 @@ public static class MauiProgram
         // ViewModels
         builder.Services.AddTransient<MainPageViewModel>();
         builder.Services.AddTransient<MapPageViewModel>();
+        builder.Services.AddTransient<POIListViewModel>();
         builder.Services.AddTransient<SettingsPageViewModel>();
 
-        // Views
+        // Shell & Views
+        builder.Services.AddSingleton<AppShell>();
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<MapPage>();
+        builder.Services.AddTransient<POIListPage>();
         builder.Services.AddTransient<SettingsPage>();
 
 #if DEBUG

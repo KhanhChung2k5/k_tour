@@ -6,8 +6,12 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using DotNetEnv;
 
-// Load .env file
-Env.Load();
+// Load .env từ thư mục gốc solution (đồng bộ JWT với Web)
+var envPaths = new[] {
+    Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env"),
+    Path.Combine(Directory.GetCurrentDirectory(), ".env")
+};
+foreach (var p in envPaths) { if (File.Exists(p)) { Env.Load(p); break; } }
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,19 +79,17 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// Services
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IGeocodingService, GeocodingService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPOIService, POIService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Swagger - bật cho mọi môi trường (localhost dev)
+app.UseSwagger();
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "HeriStepAI API"));
 
 // app.UseHttpsRedirection(); // Disabled for development
 app.UseCors("AllowAll");
@@ -103,23 +105,23 @@ try
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         try
         {
-            db.Database.EnsureCreated();
+            await db.Database.MigrateAsync();
         }
         catch (Exception ex)
         {
-            // Log but continue startup
-            Console.WriteLine($"Warning: Failed to ensure database created: {ex.Message}");
+            Console.WriteLine($"Warning: Migration failed: {ex.Message}");
         }
 
         try
         {
-            // Seed initial data
             var seedService = new SeedService(db);
             await seedService.SeedAsync();
+            var (_, msg) = await seedService.EnsureAdminAsync(force: false);
+            Console.WriteLine($"Seed: {msg}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Warning: Failed to seed database: {ex.Message}");
+            Console.WriteLine($"Warning: Seed failed: {ex.Message}");
         }
     }
 }

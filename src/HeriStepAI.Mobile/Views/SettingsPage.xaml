@@ -4,35 +4,175 @@
              x:Class="HeriStepAI.Mobile.Views.SettingsPage"
              xmlns:viewmodel="clr-namespace:HeriStepAI.Mobile.ViewModels"
              x:DataType="viewmodel:SettingsPageViewModel"
-             Title="Cài đặt">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
-        <StackLayout Padding="20" Spacing="20">
-            <Label Text="Cài đặt" 
-                   FontSize="24" 
-                   FontAttributes="Bold" />
-
-            <Frame BackgroundColor="LightGray" 
-                   Padding="15" 
-                   CornerRadius="10">
-                <StackLayout>
-                    <Label Text="Ngôn ngữ thuyết minh:" 
+        <VerticalStackLayout Padding="0" Spacing="0">
+            
+            <!-- Header -->
+            <Frame BackgroundColor="{StaticResource Primary}"
+                   CornerRadius="0"
+                   Padding="20,50,20,30"
+                   HasShadow="False">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Cài đặt"
+                           TextColor="{StaticResource White}"
+                           FontSize="28"
                            FontAttributes="Bold" />
-                    <Picker ItemsSource="{Binding AvailableLanguages}" 
-                            SelectedItem="{Binding SelectedLanguage}" />
-                </StackLayout>
+                    <Label Text="Tùy chỉnh ứng dụng của bạn"
+                           TextColor="{StaticResource White}"
+                           FontSize="14"
+                           Opacity="0.9" />
+                </VerticalStackLayout>
             </Frame>
-
-            <Frame BackgroundColor="LightGray" 
-                   Padding="15" 
-                   CornerRadius="10">
-                <StackLayout>
-                    <Label Text="Trạng thái GPS:" 
-                           FontAttributes="Bold" />
-                    <Label Text="{Binding IsLocationEnabled, StringFormat='GPS: {0}'}" />
-                </StackLayout>
-            </Frame>
-        </StackLayout>
+            
+            <VerticalStackLayout Padding="16,20" Spacing="16">
+                
+                <!-- Language Section -->
+                <Label Text="Thuyết minh"
+                       Style="{StaticResource SectionHeader}" />
+                
+                <Frame Style="{StaticResource CardFrame}" Padding="16">
+                    <Grid RowDefinitions="Auto,Auto" RowSpacing="16">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Frame BackgroundColor="{StaticResource PrimaryLight}"
+                                   CornerRadius="12"
+                                   WidthRequest="44"
+                                   HeightRequest="44"
+                                   Padding="0"
+                                   HasShadow="False">
+                                <Label Text="🗣️"
+                                       FontSize="22"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                            </Frame>
+                            <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
+                                <Label Text="Ngôn ngữ thuyết minh"
+                                       Style="{StaticResource TitleLabel}"
+                                       FontSize="15" />
+                                <Label Text="Chọn ngôn ngữ cho audio"
+                                       Style="{StaticResource CaptionLabel}" />
+                            </VerticalStackLayout>
+                            <Picker Grid.Column="2"
+                                    ItemsSource="{Binding AvailableLanguages}"
+                                    SelectedItem="{Binding SelectedLanguage}"
+                                    WidthRequest="100" />
+                        </Grid>
+                        
+                        <BoxView Grid.Row="1" 
+                                 Color="{StaticResource Gray200}"
+                                 HeightRequest="1"
+                                 Margin="-16,0" />
+                    </Grid>
+                </Frame>
+                
+                <!-- GPS Section -->
+                <Label Text="Vị trí"
+                       Style="{StaticResource SectionHeader}" />
+                
+                <Frame Style="{StaticResource CardFrame}" Padding="16">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Frame BackgroundColor="{Binding IsLocationEnabled, Converter={StaticResource BoolToColorConverter}}"
+                               CornerRadius="12"
+                               WidthRequest="44"
+                               HeightRequest="44"
+                               Padding="0"
+                               HasShadow="False">
+                            <Label Text="📍"
+                                   FontSize="22"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                        </Frame>
+                        <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
+                            <Label Text="Trạng thái GPS"
+                                   Style="{StaticResource TitleLabel}"
+                                   FontSize="15" />
+                            <Label Text="{Binding GpsStatusText}"
+                                   Style="{StaticResource CaptionLabel}" />
+                        </VerticalStackLayout>
+                        <Frame Grid.Column="2"
+                               BackgroundColor="{Binding IsLocationEnabled, Converter={StaticResource BoolToColorConverter}}"
+                               CornerRadius="10"
+                               Padding="10,5"
+                               HasShadow="False">
+                            <Label Text="{Binding IsLocationEnabled, Converter={StaticResource BoolToStatusConverter}}"
+                                   TextColor="{StaticResource White}"
+                                   FontSize="12"
+                                   FontAttributes="Bold" />
+                        </Frame>
+                    </Grid>
+                </Frame>
+                
+                <!-- About Section -->
+                <Label Text="Thông tin"
+                       Style="{StaticResource SectionHeader}" />
+                
+                <Frame Style="{StaticResource CardFrame}" Padding="16">
+                    <VerticalStackLayout Spacing="16">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <Frame BackgroundColor="{StaticResource SecondaryLight}"
+                                   CornerRadius="12"
+                                   WidthRequest="44"
+                                   HeightRequest="44"
+                                   Padding="0"
+                                   HasShadow="False">
+                                <Label Text="ℹ️"
+                                       FontSize="22"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                            </Frame>
+                            <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
+                                <Label Text="Phiên bản"
+                                       Style="{StaticResource TitleLabel}"
+                                       FontSize="15" />
+                                <Label Text="HeriStepAI Mobile"
+                                       Style="{StaticResource CaptionLabel}" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="2"
+                                   Text="1.0.0"
+                                   Style="{StaticResource BodyLabel}"
+                                   VerticalOptions="Center" />
+                        </Grid>
+                        
+                        <BoxView Color="{StaticResource Gray200}"
+                                 HeightRequest="1"
+                                 Margin="-16,0" />
+                        
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Frame BackgroundColor="{StaticResource Gray100}"
+                                   CornerRadius="12"
+                                   WidthRequest="44"
+                                   HeightRequest="44"
+                                   Padding="0"
+                                   HasShadow="False">
+                                <Label Text="📧"
+                                       FontSize="22"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                            </Frame>
+                            <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
+                                <Label Text="Liên hệ hỗ trợ"
+                                       Style="{StaticResource TitleLabel}"
+                                       FontSize="15" />
+                                <Label Text="support@heristepai.com"
+                                       Style="{StaticResource CaptionLabel}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Frame>
+                
+                <!-- Sync Button -->
+                <Button Text="Đồng bộ dữ liệu"
+                        Command="{Binding SyncDataCommand}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource White}"
+                        CornerRadius="25"
+                        HeightRequest="50"
+                        Margin="0,20,0,0" />
+                
+            </VerticalStackLayout>
+        </VerticalStackLayout>
     </ScrollView>
 
 </ContentPage>
