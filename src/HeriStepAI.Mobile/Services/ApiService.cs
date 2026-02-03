@@ -31,15 +31,20 @@ public class ApiService : IApiService
         try
         {
             var response = await _httpClient.GetAsync("poi");
+            AppLog.Info($"ApiService GET poi -> {response.StatusCode}");
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<List<POI>>(json);
+                var pois = JsonConvert.DeserializeObject<List<POI>>(json);
+                AppLog.Info($"ApiService Deserialized {pois?.Count ?? 0} POIs");
+                return pois;
             }
+            var errBody = await response.Content.ReadAsStringAsync();
+            AppLog.Error($"ApiService Error response: {errBody}");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error fetching POIs: {ex.Message}");
+            AppLog.Error($"ApiService Error: {ex.Message}");
         }
         return null;
     }

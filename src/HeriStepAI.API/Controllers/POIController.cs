@@ -29,8 +29,16 @@ public class POIController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllPOIs()
     {
-        var pois = await _poiService.GetAllPOIsAsync();
-        return Ok(pois);
+        try
+        {
+            var pois = await _poiService.GetAllPOIsAsync();
+            return Ok(pois);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[POIController] GetAllPOIs error: {ex}");
+            return StatusCode(500, new { error = ex.Message, detail = ex.ToString() });
+        }
     }
 
     [HttpGet("{id}")]

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace HeriStepAI.API.Models;
 
 public class POI
@@ -11,6 +13,7 @@ public class POI
     public double Radius { get; set; } = 50; // meters
     public int Priority { get; set; } = 1;
     public int? OwnerId { get; set; }
+    [JsonIgnore]
     public User? Owner { get; set; }
     public string? ImageUrl { get; set; }
     public string? MapLink { get; set; }

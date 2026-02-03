@@ -1,9 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace HeriStepAI.API.Models;
 
 public class POIContent
 {
     public int Id { get; set; }
     public int POId { get; set; }
+    [JsonIgnore]
     public POI POI { get; set; } = null!;
     public string Language { get; set; } = "vi"; // vi, en, zh, etc.
     public string? TextContent { get; set; } // For TTS

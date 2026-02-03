@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using HeriStepAI.API.Data;
 using HeriStepAI.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -22,7 +23,11 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

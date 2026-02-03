@@ -56,7 +56,10 @@ public partial class POIListViewModel : ObservableObject
             _currentLocation = await MainThread.InvokeOnMainThreadAsync(
                 async () => await _locationService.GetCurrentLocationAsync());
 
-            // Load POIs from database
+            // Sync từ API trước để luôn có dữ liệu mới nhất (kể cả khi đã cập nhật Category trên server)
+            await _poiService.SyncPOIsFromServerAsync();
+
+            // Load POIs từ local database
             _allPOIs = await _poiService.GetAllPOIsAsync() ?? new List<POI>();
 
             // Set placeholder image for POIs without ImageUrl
@@ -115,9 +118,10 @@ public partial class POIListViewModel : ObservableObject
         var filtered = _allPOIs.AsEnumerable();
 
         // Apply category filter
+        // Category = 0 (uncategorized) hiển thị trong tất cả tab vì API/DB có thể chưa có Category
         if (SelectedCategory > 0)
         {
-            filtered = filtered.Where(p => p.Category == SelectedCategory);
+            filtered = filtered.Where(p => p.Category == SelectedCategory || p.Category == 0);
         }
 
         // Apply search filter

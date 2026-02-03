@@ -191,9 +191,10 @@
                         <Label Text="Không tìm thấy địa điểm"
                                Style="{StaticResource TitleLabel}"
                                HorizontalOptions="Center" />
-                        <Label Text="Thử tìm với từ khóa khác"
+                        <Label Text="Thử tìm với từ khóa khác hoặc kéo xuống để đồng bộ"
                                Style="{StaticResource BodyLabel}"
-                               HorizontalOptions="Center" />
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center" />
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
             </CollectionView>

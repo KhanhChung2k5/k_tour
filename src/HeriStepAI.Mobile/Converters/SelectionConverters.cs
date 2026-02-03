@@ -2,6 +2,16 @@ using System.Globalization;
 
 namespace HeriStepAI.Mobile.Converters;
 
+// Dùng màu trực tiếp để tránh KeyNotFoundException khi ResourceDictionary chưa load
+internal static class SafeColors
+{
+    public static readonly Color Primary = Color.FromArgb("#E07B4C");
+    public static readonly Color White = Colors.White;
+    public static readonly Color TextSecondary = Color.FromArgb("#757575");
+    public static readonly Color SecondaryLight = Color.FromArgb("#81C784");
+    public static readonly Color Error = Color.FromArgb("#F44336");
+}
+
 /// <summary>
 /// Converts selected gender to background color
 /// </summary>
@@ -13,9 +23,7 @@ public class GenderColorConverter : IValueConverter
         var buttonGender = parameter as string ?? "male";
         
         var isSelected = selectedGender == buttonGender;
-        return isSelected 
-            ? Application.Current?.Resources["White"] ?? Colors.White
-            : Color.FromArgb("#FFFFFF33"); // Semi-transparent white
+        return isSelected ? SafeColors.White : Color.FromArgb("#FFFFFF33");
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -33,9 +41,7 @@ public class GenderTextColorConverter : IValueConverter
         var buttonGender = parameter as string ?? "male";
         
         var isSelected = selectedGender == buttonGender;
-        return isSelected 
-            ? Application.Current?.Resources["Primary"] ?? Colors.Orange
-            : Application.Current?.Resources["White"] ?? Colors.White;
+        return isSelected ? SafeColors.Primary : SafeColors.White;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -53,9 +59,7 @@ public class RegionColorConverter : IValueConverter
         var buttonRegion = parameter as string ?? "central";
         
         var isSelected = selectedRegion == buttonRegion;
-        return isSelected 
-            ? Application.Current?.Resources["White"] ?? Colors.White
-            : Color.FromArgb("#FFFFFF33"); // Semi-transparent white
+        return isSelected ? SafeColors.White : Color.FromArgb("#FFFFFF33");
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -73,9 +77,7 @@ public class RegionTextColorConverter : IValueConverter
         var buttonRegion = parameter as string ?? "central";
         
         var isSelected = selectedRegion == buttonRegion;
-        return isSelected 
-            ? Application.Current?.Resources["Primary"] ?? Colors.Orange
-            : Application.Current?.Resources["White"] ?? Colors.White;
+        return isSelected ? SafeColors.Primary : SafeColors.White;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -93,9 +95,7 @@ public class CategoryColorConverter : IValueConverter
         var buttonCategory = int.TryParse(parameter?.ToString(), out var p) ? p : 0;
         
         var isSelected = selectedCategory == buttonCategory;
-        return isSelected 
-            ? Application.Current?.Resources["Primary"] ?? Colors.Orange
-            : Colors.Transparent;
+        return isSelected ? SafeColors.Primary : Colors.Transparent;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -113,9 +113,7 @@ public class CategoryTextColorConverter : IValueConverter
         var buttonCategory = int.TryParse(parameter?.ToString(), out var p) ? p : 0;
         
         var isSelected = selectedCategory == buttonCategory;
-        return isSelected 
-            ? Application.Current?.Resources["White"] ?? Colors.White
-            : Application.Current?.Resources["TextSecondary"] ?? Colors.Gray;
+        return isSelected ? SafeColors.White : SafeColors.TextSecondary;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -144,9 +142,7 @@ public class BoolToColorConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         var isTrue = value is bool b && b;
-        return isTrue 
-            ? Application.Current?.Resources["SecondaryLight"] ?? Colors.LightGreen
-            : Application.Current?.Resources["Error"] ?? Colors.Red;
+        return isTrue ? SafeColors.SecondaryLight : SafeColors.Error;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

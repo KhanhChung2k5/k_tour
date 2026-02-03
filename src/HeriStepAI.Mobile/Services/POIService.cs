@@ -106,23 +106,36 @@ public class POIService : IPOIService
         try
         {
             var serverPOIs = await _apiService.GetAllPOIsAsync();
-            if (_db == null || serverPOIs == null) return;
+            if (_db == null) return;
+            // Chỉ cập nhật khi API trả về dữ liệu; nếu null/empty giữ nguyên local
+            if (serverPOIs == null)
+            {
+                AppLog.Info("POIService Sync skipped: API returned null");
+                return;
+            }
+            if (serverPOIs.Count == 0)
+            {
+                AppLog.Info("POIService Sync skipped: API returned empty list");
+                return;
+            }
 
             await _db.DeleteAllAsync<POIContent>();
             await _db.DeleteAllAsync<POI>();
 
             foreach (var poi in serverPOIs)
             {
+                poi.Contents ??= new List<POIContent>();
                 await _db.InsertAsync(poi);
                 foreach (var content in poi.Contents)
                 {
                     await _db.InsertAsync(content);
                 }
             }
+            AppLog.Info($"POIService Synced {serverPOIs.Count} POIs");
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error syncing POIs: {ex.Message}");
+            AppLog.Error($"POIService Error: {ex.Message}");
         }
     }
 }
