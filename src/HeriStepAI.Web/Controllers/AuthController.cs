@@ -60,6 +60,21 @@ public class AuthController : Controller
             // Lưu token cho các gọi API từ server
             Response.Cookies.Append("AuthToken", result.Token, new CookieOptions { HttpOnly = true, Secure = Request.IsHttps, SameSite = SameSiteMode.Lax, Path = "/", Expires = DateTimeOffset.UtcNow.AddDays(1) });
 
+            // Redirect based on role
+            var roleClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.Role);
+            var roleValue = roleClaim?.Value ?? "Unknown";
+
+            // Debug: Log role value
+            Console.WriteLine($"[AUTH] Role claim value: '{roleValue}'");
+
+            // Check for ShopOwner role (both enum name and value)
+            if (roleValue == "ShopOwner" || roleValue == "2")
+            {
+                Console.WriteLine("[AUTH] Redirecting to ShopOwner Dashboard");
+                return RedirectToAction("Dashboard", "ShopOwner");
+            }
+
+            Console.WriteLine("[AUTH] Redirecting to Admin Dashboard");
             return RedirectToAction("Dashboard", "Home");
         }
 
