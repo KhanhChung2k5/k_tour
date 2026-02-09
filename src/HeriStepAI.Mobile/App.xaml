@@ -33,6 +33,7 @@
             
             <!-- Converters -->
             <converters:IsNotNullConverter x:Key="IsNotNullConverter" />
+            <converters:IsNotEmptyConverter x:Key="IsNotEmptyConverter" />
             <converters:GenderColorConverter x:Key="GenderColorConverter" />
             <converters:GenderTextColorConverter x:Key="GenderTextColorConverter" />
             <converters:RegionColorConverter x:Key="RegionColorConverter" />

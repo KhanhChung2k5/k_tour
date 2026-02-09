@@ -21,4 +21,9 @@ public partial class MainPage : ContentPage
             };
         }
     }
+
+    private async void OnSettingsTapped(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("//SettingsPage");
+    }
 }

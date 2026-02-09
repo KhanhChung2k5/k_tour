@@ -50,6 +50,21 @@ public class POIService : IPOIService
                 await _db.ExecuteAsync("ALTER TABLE POI ADD COLUMN EstimatedMinutes INTEGER DEFAULT 30");
             }
             catch { }
+            try
+            {
+                await _db.ExecuteAsync("ALTER TABLE POI ADD COLUMN FoodType INTEGER DEFAULT 0");
+            }
+            catch { }
+            try
+            {
+                await _db.ExecuteAsync("ALTER TABLE POI ADD COLUMN PriceMin INTEGER DEFAULT 0");
+            }
+            catch { }
+            try
+            {
+                await _db.ExecuteAsync("ALTER TABLE POI ADD COLUMN PriceMax INTEGER DEFAULT 0");
+            }
+            catch { }
         }
         catch (Exception ex)
         {

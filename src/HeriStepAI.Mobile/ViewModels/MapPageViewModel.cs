@@ -13,6 +13,9 @@ public partial class MapPageViewModel : ObservableObject
     private readonly INarrationService _narrationService;
     private readonly IApiService _apiService;
     private readonly ILocationService _locationService;
+    private readonly ITourSelectionService _tourSelectionService;
+    private readonly ILocalizationService _localizationService;
+    private readonly ILocationSimulatorService _simulator;
 
     /// <summary>Danh sách POI hiển thị trên bản đồ. Không dùng [ObservableProperty] để tránh trùng tên.</summary>
     public List<POI> POIs { get; set; } = new();
@@ -29,11 +32,15 @@ public partial class MapPageViewModel : ObservableObject
     [ObservableProperty]
     private Location? currentLocation;
 
-    [ObservableProperty]
-    private string selectedLanguage = "vi";
 
     [ObservableProperty]
     private string searchText = string.Empty;
+
+    [ObservableProperty]
+    private bool isTestMode = false;
+
+    [ObservableProperty]
+    private string testModeButtonText = "🧪 Bật Test Mode";
 
     // Event to notify map update
     public event EventHandler? MapNeedsUpdate;
@@ -42,12 +49,18 @@ public partial class MapPageViewModel : ObservableObject
         IPOIService poiService,
         INarrationService narrationService,
         IApiService apiService,
-        ILocationService locationService)
+        ILocationService locationService,
+        ITourSelectionService tourSelectionService,
+        ILocalizationService localizationService,
+        ILocationSimulatorService simulator)
     {
         _poiService = poiService;
         _narrationService = narrationService;
         _apiService = apiService;
         _locationService = locationService;
+        _tourSelectionService = tourSelectionService;
+        _localizationService = localizationService;
+        _simulator = simulator;
 
         // Run initialization in background to avoid blocking
         Task.Run(async () =>
@@ -73,7 +86,17 @@ public partial class MapPageViewModel : ObservableObject
     {
         try
         {
-            POIs = await _poiService.GetAllPOIsAsync() ?? new();
+            var allPois = await _poiService.GetAllPOIsAsync() ?? new();
+            var selectedTour = _tourSelectionService.SelectedTour;
+
+            if (selectedTour != null && selectedTour.POIs != null && selectedTour.POIs.Any())
+            {
+                POIs = selectedTour.POIs.ToList();
+            }
+            else
+            {
+                POIs = allPois;
+            }
             
             // Update nearby POIs with sample images if no ImageUrl
             await MainThread.InvokeOnMainThreadAsync(() =>
@@ -170,8 +193,7 @@ public partial class MapPageViewModel : ObservableObject
             await _apiService.LogVisitAsync(poi.Id, CurrentLocation.Latitude, CurrentLocation.Longitude, Services.VisitType.MapClick);
         }
 
-        // Phát thuyết minh khi click vào POI trên bản đồ
-        await _narrationService.PlayNarrationAsync(poi, SelectedLanguage, forcePlay: true);
+        await _narrationService.PlayNarrationAsync(poi, _localizationService.CurrentLanguage, forcePlay: true);
     }
 
     [RelayCommand]
@@ -179,7 +201,7 @@ public partial class MapPageViewModel : ObservableObject
     {
         if (SelectedPOI != null)
         {
-            await _narrationService.PlayNarrationAsync(SelectedPOI, SelectedLanguage, forcePlay: true);
+            await _narrationService.PlayNarrationAsync(SelectedPOI, _localizationService.CurrentLanguage, forcePlay: true);
         }
     }
 
@@ -197,7 +219,10 @@ public partial class MapPageViewModel : ObservableObject
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error opening map: {ex.Message}");
-                await Shell.Current.DisplayAlert("Lỗi", "Không thể mở ứng dụng bản đồ", "OK");
+                await Shell.Current.DisplayAlert(
+                    _localizationService.GetString("Error"),
+                    _localizationService.GetString("MapError"),
+                    "OK");
             }
         }
     }
@@ -219,6 +244,32 @@ public partial class MapPageViewModel : ObservableObject
     {
         // Trigger map update to center on current location
         MapNeedsUpdate?.Invoke(this, EventArgs.Empty);
+    }
+
+    [RelayCommand]
+    private void ToggleTestMode()
+    {
+        if (!IsTestMode)
+        {
+            // Start simulation with first 5 POIs (or all if fewer)
+            var route = POIs.Take(5).ToList();
+            if (route.Count == 0)
+            {
+                AppLog.Info("Cannot start test mode: no POIs available");
+                return;
+            }
+            _simulator.StartSimulation(route, delaySeconds: 10);
+            IsTestMode = true;
+            TestModeButtonText = "🛑 Tắt Test Mode";
+            AppLog.Info($"🧪 Test Mode started with {route.Count} POIs");
+        }
+        else
+        {
+            _simulator.StopSimulation();
+            IsTestMode = false;
+            TestModeButtonText = "🧪 Bật Test Mode";
+            AppLog.Info("🛑 Test Mode stopped");
+        }
     }
 
     private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)

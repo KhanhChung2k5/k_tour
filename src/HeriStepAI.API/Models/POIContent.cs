@@ -7,7 +7,7 @@ public class POIContent
     public int Id { get; set; }
     public int POId { get; set; }
     [JsonIgnore]
-    public POI POI { get; set; } = null!;
+    public POI? POI { get; set; }  // Changed to nullable to avoid validation errors
     public string Language { get; set; } = "vi"; // vi, en, zh, etc.
     public string? TextContent { get; set; } // For TTS
     public string? AudioUrl { get; set; } // Pre-recorded audio

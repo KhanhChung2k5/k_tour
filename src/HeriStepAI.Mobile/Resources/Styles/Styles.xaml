@@ -95,6 +95,25 @@
         <Setter Property="BorderColor" Value="Transparent" />
     </Style>
 
+    <!-- Modern Card with Elevated Shadow -->
+    <Style x:Key="ElevatedCard" TargetType="Frame">
+        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="HasShadow" Value="True" />
+        <Setter Property="BorderColor" Value="{StaticResource Gray100}" />
+        <Setter Property="Margin" Value="0,8" />
+    </Style>
+
+    <!-- Stat Card Style -->
+    <Style x:Key="StatCard" TargetType="Frame">
+        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="HasShadow" Value="True" />
+        <Setter Property="BorderColor" Value="Transparent" />
+    </Style>
+
     <!-- Search Entry -->
     <Style x:Key="SearchEntry" TargetType="Entry">
         <Setter Property="BackgroundColor" Value="{StaticResource Gray100}" />

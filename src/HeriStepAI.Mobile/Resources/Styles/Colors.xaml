@@ -55,4 +55,21 @@
     <Color x:Key="Black">#000000</Color>
     <Color x:Key="Transparent">Transparent</Color>
 
+    <!-- Gradient Colors for Modern UI -->
+    <Color x:Key="GradientStart">#E07B4C</Color>
+    <Color x:Key="GradientEnd">#FF6B35</Color>
+    <Color x:Key="CardGradientStart">#FFFFFF</Color>
+    <Color x:Key="CardGradientEnd">#F8F9FA</Color>
+
+    <!-- Modern Gradients -->
+    <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="{StaticResource GradientStart}" Offset="0.0" />
+        <GradientStop Color="{StaticResource GradientEnd}" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="CardGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="{StaticResource CardGradientStart}" Offset="0.0" />
+        <GradientStop Color="{StaticResource CardGradientEnd}" Offset="1.0" />
+    </LinearGradientBrush>
+
 </ResourceDictionary>

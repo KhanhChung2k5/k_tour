@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using HeriStepAI.API.Data;
 using HeriStepAI.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -7,12 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using DotNetEnv;
 
-// Load .env từ thư mục gốc solution (đồng bộ JWT với Web)
-var envPaths = new[] {
-    Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env"),
-    Path.Combine(Directory.GetCurrentDirectory(), ".env")
-};
-foreach (var p in envPaths) { if (File.Exists(p)) { Env.Load(p); break; } }
+// Load .env file
+Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,10 +21,12 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = null; // Keep original casing
     });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
 
 // Database - Supabase PostgreSQL
 var connectionString = Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_STRING") 
@@ -84,17 +81,20 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<IGeocodingService, GeocodingService>();
+// Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPOIService, POIService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IGeocodingService, GeocodingService>();
 
 var app = builder.Build();
 
-// Swagger - bật cho mọi môi trường (localhost dev)
-app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "HeriStepAI API"));
+// Configure the HTTP request pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 // app.UseHttpsRedirection(); // Disabled for development
 app.UseCors("AllowAll");
@@ -110,23 +110,23 @@ try
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         try
         {
-            await db.Database.MigrateAsync();
+            db.Database.EnsureCreated();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Warning: Migration failed: {ex.Message}");
+            // Log but continue startup
+            Console.WriteLine($"Warning: Failed to ensure database created: {ex.Message}");
         }
 
         try
         {
+            // Seed initial data
             var seedService = new SeedService(db);
             await seedService.SeedAsync();
-            var (_, msg) = await seedService.EnsureAdminAsync(force: false);
-            Console.WriteLine($"Seed: {msg}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Warning: Seed failed: {ex.Message}");
+            Console.WriteLine($"Warning: Failed to seed database: {ex.Message}");
         }
     }
 }

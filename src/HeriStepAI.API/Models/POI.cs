@@ -27,6 +27,13 @@ public class POI
     public int Category { get; set; } // POICategory enum value
     public int? TourId { get; set; }
     public int EstimatedMinutes { get; set; } = 30; // Estimated visit time
+
+    /// <summary>Loại món ăn: 0=Khác, 1=Hải sản, 2=Món chay, 3=Đặc sản, 4=Đường phố, 5=Nướng, 6=Bún/Phở/Mì</summary>
+    public int FoodType { get; set; }
+    /// <summary>Giá tối thiểu (VND)</summary>
+    public long PriceMin { get; set; }
+    /// <summary>Giá tối đa (VND)</summary>
+    public long PriceMax { get; set; }
     
     public List<POIContent> Contents { get; set; } = new();
 }

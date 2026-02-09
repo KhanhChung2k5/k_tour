@@ -14,6 +14,10 @@ public partial class AppShell : Shell
         MapTab.Content = CreatePageSafe(serviceProvider, "MapPage", () => serviceProvider.GetRequiredService<MapPage>());
         POIListTab.Content = CreatePageSafe(serviceProvider, "POIListPage", () => serviceProvider.GetRequiredService<POIListPage>());
         SettingsTab.Content = CreatePageSafe(serviceProvider, "SettingsPage", () => serviceProvider.GetRequiredService<SettingsPage>());
+
+        // Register navigation routes
+        Routing.RegisterRoute("TourDetailPage", typeof(TourDetailPage));
+        Routing.RegisterRoute("POIDetailPage", typeof(POIDetailPage));
     }
 
     static ContentPage CreatePageSafe(IServiceProvider sp, string name, Func<ContentPage> create)

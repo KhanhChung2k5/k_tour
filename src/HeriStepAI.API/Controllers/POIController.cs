@@ -61,6 +61,18 @@ public class POIController : ControllerBase
     [Authorize(Roles = "Admin,ShopOwner")]
     public async Task<IActionResult> CreatePOI([FromBody] POI poi)
     {
+        Console.WriteLine($"[API POIController] CreatePOI called");
+        Console.WriteLine($"[API POIController] POI Name: {poi?.Name}");
+        Console.WriteLine($"[API POIController] Contents count: {poi?.Contents?.Count ?? 0}");
+
+        if (poi?.Contents != null)
+        {
+            foreach (var c in poi.Contents)
+            {
+                Console.WriteLine($"[API POIController] Content - Lang: {c.Language}, TextLength: {c.TextContent?.Length ?? 0}");
+            }
+        }
+
         if (User.IsInRole("ShopOwner"))
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -68,6 +80,7 @@ public class POIController : ControllerBase
         }
 
         var created = await _poiService.CreatePOIAsync(poi);
+        Console.WriteLine($"[API POIController] POI created with ID: {created.Id}");
         return CreatedAtAction(nameof(GetPOI), new { id = created.Id }, created);
     }
 
@@ -75,6 +88,18 @@ public class POIController : ControllerBase
     [Authorize(Roles = "Admin,ShopOwner")]
     public async Task<IActionResult> UpdatePOI(int id, [FromBody] POI poi)
     {
+        Console.WriteLine($"[API POIController] UpdatePOI called for ID: {id}");
+        Console.WriteLine($"[API POIController] POI Name: {poi?.Name}");
+        Console.WriteLine($"[API POIController] Contents count: {poi?.Contents?.Count ?? 0}");
+
+        if (poi?.Contents != null)
+        {
+            foreach (var c in poi.Contents)
+            {
+                Console.WriteLine($"[API POIController] Content - Lang: {c.Language}, TextLength: {c.TextContent?.Length ?? 0}");
+            }
+        }
+
         if (User.IsInRole("ShopOwner"))
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -85,6 +110,8 @@ public class POIController : ControllerBase
 
         var updated = await _poiService.UpdatePOIAsync(id, poi);
         if (updated == null) return NotFound();
+
+        Console.WriteLine($"[API POIController] POI updated successfully");
         return Ok(updated);
     }
 

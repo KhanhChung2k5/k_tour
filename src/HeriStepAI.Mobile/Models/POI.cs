@@ -23,6 +23,11 @@ public class POI
     public int? TourId { get; set; }
     public int EstimatedMinutes { get; set; } = 30; // Estimated visit time
     
+    // Food-specific: loại món ăn (FoodType enum), giá VND
+    public int FoodType { get; set; }
+    public long PriceMin { get; set; }
+    public long PriceMax { get; set; }
+    
     // Calculated property for distance (set at runtime)
     [Ignore]
     public double? DistanceMeters { get; set; }
@@ -49,6 +54,23 @@ public class POI
         POICategory.Nature => "Thiên nhiên",
         _ => "Tất cả"
     };
+    
+    [Ignore]
+    public string FoodTypeText => this.FoodType switch
+    {
+        1 => "Hải sản",
+        2 => "Món chay",
+        3 => "Đặc sản",
+        4 => "Ẩm thực đường phố",
+        5 => "Nướng",
+        6 => "Bún/Phở/Mì",
+        _ => ""
+    };
+    
+    [Ignore]
+    public string PriceRangeText => PriceMin > 0 || PriceMax > 0 
+        ? $"{PriceMin:N0} - {PriceMax:N0}đ" 
+        : "";
     
     [Ignore]
     public List<POIContent> Contents { get; set; } = new();

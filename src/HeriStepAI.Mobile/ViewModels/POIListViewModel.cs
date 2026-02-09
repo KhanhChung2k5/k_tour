@@ -155,12 +155,11 @@ public partial class POIListViewModel : ObservableObject
     {
         if (poi == null) return;
 
-        // Play narration (load Contents from POIService if needed)
-        var langCode = SelectedLanguage switch { "English" => "en", "中文" => "zh", "日本語" => "ja", "한국어" => "ko", _ => "vi" };
-        await _narrationService.PlayNarrationAsync(poi, langCode, forcePlay: true);
-
-        // Navigate to Map tab to show the POI location
-        try { await Shell.Current.GoToAsync("//MapPage"); } catch { }
+        // Navigate to POI detail page
+        await Shell.Current.GoToAsync("POIDetailPage", new Dictionary<string, object>
+        {
+            { "POI", poi }
+        });
     }
 
     [RelayCommand]

@@ -15,6 +15,9 @@ public partial class MainPageViewModel : ObservableObject
     private readonly INarrationService _narrationService;
     private readonly IPOIService _poiService;
     private readonly IApiService _apiService;
+    private readonly ITourSelectionService _tourSelectionService;
+    private readonly ILocalizationService _localizationService;
+    private readonly ITourGeneratorService _tourGenerator;
 
     // Location state
     [ObservableProperty]
@@ -32,9 +35,8 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     private bool isLoading = false;
 
-    // Voice settings
-    [ObservableProperty]
-    private string selectedLanguage = "vi";
+    // Voice & narration dùng ngôn ngữ app
+    private string NarrationLanguage => _localizationService.CurrentLanguage;
 
     [ObservableProperty]
     private string selectedGender = "male";
@@ -57,29 +59,72 @@ public partial class MainPageViewModel : ObservableObject
         IGeofenceService geofenceService,
         INarrationService narrationService,
         IPOIService poiService,
-        IApiService apiService)
+        IApiService apiService,
+        ITourSelectionService tourSelectionService,
+        ILocalizationService localizationService,
+        ITourGeneratorService tourGenerator)
     {
         _locationService = locationService;
         _geofenceService = geofenceService;
         _narrationService = narrationService;
         _poiService = poiService;
         _apiService = apiService;
+        _tourSelectionService = tourSelectionService;
+        _localizationService = localizationService;
+        _tourGenerator = tourGenerator;
+
+        _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
 
         // Don't await here - run in background
         Task.Run(async () => await InitializeAsync());
     }
+
+    private void RefreshTranslations()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            OnPropertyChanged(nameof(LblWelcome));
+            OnPropertyChanged(nameof(LblAppName));
+            OnPropertyChanged(nameof(LblAppTagline));
+            OnPropertyChanged(nameof(LblVoiceNarration));
+            OnPropertyChanged(nameof(LblMale));
+            OnPropertyChanged(nameof(LblFemale));
+            OnPropertyChanged(nameof(LblRegionNorth));
+            OnPropertyChanged(nameof(LblRegionCentral));
+            OnPropertyChanged(nameof(LblRegionSouth));
+            OnPropertyChanged(nameof(LblChooseTour));
+            OnPropertyChanged(nameof(LblCreateNewTour));
+            OnPropertyChanged(nameof(LblRecentTours));
+            OnPropertyChanged(nameof(LblLanguageSwitch));
+        });
+    }
+
+    public string LblWelcome => _localizationService.GetString("Welcome");
+    public string LblAppName => _localizationService.GetString("AppName");
+    public string LblAppTagline => _localizationService.GetString("AppTagline");
+    public string LblVoiceNarration => _localizationService.GetString("VoiceNarration");
+    public string LblMale => _localizationService.GetString("Male");
+    public string LblFemale => _localizationService.GetString("Female");
+    public string LblRegionNorth => _localizationService.GetString("RegionNorth");
+    public string LblRegionCentral => _localizationService.GetString("RegionCentral");
+    public string LblRegionSouth => _localizationService.GetString("RegionSouth");
+    public string LblChooseTour => _localizationService.GetString("ChooseTour");
+    public string LblCreateNewTour => _localizationService.GetString("CreateNewTour");
+    public string LblRecentTours => _localizationService.GetString("RecentTours");
+    public string LblLanguageSwitch => _localizationService.IsVietnamese ? "EN" : "VI";
 
     private async Task InitializeAsync()
     {
         try
         {
             IsLoading = true;
+            CurrentLocationText = _localizationService.GetString("GettingLocation");
 
             // Permission request PHẢI chạy trên main thread (Android)
             IsLocationEnabled = await MainThread.InvokeOnMainThreadAsync(() => _locationService.RequestLocationPermissionAsync());
             if (!IsLocationEnabled)
             {
-                CurrentLocationText = "GPS chưa bật. Bật vị trí trong Cài đặt để dùng geofence.";
+                CurrentLocationText = _localizationService.GetString("GpsNotEnabled");
                 ShowLocationStatus = true;
             }
 
@@ -128,63 +173,28 @@ public partial class MainPageViewModel : ObservableObject
     {
         try
         {
-            // For now, create sample tours based on POIs
-            // In production, this would come from API
-            var pois = await _poiService.GetAllPOIsAsync() ?? new List<POI>();
-            
+            var allPois = await _poiService.GetAllPOIsAsync() ?? new List<POI>();
+
+            // Generate smart tours using TourGeneratorService
+            var builtTours = _tourGenerator.GenerateSmartTours(allPois);
+
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
                 Tours.Clear();
                 RecentTours.Clear();
-
-                // Create sample tours
-                var sampleTours = new List<Tour>
-                {
-                    new Tour
-                    {
-                        Id = 1,
-                        Name = "Tour Linh Ứng cơ bản",
-                        Description = "Khám phá chùa Linh Ứng và các điểm tham quan nổi bật",
-                        ImageUrl = "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=400",
-                        EstimatedMinutes = 90,
-                        POICount = pois.Count > 0 ? pois.Count : 5,
-                        Rating = 4.8,
-                        ReviewCount = 128
-                    },
-                    new Tour
-                    {
-                        Id = 2,
-                        Name = "Tour Đạo mới",
-                        Description = "Hành trình tâm linh với các điểm đặc sắc",
-                        ImageUrl = "https://images.unsplash.com/photo-1528181304800-259b08848526?w=400",
-                        EstimatedMinutes = 120,
-                        POICount = 8,
-                        Rating = 4.6,
-                        ReviewCount = 89
-                    },
-                    new Tour
-                    {
-                        Id = 3,
-                        Name = "Tour Ẩm thực",
-                        Description = "Khám phá các món đặc sản địa phương",
-                        ImageUrl = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400",
-                        EstimatedMinutes = 60,
-                        POICount = 6,
-                        Rating = 4.9,
-                        ReviewCount = 215
-                    }
-                };
-
-                foreach (var tour in sampleTours)
+                foreach (var tour in builtTours)
                 {
                     Tours.Add(tour);
                     RecentTours.Add(tour);
                 }
             });
+
+            AppLog.Info($"Loaded {builtTours.Count} smart tours");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error loading tours: {ex.Message}");
+            AppLog.Error($"Error loading tours: {ex.Message}");
         }
     }
 
@@ -211,8 +221,14 @@ public partial class MainPageViewModel : ObservableObject
             await _apiService.LogVisitAsync(poi.Id, location.Latitude, location.Longitude, Services.VisitType.Geofence);
         }
 
-        // Play narration
-        await _narrationService.PlayNarrationAsync(poi, SelectedLanguage);
+        // Play narration - dùng ngôn ngữ app
+        await _narrationService.PlayNarrationAsync(poi, NarrationLanguage);
+    }
+
+    [RelayCommand]
+    private void SwitchLanguage()
+    {
+        _localizationService.SetLanguage(_localizationService.IsVietnamese ? "en" : "vi");
     }
 
     [RelayCommand]
@@ -234,16 +250,21 @@ public partial class MainPageViewModel : ObservableObject
     {
         SelectedTour = tour;
         System.Diagnostics.Debug.WriteLine($"Selected tour: {tour.Name}");
-        
-        // Navigate to Map page with selected tour
-        await Shell.Current.GoToAsync("//MapPage");
+
+        // Navigate to TourDetailPage with tour data
+        await Shell.Current.GoToAsync("TourDetailPage", new Dictionary<string, object>
+        {
+            { "Tour", tour }
+        });
     }
 
     [RelayCommand]
     private async Task CreateTour()
     {
-        // Navigate to create tour page or show dialog
-        await Shell.Current.DisplayAlert("Tạo Tour", "Tính năng tạo tour mới sẽ sớm có mặt!", "OK");
+        await Shell.Current.DisplayAlert(
+            _localizationService.GetString("CreateTour"),
+            _localizationService.GetString("CreateTourComingSoon"),
+            "OK");
     }
 
     [RelayCommand]

@@ -60,13 +60,41 @@
                                     WidthRequest="100" />
                         </Grid>
                         
-                        <BoxView Grid.Row="1" 
+                        <BoxView Grid.Row="1"
                                  Color="{StaticResource Gray200}"
                                  HeightRequest="1"
                                  Margin="-16,0" />
                     </Grid>
                 </Frame>
-                
+
+                <!-- Voice Gender Section -->
+                <Frame Style="{StaticResource CardFrame}" Padding="16" Margin="0,8">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Frame BackgroundColor="{StaticResource Secondary}"
+                               CornerRadius="12"
+                               WidthRequest="44"
+                               HeightRequest="44"
+                               Padding="0"
+                               HasShadow="False">
+                            <Label Text="🎙️"
+                                   FontSize="22"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                        </Frame>
+                        <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
+                            <Label Text="Giọng đọc"
+                                   Style="{StaticResource TitleLabel}"
+                                   FontSize="15" />
+                            <Label Text="Chọn giọng Nam hoặc Nữ"
+                                   Style="{StaticResource CaptionLabel}" />
+                        </VerticalStackLayout>
+                        <Picker Grid.Column="2"
+                                ItemsSource="{Binding AvailableVoiceGenders}"
+                                SelectedItem="{Binding SelectedVoiceGender}"
+                                WidthRequest="80" />
+                    </Grid>
+                </Frame>
+
                 <!-- GPS Section -->
                 <Label Text="Vị trí"
                        Style="{StaticResource SectionHeader}" />

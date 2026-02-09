@@ -13,6 +13,12 @@ public class NarrationService : INarrationService
     private readonly Dictionary<int, DateTime> _lastPlayedAt = new(); // Per-POI cooldown
     private readonly TimeSpan _poiCooldown = TimeSpan.FromMinutes(5);
     private CancellationTokenSource? _playCts;
+    private readonly IVoicePreferenceService _voicePreference;
+
+    public NarrationService(IVoicePreferenceService voicePreference)
+    {
+        _voicePreference = voicePreference;
+    }
 
     public bool IsPlaying => _isPlaying;
 
@@ -110,18 +116,75 @@ public class NarrationService : INarrationService
         try
         {
             var locales = await TextToSpeech.Default.GetLocalesAsync();
-            var viLocale = locales.FirstOrDefault(l => l.Language.StartsWith("vi", StringComparison.OrdinalIgnoreCase));
-            if (language == "vi" && viLocale != null)
+            Locale? locale = null;
+
+            if (language == "vi")
             {
-                await TextToSpeech.Default.SpeakAsync(text, new Microsoft.Maui.Media.SpeechOptions { Locale = viLocale });
+                // Lọc giọng Việt Nam
+                var viLocales = locales.Where(l =>
+                    l.Language.StartsWith("vi", StringComparison.OrdinalIgnoreCase)).ToList();
+
+                // Chọn giọng nam/nữ
+                if (_voicePreference.VoiceGender == VoiceGender.Male)
+                {
+                    // Ưu tiên giọng nam
+                    locale = viLocales.FirstOrDefault(l =>
+                        l.Name.Contains("Male", StringComparison.OrdinalIgnoreCase) ||
+                        l.Name.Contains("Nam", StringComparison.OrdinalIgnoreCase) ||
+                        l.Id.Contains("male", StringComparison.OrdinalIgnoreCase));
+                }
+                else
+                {
+                    // Ưu tiên giọng nữ
+                    locale = viLocales.FirstOrDefault(l =>
+                        l.Name.Contains("Female", StringComparison.OrdinalIgnoreCase) ||
+                        l.Name.Contains("Nữ", StringComparison.OrdinalIgnoreCase) ||
+                        l.Id.Contains("female", StringComparison.OrdinalIgnoreCase));
+                }
+
+                // Fallback: bất kỳ giọng Việt nào
+                locale ??= viLocales.FirstOrDefault();
+            }
+            else // English
+            {
+                var enLocales = locales.Where(l =>
+                    l.Language.StartsWith("en", StringComparison.OrdinalIgnoreCase)).ToList();
+
+                if (_voicePreference.VoiceGender == VoiceGender.Male)
+                {
+                    locale = enLocales.FirstOrDefault(l =>
+                        l.Name.Contains("Male", StringComparison.OrdinalIgnoreCase) ||
+                        l.Id.Contains("male", StringComparison.OrdinalIgnoreCase));
+                }
+                else
+                {
+                    locale = enLocales.FirstOrDefault(l =>
+                        l.Name.Contains("Female", StringComparison.OrdinalIgnoreCase) ||
+                        l.Id.Contains("female", StringComparison.OrdinalIgnoreCase));
+                }
+
+                locale ??= enLocales.FirstOrDefault();
+            }
+
+            if (locale != null)
+            {
+                AppLog.Info($"Using TTS voice: {locale.Name} ({locale.Language})");
+                await TextToSpeech.Default.SpeakAsync(text,
+                    new Microsoft.Maui.Media.SpeechOptions
+                    {
+                        Locale = locale,
+                        Pitch = 1.0f,
+                        Volume = 1.0f
+                    });
             }
             else
             {
                 await TextToSpeech.Default.SpeakAsync(text);
             }
         }
-        catch
+        catch (Exception ex)
         {
+            System.Diagnostics.Debug.WriteLine($"TTS error: {ex.Message}");
             await TextToSpeech.Default.SpeakAsync(text);
         }
     }

@@ -33,20 +33,47 @@ public class POIService : IPOIService
 
     public async Task<POI> CreatePOIAsync(POI poi)
     {
+        Console.WriteLine($"[POIService] CreatePOIAsync called for: {poi.Name}");
+        Console.WriteLine($"[POIService] Contents count before save: {poi.Contents?.Count ?? 0}");
+
         poi.CreatedAt = DateTime.UtcNow;
         poi.UpdatedAt = DateTime.UtcNow;
+
         if (string.IsNullOrEmpty(poi.Address))
             poi.Address = await _geocodingService.GetAddressFromCoordinatesAsync(poi.Latitude, poi.Longitude);
+
+        // Set CreatedAt for Contents
+        if (poi.Contents != null)
+        {
+            foreach (var content in poi.Contents)
+            {
+                content.CreatedAt = DateTime.UtcNow;
+                Console.WriteLine($"[POIService] Adding content - Lang: {content.Language}, Length: {content.TextContent?.Length ?? 0}");
+            }
+        }
+
         _context.POIs.Add(poi);
         await _context.SaveChangesAsync();
+
+        Console.WriteLine($"[POIService] POI created with ID: {poi.Id}, Contents saved: {poi.Contents?.Count ?? 0}");
         return poi;
     }
 
     public async Task<POI?> UpdatePOIAsync(int id, POI poi)
     {
-        var existing = await _context.POIs.FindAsync(id);
-        if (existing == null) return null;
+        Console.WriteLine($"[POIService] UpdatePOIAsync called for ID: {id}");
 
+        var existing = await _context.POIs
+            .Include(p => p.Contents)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (existing == null)
+        {
+            Console.WriteLine($"[POIService] POI ID {id} not found");
+            return null;
+        }
+
+        // Update basic fields
         existing.Name = poi.Name;
         existing.Description = poi.Description;
         existing.Latitude = poi.Latitude;
@@ -55,13 +82,45 @@ public class POIService : IPOIService
         existing.Priority = poi.Priority;
         existing.ImageUrl = poi.ImageUrl;
         existing.MapLink = poi.MapLink;
+        existing.Category = poi.Category;
+        existing.FoodType = poi.FoodType;
+        existing.PriceMin = poi.PriceMin;
+        existing.PriceMax = poi.PriceMax;
+        existing.Rating = poi.Rating;
+        existing.ReviewCount = poi.ReviewCount;
+        existing.EstimatedMinutes = poi.EstimatedMinutes;
+        existing.TourId = poi.TourId;
+
         if (string.IsNullOrEmpty(poi.Address))
             existing.Address = await _geocodingService.GetAddressFromCoordinatesAsync(poi.Latitude, poi.Longitude);
         else
             existing.Address = poi.Address;
+
         existing.UpdatedAt = DateTime.UtcNow;
 
+        // Update Contents - remove old and add new
+        Console.WriteLine($"[POIService] Removing {existing.Contents?.Count ?? 0} old contents");
+        if (existing.Contents != null && existing.Contents.Any())
+        {
+            _context.POIContents.RemoveRange(existing.Contents);
+        }
+
+        Console.WriteLine($"[POIService] Adding {poi.Contents?.Count ?? 0} new contents");
+        if (poi.Contents != null && poi.Contents.Any())
+        {
+            existing.Contents = new List<POIContent>();
+            foreach (var content in poi.Contents)
+            {
+                content.POId = existing.Id;
+                content.CreatedAt = DateTime.UtcNow;
+                existing.Contents.Add(content);
+                Console.WriteLine($"[POIService] Adding content - Lang: {content.Language}, Length: {content.TextContent?.Length ?? 0}");
+            }
+        }
+
         await _context.SaveChangesAsync();
+        Console.WriteLine($"[POIService] POI updated successfully");
+
         return existing;
     }
 

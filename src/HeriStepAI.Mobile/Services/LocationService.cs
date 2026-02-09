@@ -8,10 +8,26 @@ public class LocationService : ILocationService
 {
     private CancellationTokenSource? _cancellationTokenSource;
     private bool _isListening = false;
+    private Location? _lastSimulatedLocation;
+    private readonly ILocationSimulatorService _simulator;
 
     public bool IsLocationEnabled => true;
 
     public event EventHandler<Location>? LocationChanged;
+
+    public LocationService(ILocationSimulatorService simulator)
+    {
+        _simulator = simulator;
+
+        // Listen to simulator events
+        _simulator.LocationChanged += OnSimulatedLocationChanged;
+    }
+
+    private void OnSimulatedLocationChanged(object? sender, Location e)
+    {
+        _lastSimulatedLocation = e;
+        LocationChanged?.Invoke(this, e);
+    }
 
     public async Task<bool> RequestLocationPermissionAsync()
     {
@@ -32,9 +48,16 @@ public class LocationService : ILocationService
 
     /// <summary>
     /// Lấy vị trí - tối ưu pin với Medium accuracy, dùng Best khi cần chính xác.
+    /// Nếu đang simulate, trả về simulated location.
     /// </summary>
     public async Task<Location?> GetCurrentLocationAsync(GeolocationAccuracy accuracy = GeolocationAccuracy.Medium)
     {
+        // Nếu đang simulate, trả về simulated location
+        if (_simulator.IsSimulating && _lastSimulatedLocation != null)
+        {
+            return _lastSimulatedLocation;
+        }
+
         try
         {
             var request = new GeolocationRequest

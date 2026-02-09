@@ -105,10 +105,31 @@
                    VerticalOptions="Center" />
         </Frame>
 
+        <!-- Floating Test Mode Button -->
+        <Frame Grid.Row="1"
+               BackgroundColor="{StaticResource Primary}"
+               CornerRadius="20"
+               Padding="12,8"
+               HasShadow="True"
+               HorizontalOptions="End"
+               VerticalOptions="End"
+               Margin="0,0,16,80"
+               ZIndex="5">
+            <Frame.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding ToggleTestModeCommand}" />
+            </Frame.GestureRecognizers>
+            <Label Text="{Binding TestModeButtonText}"
+                   TextColor="{StaticResource White}"
+                   FontSize="12"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+        </Frame>
+
         <!-- Bottom Sheet - Selected POI Info -->
         <Frame Grid.Row="2"
                BackgroundColor="{StaticResource White}"
-               CornerRadius="24,24,0,0"
+               CornerRadius="0"
                Padding="0"
                HasShadow="True"
                IsVisible="{Binding HasSelectedPOI}"
@@ -196,7 +217,7 @@
         <!-- POI Quick List (when no POI selected) -->
         <Frame Grid.Row="2"
                BackgroundColor="{StaticResource White}"
-               CornerRadius="24,24,0,0"
+               CornerRadius="0"
                Padding="0"
                HasShadow="True"
                IsVisible="{Binding HasSelectedPOI, Converter={StaticResource InvertBoolConverter}}"

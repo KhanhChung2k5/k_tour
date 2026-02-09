@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="HeriStepAI.Mobile.Views.TourDetailPage"
+             xmlns:viewmodel="clr-namespace:HeriStepAI.Mobile.ViewModels"
+             xmlns:models="clr-namespace:HeriStepAI.Mobile.Models"
+             x:DataType="viewmodel:TourDetailViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource PageBackground}">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Header with Tour Image -->
+        <Grid Grid.Row="0" HeightRequest="200">
+            <Image Source="{Binding Tour.ImageUrl}"
+                   Aspect="AspectFill" />
+            <BoxView Color="{StaticResource Black}" Opacity="0.4" />
+
+            <!-- Header Content -->
+            <Grid RowDefinitions="Auto,*,Auto" Padding="20,50,20,20">
+                <!-- Back Button -->
+                <Frame Grid.Row="0"
+                       BackgroundColor="{StaticResource White}"
+                       CornerRadius="20"
+                       WidthRequest="40"
+                       HeightRequest="40"
+                       Padding="0"
+                       HasShadow="False"
+                       HorizontalOptions="Start">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoBackCommand}" />
+                    </Frame.GestureRecognizers>
+                    <Label Text="←"
+                           FontSize="20"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Frame>
+
+                <!-- Tour Title -->
+                <VerticalStackLayout Grid.Row="2" Spacing="8">
+                    <Label Text="{Binding Tour.Name}"
+                           TextColor="{StaticResource White}"
+                           FontSize="24"
+                           FontAttributes="Bold" />
+                    <Label Text="{Binding Tour.Description}"
+                           TextColor="{StaticResource White}"
+                           FontSize="14"
+                           Opacity="0.9" />
+
+                    <!-- Tour Stats -->
+                    <HorizontalStackLayout Spacing="16" Margin="0,8,0,0">
+                        <HorizontalStackLayout Spacing="4">
+                            <Label Text="📍" FontSize="14" />
+                            <Label Text="{Binding Tour.POICount, StringFormat='{0} quán'}"
+                                   TextColor="{StaticResource White}"
+                                   FontSize="13" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4">
+                            <Label Text="⏱" FontSize="14" />
+                            <Label Text="{Binding Tour.EstimatedMinutes, StringFormat='{0} phút'}"
+                                   TextColor="{StaticResource White}"
+                                   FontSize="13" />
+                        </HorizontalStackLayout>
+                        <HorizontalStackLayout Spacing="4">
+                            <Label Text="💰" FontSize="14" />
+                            <Label Text="{Binding TotalPriceRange}"
+                                   TextColor="{StaticResource White}"
+                                   FontSize="13"
+                                   FontAttributes="Bold" />
+                        </HorizontalStackLayout>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Grid>
+        </Grid>
+
+        <!-- POI List -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,16,16,80" Spacing="12">
+                <Label Text="Danh sách quán ăn"
+                       Style="{StaticResource SectionHeader}" />
+
+                <CollectionView ItemsSource="{Binding Tour.POIs}"
+                                SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:POI">
+                            <Frame Style="{StaticResource CardFrame}"
+                                   Margin="0,0,0,12"
+                                   Padding="0">
+                                <Frame.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:TourDetailViewModel}}, Path=SelectPOICommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Frame.GestureRecognizers>
+                                <Grid ColumnDefinitions="100,*" HeightRequest="100">
+                                    <!-- POI Image -->
+                                    <Image Source="{Binding ImageUrl}"
+                                           Aspect="AspectFill"
+                                           WidthRequest="100" />
+
+                                    <!-- POI Info -->
+                                    <VerticalStackLayout Grid.Column="1"
+                                                         Padding="12"
+                                                         VerticalOptions="Center"
+                                                         Spacing="6">
+                                        <Label Text="{Binding Name}"
+                                               Style="{StaticResource TitleLabel}"
+                                               FontSize="15"
+                                               LineBreakMode="TailTruncation"
+                                               MaxLines="1" />
+
+                                        <HorizontalStackLayout Spacing="4">
+                                            <Label Text="⭐" FontSize="12" />
+                                            <Label Text="{Binding RatingText}"
+                                                   Style="{StaticResource CaptionLabel}" />
+                                        </HorizontalStackLayout>
+
+                                        <HorizontalStackLayout Spacing="4">
+                                            <Label Text="{Binding FoodTypeText}"
+                                                   TextColor="{StaticResource Primary}"
+                                                   FontSize="11"
+                                                   FontAttributes="Bold" />
+                                        </HorizontalStackLayout>
+
+                                        <Label Text="{Binding PriceRangeText}"
+                                               TextColor="{StaticResource Secondary}"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               IsVisible="{Binding PriceRangeText, Converter={StaticResource IsNotEmptyConverter}}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Bottom Action Bar -->
+        <Frame Grid.Row="2"
+               BackgroundColor="{StaticResource White}"
+               CornerRadius="0"
+               Padding="16,12"
+               HasShadow="True">
+            <Button Text="🗺️ Bắt đầu Tour"
+                    Command="{Binding StartTourCommand}"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="{StaticResource White}"
+                    CornerRadius="25"
+                    HeightRequest="50" />
+        </Frame>
+    </Grid>
+
+</ContentPage>
