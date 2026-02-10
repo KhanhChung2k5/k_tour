@@ -16,8 +16,9 @@ public partial class MapPageViewModel : ObservableObject
     private readonly ITourSelectionService _tourSelectionService;
     private readonly ILocalizationService _localizationService;
     private readonly ILocationSimulatorService _simulator;
+    private readonly IGeofenceService _geofenceService;
 
-    /// <summary>Danh sách POI hiển thị trên bản đồ. Không dùng [ObservableProperty] để tránh trùng tên.</summary>
+    /// <summary>Danh sach POI hien thi tren ban do. Khong dung [ObservableProperty] de tranh trung ten.</summary>
     public List<POI> POIs { get; set; } = new();
 
     [ObservableProperty]
@@ -32,7 +33,6 @@ public partial class MapPageViewModel : ObservableObject
     [ObservableProperty]
     private Location? currentLocation;
 
-
     [ObservableProperty]
     private string searchText = string.Empty;
 
@@ -40,10 +40,29 @@ public partial class MapPageViewModel : ObservableObject
     private bool isTestMode = false;
 
     [ObservableProperty]
-    private string testModeButtonText = "🧪 Bật Test Mode";
+    private string testModeButtonText = "🧪 Test Mode";
+
+    // Test mode status
+    [ObservableProperty]
+    private string testModeStatus = "";
+
+    [ObservableProperty]
+    private bool showTestModeStatus = false;
+
+    [ObservableProperty]
+    private int testModeTotalPOIs = 0;
+
+    [ObservableProperty]
+    private string testModeCurrentPOIName = "";
 
     // Event to notify map update
     public event EventHandler? MapNeedsUpdate;
+
+    // Event to notify map to move current location marker (without full reload)
+    public event EventHandler<Location>? SimulatedLocationChanged;
+
+    // Event to notify map that a POI was triggered by geofence
+    public event EventHandler<POI>? GeofenceTriggered;
 
     public MapPageViewModel(
         IPOIService poiService,
@@ -52,7 +71,8 @@ public partial class MapPageViewModel : ObservableObject
         ILocationService locationService,
         ITourSelectionService tourSelectionService,
         ILocalizationService localizationService,
-        ILocationSimulatorService simulator)
+        ILocationSimulatorService simulator,
+        IGeofenceService geofenceService)
     {
         _poiService = poiService;
         _narrationService = narrationService;
@@ -61,6 +81,13 @@ public partial class MapPageViewModel : ObservableObject
         _tourSelectionService = tourSelectionService;
         _localizationService = localizationService;
         _simulator = simulator;
+        _geofenceService = geofenceService;
+
+        // Subscribe to location changes for geofence checking
+        _locationService.LocationChanged += OnLocationChanged;
+
+        // Subscribe to geofence triggers for auto-narration
+        _geofenceService.POIEntered += OnGeofencePOIEntered;
 
         // Run initialization in background to avoid blocking
         Task.Run(async () =>
@@ -82,6 +109,68 @@ public partial class MapPageViewModel : ObservableObject
         HasSelectedPOI = value != null;
     }
 
+    /// <summary>
+    /// Called when location changes (both real GPS and simulated).
+    /// Checks geofence and updates map marker position.
+    /// </summary>
+    private void OnLocationChanged(object? sender, Location location)
+    {
+        CurrentLocation = location;
+
+        // Check geofence for auto-trigger
+        _geofenceService.CheckGeofence(location);
+
+        // Notify map to move the marker during test mode
+        if (IsTestMode)
+        {
+            SimulatedLocationChanged?.Invoke(this, location);
+        }
+    }
+
+    /// <summary>
+    /// Called when geofence detects user entered a POI zone.
+    /// Triggers auto-narration and logs the visit.
+    /// </summary>
+    private async void OnGeofencePOIEntered(object? sender, POI poi)
+    {
+        AppLog.Info($"📍 Geofence triggered: {poi.Name} (ID={poi.Id})");
+
+        // Update test mode status
+        if (IsTestMode)
+        {
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                TestModeStatus = $"🔊 {poi.Name}";
+                TestModeCurrentPOIName = poi.Name;
+            });
+        }
+
+        // Notify map to highlight the triggered POI
+        GeofenceTriggered?.Invoke(this, poi);
+
+        // Log visit as Geofence type
+        try
+        {
+            await _apiService.LogVisitAsync(poi.Id, poi.Latitude, poi.Longitude, VisitType.Geofence);
+            AppLog.Info($"✅ Logged geofence visit for {poi.Name}");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error($"Failed to log geofence visit: {ex.Message}");
+        }
+
+        // Auto-play narration (forcePlay=false to respect cooldown)
+        try
+        {
+            await _narrationService.PlayNarrationAsync(poi, _localizationService.CurrentLanguage, forcePlay: false);
+            AppLog.Info($"🔊 Auto-narration started for {poi.Name}");
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error($"Failed to play narration: {ex.Message}");
+        }
+    }
+
     private async Task LoadPOIsAsync()
     {
         try
@@ -97,7 +186,11 @@ public partial class MapPageViewModel : ObservableObject
             {
                 POIs = allPois;
             }
-            
+
+            // Initialize geofence with all POIs
+            _geofenceService.Initialize(POIs);
+            AppLog.Info($"🎯 GeofenceService initialized with {POIs.Count} POIs");
+
             // Update nearby POIs with sample images if no ImageUrl
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
@@ -110,7 +203,7 @@ public partial class MapPageViewModel : ObservableObject
                     "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
                     "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=400"
                 };
-                
+
                 var index = 0;
                 foreach (var poi in POIs.Take(5))
                 {
@@ -139,7 +232,7 @@ public partial class MapPageViewModel : ObservableObject
         try
         {
             CurrentLocation = await _locationService.GetCurrentLocationAsync();
-            
+
             // Calculate distances for POIs
             if (CurrentLocation != null)
             {
@@ -151,7 +244,7 @@ public partial class MapPageViewModel : ObservableObject
                         poi.Latitude,
                         poi.Longitude);
                 }
-                
+
                 // Re-sort nearby POIs by distance
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
@@ -190,7 +283,7 @@ public partial class MapPageViewModel : ObservableObject
         // Log visit
         if (CurrentLocation != null)
         {
-            await _apiService.LogVisitAsync(poi.Id, CurrentLocation.Latitude, CurrentLocation.Longitude, Services.VisitType.MapClick);
+            await _apiService.LogVisitAsync(poi.Id, CurrentLocation.Latitude, CurrentLocation.Longitude, VisitType.MapClick);
         }
 
         await _narrationService.PlayNarrationAsync(poi, _localizationService.CurrentLanguage, forcePlay: true);
@@ -242,7 +335,6 @@ public partial class MapPageViewModel : ObservableObject
     [RelayCommand]
     private void CenterOnLocation()
     {
-        // Trigger map update to center on current location
         MapNeedsUpdate?.Invoke(this, EventArgs.Empty);
     }
 
@@ -251,30 +343,51 @@ public partial class MapPageViewModel : ObservableObject
     {
         if (!IsTestMode)
         {
-            // Start simulation with first 5 POIs (or all if fewer)
-            var route = POIs.Take(5).ToList();
+            var route = POIs.ToList();
             if (route.Count == 0)
             {
                 AppLog.Info("Cannot start test mode: no POIs available");
                 return;
             }
-            _simulator.StartSimulation(route, delaySeconds: 10);
+
+            // Re-initialize geofence with the route POIs
+            _geofenceService.Initialize(route);
+
+            // Start location simulation (8s per POI)
+            _simulator.StartSimulation(route, delaySeconds: 8);
+
+            // Update UI state
             IsTestMode = true;
-            TestModeButtonText = "🛑 Tắt Test Mode";
-            AppLog.Info($"🧪 Test Mode started with {route.Count} POIs");
+            TestModeButtonText = "🛑 Dừng";
+            ShowTestModeStatus = true;
+            TestModeTotalPOIs = route.Count;
+            TestModeStatus = $"🧪 Mô phỏng {route.Count} POI...";
+
+            AppLog.Info($"🧪 Test Mode started with {route.Count} POIs, geofence active");
         }
         else
         {
-            _simulator.StopSimulation();
-            IsTestMode = false;
-            TestModeButtonText = "🧪 Bật Test Mode";
-            AppLog.Info("🛑 Test Mode stopped");
+            StopTestMode();
         }
+    }
+
+    private void StopTestMode()
+    {
+        _simulator.StopSimulation();
+        _narrationService.StopNarration();
+
+        IsTestMode = false;
+        TestModeButtonText = "🧪 Test Mode";
+        ShowTestModeStatus = false;
+        TestModeStatus = "";
+        TestModeCurrentPOIName = "";
+
+        AppLog.Info("🛑 Test Mode stopped");
     }
 
     private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)
     {
-        const double R = 6371000; // Earth radius in meters
+        const double R = 6371000;
         var dLat = (lat2 - lat1) * Math.PI / 180;
         var dLon = (lon2 - lon1) * Math.PI / 180;
         var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +

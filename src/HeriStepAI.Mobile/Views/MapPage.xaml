@@ -9,7 +9,7 @@
              BackgroundColor="{StaticResource PageBackground}">
 
     <Grid RowDefinitions="Auto,*,Auto">
-        
+
         <!-- Top Bar with Search -->
         <Frame Grid.Row="0"
                BackgroundColor="{StaticResource White}"
@@ -35,7 +35,7 @@
                            HorizontalOptions="Center"
                            VerticalOptions="Center" />
                 </Frame>
-                
+
                 <!-- Search Entry -->
                 <Frame Grid.Column="1"
                        BackgroundColor="{StaticResource Gray100}"
@@ -55,7 +55,7 @@
                                VerticalOptions="Center" />
                     </Grid>
                 </Frame>
-                
+
                 <!-- List View Button -->
                 <Frame Grid.Column="2"
                        BackgroundColor="{StaticResource Primary}"
@@ -79,11 +79,34 @@
         </Frame>
 
         <!-- Map View - Full Screen -->
-        <WebView Grid.Row="1" 
+        <WebView Grid.Row="1"
                  x:Name="MapWebView"
                  Margin="0,-60,0,0"
                  ZIndex="1" />
-        
+
+        <!-- Test Mode Status Banner (shown when test mode is active) -->
+        <Frame Grid.Row="1"
+               BackgroundColor="#E8F5E9"
+               CornerRadius="12"
+               Padding="12,8"
+               HasShadow="True"
+               HorizontalOptions="Center"
+               VerticalOptions="Start"
+               Margin="16,8,16,0"
+               IsVisible="{Binding ShowTestModeStatus}"
+               ZIndex="8">
+            <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                <Label Text="🧪"
+                       FontSize="14"
+                       VerticalOptions="Center" />
+                <Label Text="{Binding TestModeStatus}"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="#2E7D32"
+                       VerticalOptions="Center" />
+            </HorizontalStackLayout>
+        </Frame>
+
         <!-- Floating My Location Button -->
         <Frame Grid.Row="1"
                BackgroundColor="{StaticResource White}"
@@ -109,7 +132,7 @@
         <Frame Grid.Row="1"
                BackgroundColor="{StaticResource Primary}"
                CornerRadius="20"
-               Padding="12,8"
+               Padding="14,8"
                HasShadow="True"
                HorizontalOptions="End"
                VerticalOptions="End"
@@ -120,7 +143,7 @@
             </Frame.GestureRecognizers>
             <Label Text="{Binding TestModeButtonText}"
                    TextColor="{StaticResource White}"
-                   FontSize="12"
+                   FontSize="13"
                    FontAttributes="Bold"
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
@@ -135,7 +158,7 @@
                IsVisible="{Binding HasSelectedPOI}"
                ZIndex="10">
             <VerticalStackLayout Padding="20" Spacing="12">
-                
+
                 <!-- Handle Bar -->
                 <BoxView Color="{StaticResource Gray300}"
                          WidthRequest="40"
@@ -143,14 +166,14 @@
                          CornerRadius="2"
                          HorizontalOptions="Center"
                          Margin="0,0,0,8" />
-                
+
                 <!-- POI Header -->
                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
                     <Label Grid.Column="0"
                            Text="{Binding SelectedPOI.Name}"
                            Style="{StaticResource TitleLabel}"
                            FontSize="18" />
-                    
+
                     <!-- Distance Badge -->
                     <Frame Grid.Column="1"
                            BackgroundColor="{StaticResource PrimaryLight}"
@@ -162,7 +185,7 @@
                                FontSize="12"
                                FontAttributes="Bold" />
                     </Frame>
-                    
+
                     <!-- Address -->
                     <Label Grid.Row="1"
                            Grid.ColumnSpan="2"
@@ -172,7 +195,7 @@
                            MaxLines="2"
                            Margin="0,4,0,0" />
                 </Grid>
-                
+
                 <!-- Rating and Time -->
                 <HorizontalStackLayout Spacing="16">
                     <HorizontalStackLayout Spacing="4">
@@ -191,7 +214,7 @@
                                Style="{StaticResource BodyLabel}" />
                     </HorizontalStackLayout>
                 </HorizontalStackLayout>
-                
+
                 <!-- Action Buttons -->
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                     <Button Grid.Column="0"
@@ -213,7 +236,7 @@
                 </Grid>
             </VerticalStackLayout>
         </Frame>
-        
+
         <!-- POI Quick List (when no POI selected) -->
         <Frame Grid.Row="2"
                BackgroundColor="{StaticResource White}"
@@ -223,7 +246,7 @@
                IsVisible="{Binding HasSelectedPOI, Converter={StaticResource InvertBoolConverter}}"
                ZIndex="10">
             <VerticalStackLayout Padding="20,12,20,20" Spacing="8">
-                
+
                 <!-- Handle Bar -->
                 <BoxView Color="{StaticResource Gray300}"
                          WidthRequest="40"
@@ -231,14 +254,14 @@
                          CornerRadius="2"
                          HorizontalOptions="Center"
                          Margin="0,0,0,4" />
-                
+
                 <Label Text="Địa điểm gần bạn"
                        Style="{StaticResource SectionHeader}"
                        Margin="0" />
-                
-                <ScrollView Orientation="Horizontal" 
+
+                <ScrollView Orientation="Horizontal"
                             HorizontalScrollBarVisibility="Never">
-                    <HorizontalStackLayout Spacing="12" 
+                    <HorizontalStackLayout Spacing="12"
                                            BindableLayout.ItemsSource="{Binding NearbyPOIs}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:POI">
@@ -247,7 +270,7 @@
                                        HeightRequest="120"
                                        Padding="0">
                                     <Frame.GestureRecognizers>
-                                        <TapGestureRecognizer 
+                                        <TapGestureRecognizer
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MapPageViewModel}}, Path=POISelectedCommand}"
                                             CommandParameter="{Binding .}" />
                                     </Frame.GestureRecognizers>

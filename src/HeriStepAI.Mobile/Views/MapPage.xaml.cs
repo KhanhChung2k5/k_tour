@@ -19,12 +19,18 @@ public partial class MapPage : ContentPage
             BindingContext = viewModel;
 
             LoadMapAsync();
-            
+
             // Subscribe to POI selection from map
             MapWebView.Navigating += OnMapNavigating;
-            
+
             // Subscribe to map update requests
             _viewModel.MapNeedsUpdate += OnMapNeedsUpdate;
+
+            // Subscribe to real-time location updates during test mode
+            _viewModel.SimulatedLocationChanged += OnSimulatedLocationChanged;
+
+            // Subscribe to geofence triggers for map highlighting
+            _viewModel.GeofenceTriggered += OnGeofenceTriggered;
         }
         catch (Exception ex)
         {
@@ -40,6 +46,58 @@ public partial class MapPage : ContentPage
     private void OnMapNeedsUpdate(object? sender, EventArgs e)
     {
         LoadMapAsync();
+    }
+
+    /// <summary>
+    /// Move the current location marker on the map without full reload.
+    /// Uses JavaScript evaluation to update the Leaflet marker position.
+    /// </summary>
+    private void OnSimulatedLocationChanged(object? sender, Location location)
+    {
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            try
+            {
+                var js = $"if(typeof currentMarker !== 'undefined') {{ currentMarker.setLatLng([{location.Latitude}, {location.Longitude}]); map.panTo([{location.Latitude}, {location.Longitude}], {{animate: true, duration: 0.5}}); }}";
+                await MapWebView.EvaluateJavaScriptAsync(js);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error updating map marker: {ex.Message}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Highlight a POI on the map when geofence is triggered.
+    /// Shows a pulse effect and opens the popup.
+    /// </summary>
+    private void OnGeofenceTriggered(object? sender, POI poi)
+    {
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            try
+            {
+                // Open the POI popup and add a highlight circle
+                var js = $@"
+                    if(typeof marker{poi.Id} !== 'undefined') {{
+                        marker{poi.Id}.openPopup();
+                        if(typeof geoCircle !== 'undefined') {{ map.removeLayer(geoCircle); }}
+                        geoCircle = L.circle([{poi.Latitude}, {poi.Longitude}], {{
+                            radius: {poi.Radius},
+                            color: '#4CAF50',
+                            fillColor: '#4CAF50',
+                            fillOpacity: 0.15,
+                            weight: 2
+                        }}).addTo(map);
+                    }}";
+                await MapWebView.EvaluateJavaScriptAsync(js);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error highlighting POI: {ex.Message}");
+            }
+        });
     }
 
     private async void LoadMapAsync()
@@ -182,7 +240,7 @@ public partial class MapPage : ContentPage
         sb.AppendLine("<body>");
         sb.AppendLine("<div id='map'></div>");
         sb.AppendLine("<script>");
-        
+
         var centerLat = currentLocation?.Latitude ?? 16.0544;
         var centerLng = currentLocation?.Longitude ?? 108.2022;
 
@@ -193,7 +251,10 @@ public partial class MapPage : ContentPage
         sb.AppendLine("  maxZoom: 19");
         sb.AppendLine("}).addTo(map);");
 
-        // Add current location marker
+        // Global variable for geofence highlight circle
+        sb.AppendLine("var geoCircle = null;");
+
+        // Add current location marker (global var so JS can update it)
         if (currentLocation != null)
         {
             sb.AppendLine($"var currentLocationIcon = L.divIcon({{");
@@ -204,21 +265,31 @@ public partial class MapPage : ContentPage
             sb.AppendLine($"var currentMarker = L.marker([{currentLocation.Latitude}, {currentLocation.Longitude}], {{ icon: currentLocationIcon }}).addTo(map);");
             sb.AppendLine("currentMarker.bindPopup('<div class=\"popup-content\"><div class=\"popup-title\">📍 Vị trí của bạn</div></div>');");
         }
+        else
+        {
+            // Create marker at default position so test mode can move it
+            sb.AppendLine($"var currentLocationIcon = L.divIcon({{");
+            sb.AppendLine("  className: 'current-location',");
+            sb.AppendLine("  iconSize: [20, 20],");
+            sb.AppendLine("  iconAnchor: [10, 10]");
+            sb.AppendLine("});");
+            sb.AppendLine($"var currentMarker = L.marker([{centerLat}, {centerLng}], {{ icon: currentLocationIcon }}).addTo(map);");
+        }
 
         // Find nearest POI to highlight
         var nearestPoiId = currentLocation != null && pois.Any()
             ? pois.OrderBy(p => HaversineDistance(currentLocation.Latitude, currentLocation.Longitude, p.Latitude, p.Longitude)).First().Id
             : (int?)null;
 
-        // Add POI markers
+        // Add POI markers with geofence radius circles
         foreach (var poi in pois)
         {
             var escapedName = EscapeJs(poi.Name);
             var escapedDesc = EscapeJs(poi.Description);
             var escapedAddr = EscapeJs(poi.Address ?? "");
             var isNearest = poi.Id == nearestPoiId;
-            var distance = currentLocation != null 
-                ? HaversineDistance(currentLocation.Latitude, currentLocation.Longitude, poi.Latitude, poi.Longitude) 
+            var distance = currentLocation != null
+                ? HaversineDistance(currentLocation.Latitude, currentLocation.Longitude, poi.Latitude, poi.Longitude)
                 : 0;
             var distanceText = distance < 1000 ? $"{distance:F0}m" : $"{distance / 1000:F1}km";
             var rating = poi.Rating?.ToString("F1") ?? "4.5";
@@ -230,9 +301,22 @@ public partial class MapPage : ContentPage
             sb.AppendLine($"  popupAnchor: [0, {(isNearest ? -44 : -36)}],");
             sb.AppendLine($"  html: '<div class=\"poi-marker-inner\">📍</div>'");
             sb.AppendLine("});");
-            
+
             sb.AppendLine($"var marker{poi.Id} = L.marker([{poi.Latitude}, {poi.Longitude}], {{ icon: poiIcon{poi.Id} }}).addTo(map);");
-            
+
+            // Add a subtle geofence radius circle for each POI
+            if (poi.Radius > 0)
+            {
+                sb.AppendLine($"L.circle([{poi.Latitude}, {poi.Longitude}], {{");
+                sb.AppendLine($"  radius: {poi.Radius},");
+                sb.AppendLine("  color: '#E07B4C',");
+                sb.AppendLine("  fillColor: '#E07B4C',");
+                sb.AppendLine("  fillOpacity: 0.05,");
+                sb.AppendLine("  weight: 1,");
+                sb.AppendLine("  dashArray: '4 4'");
+                sb.AppendLine("}).addTo(map);");
+            }
+
             var addrHtml = string.IsNullOrEmpty(poi.Address) ? "" : $"<div class=\"popup-address\">📍 {escapedAddr}</div>";
             var popupHtml = $@"
                 <div class=\""popup-content\"">
@@ -247,7 +331,7 @@ public partial class MapPage : ContentPage
                     <button class=\""popup-btn\"" onclick=\""selectPOI({poi.Id})\"">🔊 Nghe thuyết minh</button>
                 </div>
             ".Replace("\n", "").Replace("\r", "");
-            
+
             sb.AppendLine($"marker{poi.Id}.bindPopup('{popupHtml}');");
         }
 
