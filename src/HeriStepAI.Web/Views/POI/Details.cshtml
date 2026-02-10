@@ -1,295 +1,216 @@
 @model POIViewModel
 @{
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Chi tiết POI";
 }
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        .detail-card {
-            border-left: 4px solid #007bff;
-        }
-        .detail-label {
-            font-weight: 600;
-            color: #6c757d;
-        }
-        .detail-value {
-            font-size: 1.1em;
-        }
-        .poi-main-image {
-            max-width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .status-badge {
-            font-size: 1.1em;
-            padding: 0.5em 1em;
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1"><i class="bi bi-eye"></i> Chi tiết POI</span>
-            <div>
-                <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning me-2">
-                    <i class="bi bi-pencil"></i> Chỉnh sửa
-                </a>
-                <a href="@Url.Action("Index")" class="btn btn-outline-light">
-                    <i class="bi bi-arrow-left"></i> Quay lại danh sách
-                </a>
-            </div>
-        </div>
-    </nav>
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="page-title"><i class="bi bi-eye me-2"></i>@Model.Name</h4>
+        <p class="page-subtitle">Chi tiết địa điểm #@Model.Id</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-primary btn-sm" style="border-radius:8px;">
+            <i class="bi bi-pencil-square me-1"></i> Chỉnh sửa
+        </a>
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm" style="border-radius:8px;">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+</div>
 
-    <div class="container mt-4">
-        <div class="row">
-            <!-- Main Information -->
-            <div class="col-lg-8">
-                <div class="card shadow mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h4 class="mb-0">
-                            <i class="bi bi-shop"></i> @Model.Name
-                            @if (Model.IsActive)
+<div class="row g-4">
+    <!-- Main Info -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-shop me-1"></i> Thông tin chính</h6>
+                @if (Model.IsActive)
+                {
+                    <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle"></i> Hoạt động</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary-subtle text-secondary"><i class="bi bi-x-circle"></i> Vô hiệu</span>
+                }
+            </div>
+            <div class="card-body p-4">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <div class="mb-4 text-center">
+                        <img src="@Model.ImageUrl" alt="@Model.Name"
+                             style="max-width:100%;max-height:300px;border-radius:12px;object-fit:cover;"
+                             class="shadow-sm" />
+                    </div>
+                }
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <small class="text-muted fw-semibold d-block mb-1">Tên</small>
+                            <span class="fw-medium">@Model.Name</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <small class="text-muted fw-semibold d-block mb-1">Địa chỉ</small>
+                            <span><i class="bi bi-geo-alt text-danger"></i> @(Model.Address ?? "N/A")</span>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <small class="text-muted fw-semibold d-block mb-1">Mô tả</small>
+                            <span>@(Model.Description ?? "N/A")</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <small class="text-muted fw-semibold d-block mb-1">Tọa độ</small>
+                            <span class="badge bg-light text-dark border">Lat: @Model.Latitude.ToString("F6")</span>
+                            <span class="badge bg-light text-dark border">Lng: @Model.Longitude.ToString("F6")</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <small class="text-muted fw-semibold d-block mb-1">Loại</small>
+                            <span class="badge bg-primary">@Model.CategoryName</span>
+                            @if (Model.Category == 2)
                             {
-                                <span class="badge bg-success float-end status-badge">
-                                    <i class="bi bi-check-circle"></i> Hoạt động
-                                </span>
+                                <span class="badge bg-warning text-dark">@Model.FoodTypeName</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <small class="text-muted fw-semibold d-block mb-1">Đánh giá</small>
+                            @if (Model.Rating.HasValue)
+                            {
+                                <span><i class="bi bi-star-fill text-warning"></i> @Model.Rating.Value.ToString("F1") <small class="text-muted">(@Model.ReviewCount)</small></span>
                             }
                             else
                             {
-                                <span class="badge bg-secondary float-end status-badge">
-                                    <i class="bi bi-x-circle"></i> Vô hiệu
-                                </span>
+                                <span class="text-muted">Chưa có</span>
                             }
-                        </h4>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                        {
-                            <div class="mb-4 text-center">
-                                <img src="@Model.ImageUrl" alt="@Model.Name" class="poi-main-image" />
-                            </div>
-                        }
-
-                        <div class="row mb-3">
-                            <div class="col-md-3 detail-label">ID:</div>
-                            <div class="col-md-9 detail-value"><strong>#@Model.Id</strong></div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-3 detail-label">Tên:</div>
-                            <div class="col-md-9 detail-value">@Model.Name</div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-3 detail-label">Mô tả:</div>
-                            <div class="col-md-9 detail-value">@(Model.Description ?? "N/A")</div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-3 detail-label">Địa chỉ:</div>
-                            <div class="col-md-9 detail-value">
-                                <i class="bi bi-geo-alt text-danger"></i> @(Model.Address ?? "N/A")
+                    @if (Model.Category == 2 && (Model.PriceMin > 0 || Model.PriceMax > 0))
+                    {
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <small class="text-muted fw-semibold d-block mb-1">Giá</small>
+                                <span class="text-success fw-bold"><i class="bi bi-cash"></i> @Model.PriceMin.ToString("N0") - @Model.PriceMax.ToString("N0") VND</span>
                             </div>
                         </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-3 detail-label">Tọa độ:</div>
-                            <div class="col-md-9 detail-value">
-                                <span class="badge bg-secondary">Lat: @Model.Latitude.ToString("F6")</span>
-                                <span class="badge bg-secondary">Lng: @Model.Longitude.ToString("F6")</span>
-                            </div>
+                    }
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <small class="text-muted fw-semibold d-block mb-1">Thời gian tham quan</small>
+                            <span><i class="bi bi-clock"></i> @Model.EstimatedMinutes phút</span>
                         </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-3 detail-label">Loại:</div>
-                            <div class="col-md-9 detail-value">
-                                <span class="badge bg-primary">@Model.CategoryName</span>
-                            </div>
-                        </div>
-
-                        @if (Model.Category == 2)
-                        {
-                            <div class="row mb-3">
-                                <div class="col-md-3 detail-label">Loại món ăn:</div>
-                                <div class="col-md-9 detail-value">
-                                    <span class="badge bg-warning text-dark">@Model.FoodTypeName</span>
-                                </div>
-                            </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-3 detail-label">Giá:</div>
-                                <div class="col-md-9 detail-value">
-                                    <span class="text-success fw-bold">
-                                        <i class="bi bi-cash"></i> @Model.PriceMin.ToString("N0") - @Model.PriceMax.ToString("N0") VND
-                                    </span>
-                                </div>
-                            </div>
-                        }
-
-                        <div class="row mb-3">
-                            <div class="col-md-3 detail-label">Đánh giá:</div>
-                            <div class="col-md-9 detail-value">
-                                @if (Model.Rating.HasValue)
-                                {
-                                    <span>
-                                        <i class="bi bi-star-fill text-warning"></i>
-                                        <strong>@Model.Rating.Value.ToString("F1")</strong>
-                                        <small class="text-muted">(@Model.ReviewCount đánh giá)</small>
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">Chưa có đánh giá</span>
-                                }
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-3 detail-label">Thời gian tham quan:</div>
-                            <div class="col-md-9 detail-value">
-                                <i class="bi bi-clock"></i> @Model.EstimatedMinutes phút
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-3 detail-label">Ưu tiên:</div>
-                            <div class="col-md-9 detail-value">
-                                @switch (Model.Priority)
-                                {
-                                    case 1:
-                                        <span class="badge bg-secondary">Thấp</span>
-                                        break;
-                                    case 2:
-                                        <span class="badge bg-info">Trung bình</span>
-                                        break;
-                                    case 3:
-                                        <span class="badge bg-danger">Cao</span>
-                                        break;
-                                    default:
-                                        <span class="badge bg-secondary">@Model.Priority</span>
-                                        break;
-                                }
-                            </div>
-                        </div>
-
-                        @if (!string.IsNullOrEmpty(Model.MapLink))
-                        {
-                            <div class="row mb-3">
-                                <div class="col-md-3 detail-label">Google Maps:</div>
-                                <div class="col-md-9 detail-value">
-                                    <a href="@Model.MapLink" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-map"></i> Xem trên Google Maps
-                                    </a>
-                                </div>
-                            </div>
-                        }
                     </div>
-                </div>
-            </div>
-
-            <!-- Side Panel -->
-            <div class="col-lg-4">
-                <!-- Technical Details -->
-                <div class="card shadow mb-4 detail-card">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0"><i class="bi bi-gear"></i> Thông tin kỹ thuật</h5>
-                    </div>
-                    <div class="card-body">
+                    <div class="col-md-4">
                         <div class="mb-3">
-                            <small class="detail-label">Bán kính geofence:</small><br />
-                            <span class="detail-value">@Model.Radius m</span>
-                        </div>
-
-                        <div class="mb-3">
-                            <small class="detail-label">Owner ID:</small><br />
-                            <span class="detail-value">@(Model.OwnerId?.ToString() ?? "N/A")</span>
-                        </div>
-
-                        <div class="mb-3">
-                            <small class="detail-label">Tour ID:</small><br />
-                            <span class="detail-value">@(Model.TourId?.ToString() ?? "N/A")</span>
-                        </div>
-
-                        <div class="mb-3">
-                            <small class="detail-label">Ngày tạo:</small><br />
-                            <span class="detail-value">
-                                <i class="bi bi-calendar-plus"></i> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
-                            </span>
-                        </div>
-
-                        <div class="mb-3">
-                            <small class="detail-label">Cập nhật lần cuối:</small><br />
-                            <span class="detail-value">
-                                <i class="bi bi-calendar-check"></i> @Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")
-                            </span>
+                            <small class="text-muted fw-semibold d-block mb-1">Ưu tiên</small>
+                            @switch (Model.Priority)
+                            {
+                                case 1: <span class="badge bg-secondary">Thấp</span> break;
+                                case 2: <span class="badge bg-info">Trung bình</span> break;
+                                case 3: <span class="badge bg-danger">Cao</span> break;
+                                default: <span class="badge bg-secondary">@Model.Priority</span> break;
+                            }
                         </div>
                     </div>
                 </div>
 
-                <!-- Actions -->
-                <div class="card shadow detail-card">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0"><i class="bi bi-lightning"></i> Thao tác</h5>
-                    </div>
-                    <div class="card-body d-grid gap-2">
-                        <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning">
-                            <i class="bi bi-pencil"></i> Chỉnh sửa
-                        </a>
-
-                        <form method="post" action="@Url.Action("ToggleActive", new { id = Model.Id })">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn @(Model.IsActive ? "btn-secondary" : "btn-success") w-100">
-                                <i class="bi bi-toggle-@(Model.IsActive ? "off" : "on")"></i>
-                                @(Model.IsActive ? "Vô hiệu hóa" : "Kích hoạt")
-                            </button>
-                        </form>
-
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                            <i class="bi bi-trash"></i> Xóa POI
-                        </button>
-
-                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                @if (!string.IsNullOrEmpty(Model.MapLink))
+                {
+                    <div class="mt-2">
+                        <a href="@Model.MapLink" target="_blank" class="btn btn-outline-primary btn-sm" style="border-radius:8px;">
+                            <i class="bi bi-map me-1"></i> Xem trên Google Maps
                         </a>
                     </div>
-                </div>
+                }
             </div>
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Xác nhận xóa</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <!-- Side Panel -->
+    <div class="col-lg-4">
+        <!-- Technical -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-gear me-1"></i> Kỹ thuật</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <small class="text-muted fw-semibold d-block">Bán kính geofence</small>
+                    <span>@Model.Radius m</span>
                 </div>
-                <div class="modal-body">
-                    <p>Bạn có chắc chắn muốn xóa POI <strong>@Model.Name</strong>?</p>
-                    <p class="text-danger"><i class="bi bi-exclamation-circle"></i> Hành động này không thể hoàn tác!</p>
+                <div class="mb-3">
+                    <small class="text-muted fw-semibold d-block">Owner ID</small>
+                    <span>@(Model.OwnerId?.ToString() ?? "N/A")</span>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <form method="post" action="@Url.Action("Delete", new { id = Model.Id })" class="d-inline">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-danger">
-                            <i class="bi bi-trash"></i> Xóa vĩnh viễn
-                        </button>
-                    </form>
+                <div class="mb-3">
+                    <small class="text-muted fw-semibold d-block">Tour ID</small>
+                    <span>@(Model.TourId?.ToString() ?? "N/A")</span>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted fw-semibold d-block">Ngày tạo</small>
+                    <span><i class="bi bi-calendar-plus"></i> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+                <div class="mb-0">
+                    <small class="text-muted fw-semibold d-block">Cập nhật</small>
+                    <span><i class="bi bi-calendar-check"></i> @Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</span>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+        <!-- Actions -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-lightning me-1"></i> Thao tác</h6>
+            </div>
+            <div class="card-body d-grid gap-2 p-4">
+                <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-primary" style="border-radius:8px;">
+                    <i class="bi bi-pencil me-1"></i> Chỉnh sửa
+                </a>
+                <form method="post" action="@Url.Action("ToggleActive", new { id = Model.Id })">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn @(Model.IsActive ? "btn-warning" : "btn-success") w-100" style="border-radius:8px;">
+                        <i class="bi bi-toggle-@(Model.IsActive ? "off" : "on") me-1"></i>
+                        @(Model.IsActive ? "Tạm dừng" : "Kích hoạt")
+                    </button>
+                </form>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" style="border-radius:8px;">
+                    <i class="bi bi-trash me-1"></i> Xóa POI
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:14px;">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle text-danger me-1"></i> Xác nhận xóa</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa <strong>@Model.Name</strong>?</p>
+                <p class="text-danger small mb-0"><i class="bi bi-exclamation-circle"></i> Hành động này không thể hoàn tác!</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal" style="border-radius:8px;">Hủy</button>
+                <form method="post" action="@Url.Action("Delete", new { id = Model.Id })" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger btn-sm" style="border-radius:8px;">
+                        <i class="bi bi-trash me-1"></i> Xóa vĩnh viễn
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

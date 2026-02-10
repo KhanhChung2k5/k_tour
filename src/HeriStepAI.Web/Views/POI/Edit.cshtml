@@ -1,265 +1,219 @@
 @model POIViewModel
 @{
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Chỉnh sửa POI";
 }
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-</head>
-<body>
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1"><i class="bi bi-pencil"></i> Chỉnh sửa POI</span>
-            <a href="@Url.Action("Index")" class="btn btn-outline-light">
-                <i class="bi bi-arrow-left"></i> Quay lại danh sách
-            </a>
-        </div>
-    </nav>
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="page-title"><i class="bi bi-pencil-square me-2"></i>Chỉnh sửa: @Model.Name</h4>
+        <p class="page-subtitle">Cập nhật thông tin địa điểm</p>
+    </div>
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm" style="border-radius:8px;">
+        <i class="bi bi-arrow-left me-1"></i> Quay lại
+    </a>
+</div>
 
-    <div class="container mt-4">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="card shadow">
-                    <div class="card-header bg-warning">
-                        <h4 class="mb-0"><i class="bi bi-shop"></i> Chỉnh sửa: @Model.Name</h4>
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" style="border-radius:10px;">
+        <i class="bi bi-exclamation-triangle me-1"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<form method="post" asp-action="Edit" asp-route-id="@Model.Id" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="Id" value="@Model.Id" />
+    <input type="hidden" name="CreatedAt" value="@Model.CreatedAt" />
+    <input type="hidden" name="OwnerId" value="@Model.OwnerId" />
+
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-info-circle me-1"></i> Thông tin cơ bản</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Tên POI <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="Name" value="@Model.Name" required />
                     </div>
-                    <div class="card-body">
-                        @if (TempData["Error"] != null)
-                        {
-                            <div class="alert alert-danger alert-dismissible fade show">
-                                <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        }
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Mô tả <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="Description" rows="3" required>@Model.Description</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Địa chỉ</label>
+                        <input type="text" class="form-control" name="Address" value="@Model.Address" />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold small">Vĩ độ <span class="text-danger">*</span></label>
+                            <input type="number" step="any" class="form-control" name="Latitude" value="@Model.Latitude" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold small">Kinh độ <span class="text-danger">*</span></label>
+                            <input type="number" step="any" class="form-control" name="Longitude" value="@Model.Longitude" required />
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label fw-semibold small">Bán kính geofence (m)</label>
+                        <input type="number" class="form-control" name="Radius" value="@Model.Radius" />
+                    </div>
+                </div>
+            </div>
 
-                        <form method="post" asp-action="Edit" asp-route-id="@Model.Id" enctype="multipart/form-data">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="Id" value="@Model.Id" />
-                            <input type="hidden" name="CreatedAt" value="@Model.CreatedAt" />
-                            <input type="hidden" name="OwnerId" value="@Model.OwnerId" />
-
-                            <div class="row">
-                                <!-- Basic Information -->
-                                <div class="col-md-6">
-                                    <h5 class="text-primary mb-3"><i class="bi bi-info-circle"></i> Thông tin cơ bản</h5>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Tên POI <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" name="Name" value="@Model.Name" required />
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Mô tả <span class="text-danger">*</span></label>
-                                        <textarea class="form-control" name="Description" rows="3" required>@Model.Description</textarea>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Địa chỉ</label>
-                                        <input type="text" class="form-control" name="Address" value="@Model.Address" />
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Vĩ độ (Latitude) <span class="text-danger">*</span></label>
-                                            <input type="number" step="any" class="form-control" name="Latitude" value="@Model.Latitude" required />
-                                            <small class="text-muted">VD: 16.0544</small>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Kinh độ (Longitude) <span class="text-danger">*</span></label>
-                                            <input type="number" step="any" class="form-control" name="Longitude" value="@Model.Longitude" required />
-                                            <small class="text-muted">VD: 108.2022</small>
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Bán kính geofence (m)</label>
-                                        <input type="number" class="form-control" name="Radius" value="@Model.Radius" />
-                                        <small class="text-muted">Bán kính để kích hoạt thông báo</small>
-                                    </div>
-                                </div>
-
-                                <!-- Category & Details -->
-                                <div class="col-md-6">
-                                    <h5 class="text-primary mb-3"><i class="bi bi-tag"></i> Phân loại & Chi tiết</h5>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Loại POI <span class="text-danger">*</span></label>
-                                        <select class="form-select" name="Category" id="categorySelect" required>
-                                            <option value="0" selected="@(Model.Category == 0 ? "selected" : null)">Tất cả</option>
-                                            <option value="1" selected="@(Model.Category == 1 ? "selected" : null)">Tham quan</option>
-                                            <option value="2" selected="@(Model.Category == 2 ? "selected" : null)">Ẩm thực</option>
-                                            <option value="3" selected="@(Model.Category == 3 ? "selected" : null)">Nghỉ dưỡng</option>
-                                            <option value="4" selected="@(Model.Category == 4 ? "selected" : null)">Mua sắm</option>
-                                            <option value="5" selected="@(Model.Category == 5 ? "selected" : null)">Giải trí</option>
-                                            <option value="6" selected="@(Model.Category == 6 ? "selected" : null)">Di tích lịch sử</option>
-                                            <option value="7" selected="@(Model.Category == 7 ? "selected" : null)">Thiên nhiên</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="mb-3" id="foodTypeDiv">
-                                        <label class="form-label">Loại món ăn</label>
-                                        <select class="form-select" name="FoodType">
-                                            <option value="0" selected="@(Model.FoodType == 0 ? "selected" : null)">Khác</option>
-                                            <option value="1" selected="@(Model.FoodType == 1 ? "selected" : null)">Hải sản</option>
-                                            <option value="2" selected="@(Model.FoodType == 2 ? "selected" : null)">Món chay</option>
-                                            <option value="3" selected="@(Model.FoodType == 3 ? "selected" : null)">Đặc sản</option>
-                                            <option value="4" selected="@(Model.FoodType == 4 ? "selected" : null)">Đường phố</option>
-                                            <option value="5" selected="@(Model.FoodType == 5 ? "selected" : null)">Nướng</option>
-                                            <option value="6" selected="@(Model.FoodType == 6 ? "selected" : null)">Bún/Phở/Mì</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="row" id="priceDiv">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Giá tối thiểu (VND)</label>
-                                            <input type="number" class="form-control" name="PriceMin" value="@Model.PriceMin" />
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Giá tối đa (VND)</label>
-                                            <input type="number" class="form-control" name="PriceMax" value="@Model.PriceMax" />
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Thời gian tham quan (phút)</label>
-                                        <input type="number" class="form-control" name="EstimatedMinutes" value="@Model.EstimatedMinutes" />
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Ưu tiên</label>
-                                        <select class="form-select" name="Priority">
-                                            <option value="1" selected="@(Model.Priority == 1 ? "selected" : null)">Thấp</option>
-                                            <option value="2" selected="@(Model.Priority == 2 ? "selected" : null)">Trung bình</option>
-                                            <option value="3" selected="@(Model.Priority == 3 ? "selected" : null)">Cao</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label"><i class="bi bi-image"></i> Hình ảnh</label>
-                                        <input type="file" class="form-control" name="ImageFile" id="imageFileInput" accept="image/*" />
-                                        <input type="hidden" name="ImageUrl" value="@Model.ImageUrl" />
-                                        <small class="text-muted">Chọn ảnh mới để thay thế. Để trống nếu giữ ảnh cũ.</small>
-                                        <div id="imagePreview" class="mt-2" style="@(string.IsNullOrEmpty(Model.ImageUrl) ? "display: none;" : "")">
-                                            <img id="previewImg" src="@Model.ImageUrl" alt="Preview" class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label">Link Google Maps</label>
-                                        <input type="url" class="form-control" name="MapLink" value="@Model.MapLink" />
-                                    </div>
-
-                                    <div class="form-check mb-3">
-                                        <input class="form-check-input" type="checkbox" name="IsActive" value="true" @(Model.IsActive ? "checked" : "") />
-                                        <label class="form-check-label">
-                                            <i class="bi bi-check-circle text-success"></i> Kích hoạt
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <hr class="my-4" />
-
-                            <!-- Multilingual Content -->
-                            <h5 class="text-primary mb-3"><i class="bi bi-translate"></i> Nội dung thuyết minh</h5>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">
-                                            <img src="https://flagcdn.com/w20/vn.png" alt="VI" /> Nội dung tiếng Việt
-                                        </label>
-                                        <textarea class="form-control" name="TextContent_vi" rows="6" placeholder="Nhập nội dung thuyết minh bằng tiếng Việt...">@Model.TextContent_vi</textarea>
-                                        <small class="text-muted">Nội dung này sẽ được đọc bằng giọng nói tiếng Việt khi du khách tới gần</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">
-                                            <img src="https://flagcdn.com/w20/us.png" alt="EN" /> English Content
-                                        </label>
-                                        <textarea class="form-control" name="TextContent_en" rows="6" placeholder="Enter narration content in English...">@Model.TextContent_en</textarea>
-                                        <small class="text-muted">This content will be read in English voice when tourists approach</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <hr class="my-4" />
-
-                            <!-- Metadata -->
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <small class="text-muted">
-                                        <i class="bi bi-calendar-plus"></i> Tạo lúc: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
-                                    </small>
-                                </div>
-                                <div class="col-md-6 text-end">
-                                    <small class="text-muted">
-                                        <i class="bi bi-calendar-check"></i> Cập nhật: @Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")
-                                    </small>
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-between">
-                                <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                    <i class="bi bi-x-circle"></i> Hủy
-                                </a>
-                                <button type="submit" class="btn btn-warning btn-lg">
-                                    <i class="bi bi-save"></i> Cập nhật
-                                </button>
-                            </div>
-                        </form>
+            <!-- Content -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-translate me-1"></i> Nội dung thuyết minh</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold small">
+                                <img src="https://flagcdn.com/w20/vn.png" alt="VI" class="me-1" /> Tiếng Việt
+                            </label>
+                            <textarea class="form-control" name="TextContent_vi" rows="5">@Model.TextContent_vi</textarea>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold small">
+                                <img src="https://flagcdn.com/w20/us.png" alt="EN" class="me-1" /> English
+                            </label>
+                            <textarea class="form-control" name="TextContent_en" rows="5">@Model.TextContent_en</textarea>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-tag me-1"></i> Phân loại</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Loại POI <span class="text-danger">*</span></label>
+                        <select class="form-select" name="Category" id="categorySelect" required>
+                            <option value="0">Tất cả</option>
+                            <option value="1">Tham quan</option>
+                            <option value="2">Ẩm thực</option>
+                            <option value="3">Nghỉ dưỡng</option>
+                            <option value="4">Mua sắm</option>
+                            <option value="5">Giải trí</option>
+                            <option value="6">Di tích lịch sử</option>
+                            <option value="7">Thiên nhiên</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="foodTypeDiv">
+                        <label class="form-label fw-semibold small">Loại món ăn</label>
+                        <select class="form-select" name="FoodType" id="foodTypeSelect">
+                            <option value="0">Khác</option>
+                            <option value="1">Hải sản</option>
+                            <option value="2">Món chay</option>
+                            <option value="3">Đặc sản</option>
+                            <option value="4">Đường phố</option>
+                            <option value="5">Nướng</option>
+                            <option value="6">Bún/Phở/Mì</option>
+                        </select>
+                    </div>
+                    <div class="row" id="priceDiv">
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold small">Giá min (VND)</label>
+                            <input type="number" class="form-control" name="PriceMin" value="@Model.PriceMin" />
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold small">Giá max (VND)</label>
+                            <input type="number" class="form-control" name="PriceMax" value="@Model.PriceMax" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Thời gian tham quan (phút)</label>
+                        <input type="number" class="form-control" name="EstimatedMinutes" value="@Model.EstimatedMinutes" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Ưu tiên</label>
+                        <select class="form-select" name="Priority" id="prioritySelect">
+                            <option value="1">Thấp</option>
+                            <option value="2">Trung bình</option>
+                            <option value="3">Cao</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Link Google Maps</label>
+                        <input type="url" class="form-control" name="MapLink" value="@Model.MapLink" />
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="IsActive" value="true" id="isActiveCheck" />
+                        <label class="form-check-label small">
+                            <i class="bi bi-check-circle text-success"></i> Kích hoạt
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Image -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-image me-1"></i> Hình ảnh</h6>
+                </div>
+                <div class="card-body p-4">
+                    <input type="file" class="form-control" name="ImageFile" id="imageFileInput" accept="image/*" />
+                    <input type="hidden" name="ImageUrl" value="@Model.ImageUrl" />
+                    <small class="text-muted">Chọn ảnh mới để thay thế. Để trống nếu giữ ảnh cũ.</small>
+                    <div id="imagePreview" class="mt-3 text-center" style="@(string.IsNullOrEmpty(Model.ImageUrl) ? "display:none;" : "")">
+                        <img id="previewImg" src="@Model.ImageUrl" alt="Preview" class="img-thumbnail" style="max-width:100%;max-height:200px;border-radius:10px;" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metadata -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span><i class="bi bi-calendar-plus me-1"></i> Tạo: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                        <span><i class="bi bi-calendar-check me-1"></i> Cập nhật: @Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary" style="border-radius:10px;padding:10px;">
+                    <i class="bi bi-save me-1"></i> Cập nhật
+                </button>
+            </div>
+        </div>
     </div>
+</form>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@section Scripts {
     <script>
-        // Show/hide food type and price fields based on category
-        document.getElementById('categorySelect').addEventListener('change', function() {
-            const foodTypeDiv = document.getElementById('foodTypeDiv');
-            const priceDiv = document.getElementById('priceDiv');
+        // Set initial values from model
+        document.getElementById('categorySelect').value = '@Model.Category';
+        document.getElementById('foodTypeSelect').value = '@Model.FoodType';
+        document.getElementById('prioritySelect').value = '@Model.Priority';
+        document.getElementById('isActiveCheck').checked = @(Model.IsActive ? "true" : "false");
 
-            if (this.value == '2') { // Food category
-                foodTypeDiv.style.display = 'block';
-                priceDiv.style.display = 'flex';
-            } else {
-                foodTypeDiv.style.display = 'none';
-                priceDiv.style.display = 'none';
-            }
+        document.getElementById('categorySelect').addEventListener('change', function () {
+            document.getElementById('foodTypeDiv').style.display = this.value == '2' ? 'block' : 'none';
+            document.getElementById('priceDiv').style.display = this.value == '2' ? 'flex' : 'none';
         });
-
-        // Trigger on page load
         document.getElementById('categorySelect').dispatchEvent(new Event('change'));
 
-        // Image file preview
-        const imageFileInput = document.getElementById('imageFileInput');
-        const imagePreview = document.getElementById('imagePreview');
-        const previewImg = document.getElementById('previewImg');
-
-        imageFileInput.addEventListener('change', function() {
+        document.getElementById('imageFileInput').addEventListener('change', function () {
             const file = this.files[0];
             if (file && file.type.startsWith('image/')) {
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('File quá lớn! Vui lòng chọn file nhỏ hơn 5MB.');
-                    this.value = '';
-                    return;
-                }
+                if (file.size > 5 * 1024 * 1024) { alert('File quá lớn! Tối đa 5MB.'); this.value = ''; return; }
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImg.src = e.target.result;
-                    imagePreview.style.display = 'block';
-                };
+                reader.onload = e => { document.getElementById('previewImg').src = e.target.result; document.getElementById('imagePreview').style.display = 'block'; };
                 reader.readAsDataURL(file);
             }
         });
     </script>
-</body>
-</html>
+}

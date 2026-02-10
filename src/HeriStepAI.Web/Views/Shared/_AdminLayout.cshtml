@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HeriStepAI Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-w: 256px;
+            --topbar-h: 60px;
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --sidebar-bg: linear-gradient(180deg, #1e1e2d 0%, #1a1a2e 100%);
+            --sidebar-text: #8a8aad;
+            --sidebar-active: #667eea;
+        }
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #f0f2f5; margin: 0; overflow-x: hidden; }
+
+        /* ---- Sidebar ---- */
+        .admin-sidebar {
+            position: fixed; top: 0; left: 0;
+            width: var(--sidebar-w); height: 100vh;
+            background: var(--sidebar-bg);
+            z-index: 1050; overflow-y: auto;
+            transition: transform .3s;
+        }
+        .sidebar-brand {
+            padding: 18px 22px;
+            display: flex; align-items: center; gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+        .sidebar-brand .brand-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 1.1rem;
+        }
+        .sidebar-brand h5 { color: #fff; font-weight: 700; margin: 0; font-size: 1.1rem; }
+        .sidebar-menu { padding: 14px 12px; }
+        .sidebar-label {
+            color: #5a5a7a; font-size: .68rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1px;
+            padding: 10px 16px 4px; margin-top: 6px;
+        }
+        .sidebar-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 16px; border-radius: 10px;
+            color: var(--sidebar-text); text-decoration: none;
+            font-size: .85rem; font-weight: 500;
+            transition: all .2s; margin-bottom: 2px;
+        }
+        .sidebar-item:hover { background: rgba(102,126,234,.1); color: #c0c0e0; }
+        .sidebar-item.active { background: rgba(102,126,234,.15); color: var(--sidebar-active); }
+        .sidebar-item i { font-size: 1.1rem; width: 22px; text-align: center; }
+
+        /* ---- Main ---- */
+        .admin-main {
+            margin-left: var(--sidebar-w); min-height: 100vh;
+            display: flex; flex-direction: column; transition: margin-left .3s;
+        }
+
+        /* ---- Top bar ---- */
+        .admin-topbar {
+            height: var(--topbar-h); background: #fff;
+            border-bottom: 1px solid #e8e8ef;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 24px; position: sticky; top: 0; z-index: 100;
+        }
+        .sidebar-toggle {
+            background: none; border: none; font-size: 1.2rem;
+            color: #666; cursor: pointer; padding: 6px; border-radius: 8px; display: none;
+        }
+        .sidebar-toggle:hover { background: #f0f0f5; }
+        .topbar-user {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .topbar-user .user-avatar {
+            width: 34px; height: 34px; border-radius: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: .85rem; font-weight: 600;
+        }
+
+        /* ---- Content ---- */
+        .admin-content { flex: 1; padding: 24px; }
+
+        /* ---- Footer ---- */
+        .admin-footer {
+            padding: 14px 24px; border-top: 1px solid #e8e8ef;
+            background: #fff; display: flex; justify-content: space-between;
+            align-items: center; font-size: .78rem; color: #999;
+        }
+
+        /* ---- Common ---- */
+        .card { border-radius: 14px !important; border: none !important; }
+        .stat-card { transition: transform .2s, box-shadow .2s; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,.08) !important; }
+        .stat-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+        }
+        .page-title { font-size: 1.35rem; font-weight: 700; margin-bottom: 0; }
+        .page-subtitle { color: #999; font-size: .85rem; margin-bottom: 0; }
+
+        /* ---- Responsive ---- */
+        @@media (max-width: 992px) {
+            .admin-sidebar { transform: translateX(-100%); }
+            .admin-sidebar.show { transform: translateX(0); }
+            .admin-main { margin-left: 0; }
+            .sidebar-toggle { display: block; }
+            .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1040; }
+            .sidebar-overlay.show { display: block; }
+        }
+
+        @@RenderSection("Styles", required: false)
+    </style>
+</head>
+<body>
+    <!-- Sidebar overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon"><i class="bi bi-geo-alt-fill"></i></div>
+            <h5>HeriStepAI</h5>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-label">Menu</div>
+            @{
+                var ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
+                var act = ViewContext.RouteData.Values["action"]?.ToString();
+            }
+            <a href="@Url.Action("Dashboard", "Home")"
+               class="sidebar-item @(ctrl == "Home" && act == "Dashboard" ? "active" : "")">
+                <i class="bi bi-grid-1x2"></i> Dashboard
+            </a>
+            <a href="@Url.Action("Index", "POI")"
+               class="sidebar-item @(ctrl == "POI" ? "active" : "")">
+                <i class="bi bi-shop"></i> Qu&#7843;n l&#253; POI
+            </a>
+            <a href="@Url.Action("Index", "Analytics")"
+               class="sidebar-item @(ctrl == "Analytics" ? "active" : "")">
+                <i class="bi bi-bar-chart-line"></i> Analytics
+            </a>
+
+            <div class="sidebar-label mt-3">H&#7879; th&#7889;ng</div>
+            <a class="sidebar-item" style="opacity:.5;pointer-events:none;">
+                <i class="bi bi-gear"></i> C&#224;i &#273;&#7863;t
+            </a>
+            <a class="sidebar-item" style="opacity:.5;pointer-events:none;">
+                <i class="bi bi-people"></i> Ng&#432;&#7901;i d&#249;ng
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main area -->
+    <div class="admin-main">
+        <!-- Top bar -->
+        <header class="admin-topbar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h6 class="mb-0 fw-semibold text-muted d-none d-md-block" style="font-size:.9rem;">
+                    @ViewData["Title"]
+                </h6>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="topbar-user">
+                    <div class="user-avatar"><i class="bi bi-person-fill"></i></div>
+                    <div class="d-none d-md-block">
+                        <div class="fw-semibold small lh-1">@User.Identity?.Name</div>
+                        <div class="text-muted" style="font-size:.68rem;">Admin</div>
+                    </div>
+                </div>
+                <form asp-controller="Auth" asp-action="Logout" method="post" class="mb-0">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm" style="border-radius:8px;" title="&#272;&#259;ng xu&#7845;t">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+        </header>
+
+        <!-- Page content -->
+        <main class="admin-content">
+            @RenderBody()
+        </main>
+
+        <!-- Footer -->
+        <footer class="admin-footer">
+            <span>&copy; 2026 HeriStepAI &mdash; H&#7879; th&#7889;ng Thuy&#7871;t minh Du l&#7883;ch T&#7921; &#273;&#7897;ng</span>
+            <span>v1.0</span>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('adminSidebar').classList.toggle('show');
+            document.getElementById('sidebarOverlay').classList.toggle('show');
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,65 +1,285 @@
 @{
-    Layout = null;
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Analytics";
+    var topPOIs = ViewBag.TopPOIs as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var poiNames = ViewBag.POINames as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var geoByPoi = ViewBag.GeofenceByPOI as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var manualByPoi = ViewBag.ManualByPOI as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var totalGeofence = (int)(ViewBag.TotalGeofence ?? 0);
+    var totalManual = (int)(ViewBag.TotalManual ?? 0);
+    var totalVisits = (int)(ViewBag.TotalVisits ?? 0);
 }
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Analytics - HeriStepAI</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">Analytics Dashboard</span>
-            <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-light">Về Dashboard</a>
-        </div>
-    </nav>
-    <div class="container mt-4">
-        <h2>Thống kê Chi tiết</h2>
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Top Địa điểm được truy cập nhiều nhất</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="topPOIsChart"></canvas>
-                    </div>
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="page-title"><i class="bi bi-bar-chart-line me-2"></i>Analytics</h4>
+        <p class="page-subtitle">Thống kê chi tiết lượt ghé thăm theo loại</p>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm stat-card h-100">
+            <div class="card-body d-flex align-items-center gap-3 p-3">
+                <div class="stat-icon text-white" style="background:linear-gradient(135deg,#667eea,#764ba2);">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Tổng lượt ghé</div>
+                    <div class="fs-3 fw-bold lh-1">@totalVisits</div>
                 </div>
             </div>
         </div>
     </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm stat-card h-100">
+            <div class="card-body d-flex align-items-center gap-3 p-3">
+                <div class="stat-icon text-white" style="background:linear-gradient(135deg,#11998e,#38ef7d);">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Geofence (Tự động)</div>
+                    <div class="fs-3 fw-bold text-success lh-1">@totalGeofence</div>
+                    <small class="text-muted">Đi ngang qua &rarr; tự phát</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm stat-card h-100">
+            <div class="card-body d-flex align-items-center gap-3 p-3">
+                <div class="stat-icon text-white" style="background:linear-gradient(135deg,#667eea,#764ba2);">
+                    <i class="bi bi-hand-index"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Manual (Thủ công)</div>
+                    <div class="fs-3 fw-bold text-info lh-1">@totalManual</div>
+                    <small class="text-muted">Click &rarr; nghe thuyết minh</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- Visit Type Breakdown - Doughnut -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-pie-chart me-1"></i> Phân loại lượt ghé</h6>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                @if (totalVisits > 0)
+                {
+                    <canvas id="visitTypeChart" style="max-height:260px;"></canvas>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="bi bi-inbox fs-1 text-muted"></i>
+                        <p class="text-muted mt-2 mb-0">Chưa có dữ liệu</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Stacked Bar Chart by POI -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-bar-chart-steps me-1"></i> Chi tiết theo địa điểm</h6>
+            </div>
+            <div class="card-body">
+                @if (topPOIs.Any())
+                {
+                    <canvas id="stackedChart" style="height:300px;"></canvas>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="bi bi-bar-chart fs-1 text-muted"></i>
+                        <p class="text-muted mt-3 mb-0">Chưa có dữ liệu truy cập</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top POIs Table -->
+@if (topPOIs.Any())
+{
+    <div class="card shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-trophy me-1"></i> Bảng xếp hạng địa điểm</h6>
+            <span class="badge bg-primary rounded-pill">Top @topPOIs.Count</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4" style="width:50px;">#</th>
+                            <th>Địa điểm</th>
+                            <th class="text-center">Tổng</th>
+                            <th class="text-center">Geofence</th>
+                            <th class="text-center">Manual</th>
+                            <th class="text-center" style="width:200px;">Tỷ lệ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ var rank = 1; }
+                        @foreach (var kvp in topPOIs.OrderByDescending(x => x.Value))
+                        {
+                            var name = poiNames.ContainsKey(kvp.Key) ? poiNames[kvp.Key] : $"POI {kvp.Key}";
+                            var geo = geoByPoi.ContainsKey(kvp.Key) ? geoByPoi[kvp.Key] : 0;
+                            var manual = manualByPoi.ContainsKey(kvp.Key) ? manualByPoi[kvp.Key] : 0;
+                            var total = kvp.Value;
+                            var geoPct = total > 0 ? (geo * 100.0 / total) : 0;
+                            var manPct = total > 0 ? (manual * 100.0 / total) : 0;
+                            <tr>
+                                <td class="ps-4">
+                                    @if (rank <= 3)
+                                    {
+                                        <span class="badge rounded-pill @(rank == 1 ? "bg-warning text-dark" : rank == 2 ? "bg-secondary" : "bg-danger")">
+                                            @rank
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">@rank</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="fw-semibold">@name</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-bold">@total</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-success-subtle text-success" style="font-size:.75rem;">
+                                        <i class="bi bi-geo-alt"></i> @geo
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info-subtle text-info" style="font-size:.75rem;">
+                                        <i class="bi bi-hand-index"></i> @manual
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="progress" style="height:18px;border-radius:10px;">
+                                        <div class="progress-bar" role="progressbar"
+                                             style="width:@geoPct.ToString("F0")%;background:linear-gradient(90deg,#11998e,#38ef7d);"
+                                             title="Geofence: @geo">
+                                            @if (geoPct > 15) { <small>@geoPct.ToString("F0")%</small> }
+                                        </div>
+                                        <div class="progress-bar" role="progressbar"
+                                             style="width:@manPct.ToString("F0")%;background:linear-gradient(90deg,#667eea,#764ba2);"
+                                             title="Manual: @manual">
+                                            @if (manPct > 15) { <small>@manPct.ToString("F0")%</small> }
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            rank++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer bg-white py-2 px-4 border-top">
+            <div class="d-flex gap-3 small text-muted">
+                <span><span class="d-inline-block rounded" style="width:12px;height:12px;background:linear-gradient(90deg,#11998e,#38ef7d);"></span> Geofence (Tự động)</span>
+                <span><span class="d-inline-block rounded" style="width:12px;height:12px;background:linear-gradient(90deg,#667eea,#764ba2);"></span> Manual (Thủ công)</span>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Dữ liệu từ ViewBag sẽ được render ở đây
-        const topPOIsData = @Html.Raw(Json.Serialize(ViewBag.TopPOIs ?? new Dictionary<int, int>()));
-        const ctx = document.getElementById('topPOIsChart').getContext('2d');
-        
-        const labels = Object.keys(topPOIsData).map(id => `POI ${id}`);
-        const data = Object.values(topPOIsData);
-        
-        const chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Số lượt truy cập',
-                    data: data,
-                    backgroundColor: 'rgba(102, 126, 234, 0.8)'
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
+        @if (totalVisits > 0)
+        {
+            <text>
+            // Doughnut Chart - Visit Type
+            new Chart(document.getElementById('visitTypeChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Geofence (Tự động)', 'Manual (Thủ công)'],
+                    datasets: [{
+                        data: [@totalGeofence, @totalManual],
+                        backgroundColor: ['rgba(17,153,142,0.85)', 'rgba(102,126,234,0.85)'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { usePointStyle: true, padding: 16, font: { size: 12 } }
+                        }
                     }
                 }
-            }
-        });
+            });
+            </text>
+        }
+
+        @if (topPOIs.Any())
+        {
+            <text>
+            // Stacked Bar Chart
+            const poiNames = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(poiNames));
+            const topData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(topPOIs));
+            const geoData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(geoByPoi));
+            const manualData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(manualByPoi));
+
+            const poiIds = Object.keys(topData).sort((a, b) => topData[b] - topData[a]);
+            const labels = poiIds.map(id => poiNames[id] || `POI ${id}`);
+
+            new Chart(document.getElementById('stackedChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Geofence (Tự động)',
+                            data: poiIds.map(id => geoData[id] || 0),
+                            backgroundColor: 'rgba(17,153,142,0.8)',
+                            borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 6, bottomRight: 6 },
+                            borderSkipped: false
+                        },
+                        {
+                            label: 'Manual (Thủ công)',
+                            data: poiIds.map(id => manualData[id] || 0),
+                            backgroundColor: 'rgba(102,126,234,0.8)',
+                            borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
+                            borderSkipped: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { usePointStyle: true, padding: 20, font: { size: 12 } }
+                        }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { maxRotation: 45 } },
+                        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f0f0f0' } }
+                    }
+                }
+            });
+            </text>
+        }
     </script>
-</body>
-</html>
+}
