@@ -1,68 +1,88 @@
-@model List<ShopOwnerPOIViewModel>
+@model List<HeriStepAI.Web.ViewModels.ShopOwnerPOIViewModel>
 @{
     ViewData["Title"] = "Dashboard Chủ Cửa Hàng";
-    var totalPOIs = ViewBag.TotalPOIs ?? 0;
-    var totalVisits = ViewBag.TotalVisits ?? 0;
-    var activePOIs = ViewBag.ActivePOIs ?? 0;
+    var totalPOIs = (int)(ViewBag.TotalPOIs ?? 0);
+    var totalVisits = (int)(ViewBag.TotalVisits ?? 0);
+    var activePOIs = (int)(ViewBag.ActivePOIs ?? 0);
 }
 
-<div class="container-fluid py-4">
+<style>
+    .stat-card { transition: transform 0.2s; }
+    .stat-card:hover { transform: translateY(-4px); }
+    .poi-card { transition: all 0.2s; border-left: 4px solid transparent; }
+    .poi-card:hover { border-left-color: #0d6efd; background-color: #f8f9ff; }
+    .avatar-lg { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; }
+    .badge-food { font-size: 0.75rem; padding: 4px 10px; }
+    .nav-owner { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .btn-edit { border-radius: 20px; }
+</style>
+
+<!-- Navbar -->
+<nav class="navbar nav-owner shadow-sm">
+    <div class="container-fluid px-4">
+        <span class="navbar-brand text-white fw-bold">
+            <i class="bi bi-shop-window"></i> HeriStepAI - Chủ Cửa Hàng
+        </span>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-white-50 small">
+                <i class="bi bi-person-circle"></i> @User.Identity?.Name
+            </span>
+            <form asp-controller="Auth" asp-action="Logout" method="post">
+                <button type="submit" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4 py-4">
 
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <h2 class="mb-0">
-                <i class="bi bi-shop"></i> Dashboard Chủ Cửa Hàng
-            </h2>
-            <p class="text-muted">Quản lý cửa hàng và theo dõi lượt ghé thăm</p>
+            <h3 class="fw-bold mb-1">Dashboard</h3>
+            <p class="text-muted mb-0">Quản lý cửa hàng và theo dõi lượt ghé thăm của bạn</p>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
+    <div class="row g-3 mb-4">
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Tổng cửa hàng</h6>
-                            <h3 class="mb-0 fw-bold text-primary">@totalPOIs</h3>
-                        </div>
-                        <div class="bg-primary bg-opacity-10 p-3 rounded">
-                            <i class="bi bi-shop fs-2 text-primary"></i>
-                        </div>
+            <div class="card border-0 shadow-sm stat-card h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <i class="bi bi-shop text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Tổng cửa hàng</div>
+                        <div class="fs-3 fw-bold">@totalPOIs</div>
                     </div>
                 </div>
             </div>
         </div>
-
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Tổng lượt ghé thăm</h6>
-                            <h3 class="mb-0 fw-bold text-success">@totalVisits</h3>
-                        </div>
-                        <div class="bg-success bg-opacity-10 p-3 rounded">
-                            <i class="bi bi-people fs-2 text-success"></i>
-                        </div>
+            <div class="card border-0 shadow-sm stat-card h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; background: linear-gradient(135deg, #11998e, #38ef7d);">
+                        <i class="bi bi-people text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Tổng lượt ghé thăm</div>
+                        <div class="fs-3 fw-bold">@totalVisits</div>
                     </div>
                 </div>
             </div>
         </div>
-
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Đang hoạt động</h6>
-                            <h3 class="mb-0 fw-bold text-info">@activePOIs</h3>
-                        </div>
-                        <div class="bg-info bg-opacity-10 p-3 rounded">
-                            <i class="bi bi-check-circle fs-2 text-info"></i>
-                        </div>
+            <div class="card border-0 shadow-sm stat-card h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; background: linear-gradient(135deg, #f093fb, #f5576c);">
+                        <i class="bi bi-check-circle text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Đang hoạt động</div>
+                        <div class="fs-3 fw-bold">@activePOIs</div>
                     </div>
                 </div>
             </div>
@@ -70,142 +90,133 @@
     </div>
 
     <!-- POI List -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0">Danh sách cửa hàng của bạn</h5>
-                </div>
-                <div class="card-body p-0">
-                    @if (Model.Any())
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="bg-light">
-                                    <tr>
-                                        <th>Tên cửa hàng</th>
-                                        <th>Loại món</th>
-                                        <th class="text-center">Giá</th>
-                                        <th class="text-center">Lượt ghé</th>
-                                        <th class="text-center">Khách unique</th>
-                                        <th class="text-center">Lần ghé cuối</th>
-                                        <th class="text-center">Trạng thái</th>
-                                        <th class="text-center">Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in Model)
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-list-ul"></i> Cửa hàng của bạn</h5>
+            <span class="badge bg-primary rounded-pill">@totalPOIs cửa hàng</span>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                @foreach (var item in Model)
+                {
+                    <div class="poi-card p-3 border-bottom">
+                        <div class="row align-items-center">
+                            <!-- Image + Info -->
+                            <div class="col-md-5">
+                                <div class="d-flex align-items-center gap-3">
+                                    @if (!string.IsNullOrEmpty(item.POI.ImageUrl))
                                     {
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    @if (!string.IsNullOrEmpty(item.POI.ImageUrl))
-                                                    {
-                                                        <img src="@item.POI.ImageUrl"
-                                                             alt="@item.POI.Name"
-                                                             class="rounded me-2"
-                                                             style="width: 50px; height: 50px; object-fit: cover;">
-                                                    }
-                                                    <div>
-                                                        <strong>@item.POI.Name</strong>
-                                                        <br>
-                                                        <small class="text-muted">@item.POI.Address</small>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                @{
-                                                    var foodTypeName = item.POI.FoodType switch
-                                                    {
-                                                        1 => "Hải sản",
-                                                        2 => "Món chay",
-                                                        3 => "Đặc sản",
-                                                        4 => "Đường phố",
-                                                        5 => "Nướng",
-                                                        6 => "Bún/Phở",
-                                                        _ => "Khác"
-                                                    };
-                                                }
-                                                <span class="badge bg-secondary">@foodTypeName</span>
-                                            </td>
-                                            <td class="text-center">
-                                                @if (item.POI.PriceMin > 0 || item.POI.PriceMax > 0)
-                                                {
-                                                    <small>@item.POI.PriceMin.ToString("N0") - @item.POI.PriceMax.ToString("N0")đ</small>
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">-</span>
-                                                }
-                                            </td>
-                                            <td class="text-center">
-                                                <strong class="text-success">@item.TotalVisits</strong>
-                                                <br>
-                                                <small class="text-muted">
-                                                    <i class="bi bi-geo-alt"></i> @item.GeofenceVisits |
-                                                    <i class="bi bi-hand-index"></i> @item.ManualVisits
-                                                </small>
-                                            </td>
-                                            <td class="text-center">
-                                                <strong>@item.UniqueVisitors</strong>
-                                            </td>
-                                            <td class="text-center">
-                                                @if (item.LastVisit.HasValue)
-                                                {
-                                                    <small>@item.LastVisit.Value.ToString("dd/MM/yyyy HH:mm")</small>
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">Chưa có</span>
-                                                }
-                                            </td>
-                                            <td class="text-center">
-                                                @if (item.POI.IsActive)
-                                                {
-                                                    <span class="badge bg-success">Hoạt động</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-secondary">Tạm dừng</span>
-                                                }
-                                            </td>
-                                            <td class="text-center">
-                                                <div class="btn-group btn-group-sm">
-                                                    <a href="@Url.Action("Edit", new { id = item.POI.Id })"
-                                                       class="btn btn-outline-primary"
-                                                       title="Chỉnh sửa">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </a>
-                                                    <a href="@Url.Action("Statistics", new { id = item.POI.Id })"
-                                                       class="btn btn-outline-info"
-                                                       title="Thống kê chi tiết">
-                                                        <i class="bi bi-graph-up"></i>
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        <img src="@item.POI.ImageUrl" alt="@item.POI.Name" class="avatar-lg shadow-sm" />
                                     }
-                                </tbody>
-                            </table>
+                                    else
+                                    {
+                                        <div class="avatar-lg bg-light d-flex align-items-center justify-content-center shadow-sm">
+                                            <i class="bi bi-image text-muted fs-3"></i>
+                                        </div>
+                                    }
+                                    <div>
+                                        <h6 class="mb-1 fw-bold">@item.POI.Name</h6>
+                                        <small class="text-muted"><i class="bi bi-geo-alt"></i> @(item.POI.Address ?? "Chưa có địa chỉ")</small>
+                                        <div class="mt-1">
+                                            @{
+                                                var foodTypeName = item.POI.FoodType switch
+                                                {
+                                                    1 => "Hải sản",
+                                                    2 => "Món chay",
+                                                    3 => "Đặc sản",
+                                                    4 => "Đường phố",
+                                                    5 => "Nướng",
+                                                    6 => "Bún/Phở",
+                                                    _ => "Khác"
+                                                };
+                                                var foodBadgeColor = item.POI.FoodType switch
+                                                {
+                                                    1 => "primary",
+                                                    2 => "success",
+                                                    3 => "warning",
+                                                    4 => "danger",
+                                                    5 => "info",
+                                                    6 => "secondary",
+                                                    _ => "dark"
+                                                };
+                                            }
+                                            <span class="badge bg-@foodBadgeColor badge-food">@foodTypeName</span>
+                                            @if (item.POI.PriceMin > 0 || item.POI.PriceMax > 0)
+                                            {
+                                                <span class="badge bg-light text-dark badge-food ms-1">
+                                                    @item.POI.PriceMin.ToString("N0") - @item.POI.PriceMax.ToString("N0")đ
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stats -->
+                            <div class="col-md-4">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <div class="fw-bold text-primary fs-5">@item.TotalVisits</div>
+                                        <small class="text-muted">Lượt ghé</small>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="fw-bold text-success fs-5">@item.UniqueVisitors</div>
+                                        <small class="text-muted">Unique</small>
+                                    </div>
+                                    <div class="col-4">
+                                        @if (item.LastVisit.HasValue)
+                                        {
+                                            <div class="fw-bold fs-6">@item.LastVisit.Value.ToString("dd/MM")</div>
+                                            <small class="text-muted">Lần cuối</small>
+                                        }
+                                        else
+                                        {
+                                            <div class="fw-bold text-muted">--</div>
+                                            <small class="text-muted">Lần cuối</small>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Status + Actions -->
+                            <div class="col-md-3 text-end">
+                                @if (item.POI.IsActive)
+                                {
+                                    <span class="badge bg-success-subtle text-success mb-2 d-inline-block">
+                                        <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i> Hoạt động
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary mb-2 d-inline-block">
+                                        <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i> Tạm dừng
+                                    </span>
+                                }
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <a href="@Url.Action("Edit", new { id = item.POI.Id })"
+                                       class="btn btn-primary btn-sm btn-edit">
+                                        <i class="bi bi-pencil"></i> Chỉnh sửa
+                                    </a>
+                                    <a href="@Url.Action("Statistics", new { id = item.POI.Id })"
+                                       class="btn btn-outline-info btn-sm btn-edit">
+                                        <i class="bi bi-graph-up"></i> Thống kê
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-                    }
-                    else
-                    {
-                        <div class="text-center py-5">
-                            <i class="bi bi-shop fs-1 text-muted"></i>
-                            <p class="text-muted mt-3">Bạn chưa có cửa hàng nào. Vui lòng liên hệ Admin để được thêm cửa hàng.</p>
-                        </div>
-                    }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-shop fs-1 text-muted"></i>
+                    <p class="text-muted mt-3 mb-0">Bạn chưa có cửa hàng nào.</p>
+                    <p class="text-muted">Vui lòng liên hệ Admin để được thêm cửa hàng.</p>
                 </div>
-            </div>
+            }
         </div>
     </div>
 
 </div>
-
-@section Scripts {
-    <script>
-        // Auto refresh every 5 minutes
-        setTimeout(() => location.reload(), 300000);
-    </script>
-}

@@ -84,6 +84,19 @@ public class AuthController : Controller
         return View();
     }
 
+    [HttpGet]
+    public IActionResult AccessDenied()
+    {
+        // Any authenticated user → redirect to Home/Index which handles role routing
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return RedirectToAction("Index", "Home");
+        }
+
+        // Not authenticated → go to login
+        return RedirectToAction("Login");
+    }
+
     [HttpPost]
     public async Task<IActionResult> Logout()
     {
@@ -94,7 +107,7 @@ public class AuthController : Controller
 
     private static List<Claim> GetClaimsFromJwt(string token)
     {
-        var claims = new List<Claim> { new(ClaimTypes.Name, "Admin") };
+        var claims = new List<Claim>();
         try
         {
             var parts = token.Split('.');
@@ -105,14 +118,44 @@ public class AuthController : Controller
                 switch (payload.Length % 4) { case 2: payload += "=="; break; case 3: payload += "="; break; }
                 var bytes = Convert.FromBase64String(payload);
                 var json = Encoding.UTF8.GetString(bytes);
+                Console.WriteLine($"[AUTH] JWT payload: {json}");
                 using var doc = JsonDocument.Parse(json);
                 var root = doc.RootElement;
-                if (root.TryGetProperty("nameid", out var nameId)) claims.Add(new Claim(ClaimTypes.NameIdentifier, nameId.GetString() ?? ""));
-                if (root.TryGetProperty("email", out var email)) claims.Add(new Claim(ClaimTypes.Email, email.GetString() ?? ""));
-                if (root.TryGetProperty("role", out var role)) claims.Add(new Claim(ClaimTypes.Role, role.GetString() ?? ""));
+
+                // Map both short names and full URI claim types from JWT
+                foreach (var prop in root.EnumerateObject())
+                {
+                    if (prop.Value.ValueKind != JsonValueKind.String) continue;
+                    var val = prop.Value.GetString() ?? "";
+                    switch (prop.Name)
+                    {
+                        case "nameid":
+                        case ClaimTypes.NameIdentifier:
+                            claims.Add(new Claim(ClaimTypes.NameIdentifier, val));
+                            break;
+                        case "email":
+                        case ClaimTypes.Email:
+                            claims.Add(new Claim(ClaimTypes.Email, val));
+                            break;
+                        case "unique_name":
+                        case ClaimTypes.Name:
+                            claims.Add(new Claim(ClaimTypes.Name, val));
+                            break;
+                        case "role":
+                        case ClaimTypes.Role:
+                            claims.Add(new Claim(ClaimTypes.Role, val));
+                            Console.WriteLine($"[AUTH] Role from JWT: '{val}'");
+                            break;
+                    }
+                }
             }
         }
-        catch { /* fallback claims */ }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AUTH] JWT parse error: {ex.Message}");
+        }
+        if (!claims.Any(c => c.Type == ClaimTypes.Name))
+            claims.Add(new Claim(ClaimTypes.Name, "User"));
         return claims;
     }
 }

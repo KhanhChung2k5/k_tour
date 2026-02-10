@@ -1,5 +1,6 @@
 using DotNetEnv;
 using HeriStepAI.API.Data;
+using HeriStepAI.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,30 +20,11 @@ builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(5001));
 builder.Services.AddControllersWithViews()
     .ConfigureApplicationPartManager(manager =>
     {
-        // Debug: Log all application parts
-        Console.WriteLine("[STARTUP] Application Parts:");
-        foreach (var part in manager.ApplicationParts)
-        {
-            Console.WriteLine($"  - {part.Name}");
-        }
-
-        // Remove API controllers
         var apiPart = manager.ApplicationParts
             .FirstOrDefault(p => p.Name == "HeriStepAI.API");
         if (apiPart != null)
         {
-            Console.WriteLine($"[STARTUP] Removing API part: {apiPart.Name}");
             manager.ApplicationParts.Remove(apiPart);
-        }
-        else
-        {
-            Console.WriteLine("[STARTUP] API part not found in ApplicationParts");
-        }
-
-        Console.WriteLine("[STARTUP] Remaining Application Parts:");
-        foreach (var part in manager.ApplicationParts)
-        {
-            Console.WriteLine($"  - {part.Name}");
         }
     });
 
@@ -56,10 +38,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options =>
     {
         options.LoginPath = "/Auth/Login";
+        options.AccessDeniedPath = "/Auth/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromDays(1);
         options.SlidingExpiration = true;
     });
 builder.Services.AddAuthorization();
+
+// Supabase Storage
+builder.Services.AddSingleton<ISupabaseStorageService, SupabaseStorageService>();
 
 // HTTP Client for API
 builder.Services.AddHttpClient("API", client =>

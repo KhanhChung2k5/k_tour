@@ -38,7 +38,7 @@
                             </div>
                         }
 
-                        <form method="post" asp-action="Create">
+                        <form method="post" asp-action="Create" enctype="multipart/form-data">
                             @Html.AntiForgeryToken()
 
                             <div class="row">
@@ -138,9 +138,9 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label">URL hình ảnh</label>
-                                        <input type="url" class="form-control" name="ImageUrl" id="imageUrlInput" />
-                                        <small class="text-muted">Link ảnh trực tiếp (.jpg, .png, .webp). VD: https://example.com/image.jpg</small>
+                                        <label class="form-label"><i class="bi bi-image"></i> Hình ảnh</label>
+                                        <input type="file" class="form-control" name="ImageFile" id="imageFileInput" accept="image/*" />
+                                        <small class="text-muted">Chọn ảnh từ thiết bị (.jpg, .png, .webp). Tối đa 5MB.</small>
                                         <div id="imagePreview" class="mt-2" style="display: none;">
                                             <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
                                         </div>
@@ -222,21 +222,26 @@
         // Trigger on page load
         document.getElementById('categorySelect').dispatchEvent(new Event('change'));
 
-        // Image URL preview
-        const imageUrlInput = document.getElementById('imageUrlInput');
+        // Image file preview
+        const imageFileInput = document.getElementById('imageFileInput');
         const imagePreview = document.getElementById('imagePreview');
         const previewImg = document.getElementById('previewImg');
 
-        imageUrlInput.addEventListener('input', function() {
-            const url = this.value.trim();
-            if (url && (url.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) || url.includes('googleusercontent.com') || url.includes('imgur.com') || url.includes('cloudinary.com'))) {
-                previewImg.src = url;
-                previewImg.onerror = function() {
+        imageFileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file && file.type.startsWith('image/')) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File quá lớn! Vui lòng chọn file nhỏ hơn 5MB.');
+                    this.value = '';
                     imagePreview.style.display = 'none';
-                };
-                previewImg.onload = function() {
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
                     imagePreview.style.display = 'block';
                 };
+                reader.readAsDataURL(file);
             } else {
                 imagePreview.style.display = 'none';
             }

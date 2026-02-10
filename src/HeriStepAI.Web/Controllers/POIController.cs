@@ -4,17 +4,20 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using HeriStepAI.Web.Models;
+using HeriStepAI.Web.Services;
 
 namespace HeriStepAI.Web.Controllers;
 
-[Authorize]
+[Authorize(Roles = "Admin")]
 public class POIController : Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ISupabaseStorageService _storageService;
 
-    public POIController(IHttpClientFactory httpClientFactory)
+    public POIController(IHttpClientFactory httpClientFactory, ISupabaseStorageService storageService)
     {
         _httpClientFactory = httpClientFactory;
+        _storageService = storageService;
     }
 
     // GET: POI
@@ -66,11 +69,27 @@ public class POIController : Controller
     // POST: POI/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(POIViewModel model)
+    public async Task<IActionResult> Create(POIViewModel model, IFormFile? ImageFile)
     {
         if (!ModelState.IsValid)
         {
             return View(model);
+        }
+
+        // Upload image to Supabase Storage if file provided
+        if (ImageFile != null && ImageFile.Length > 0)
+        {
+            using var stream = ImageFile.OpenReadStream();
+            var imageUrl = await _storageService.UploadImageAsync(stream, ImageFile.FileName, ImageFile.ContentType);
+            if (imageUrl != null)
+            {
+                model.ImageUrl = imageUrl;
+            }
+            else
+            {
+                TempData["Error"] = "Lỗi khi upload hình ảnh. Vui lòng thử lại.";
+                return View(model);
+            }
         }
 
         // Build Contents list from form inputs
@@ -97,38 +116,23 @@ public class POIController : Controller
         }
 
         var client = CreateAuthenticatedClient();
-        // Serialize with PascalCase to match API expectations
         var json = JsonSerializer.Serialize(model);
 
-        // Debug logging
         Console.WriteLine($"[POIController] Creating POI: {model.Name}");
-        Console.WriteLine($"[POIController] Contents count: {model.Contents?.Count ?? 0}");
-        if (model.Contents != null)
-        {
-            foreach (var c in model.Contents)
-            {
-                Console.WriteLine($"[POIController] Content - Lang: {c.Language}, TextLength: {c.TextContent?.Length ?? 0}, Type: {c.ContentType}");
-            }
-        }
-        Console.WriteLine($"[POIController] Full JSON payload:");
-        Console.WriteLine(json);
+        Console.WriteLine($"[POIController] ImageUrl: {model.ImageUrl}");
 
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         var response = await client.PostAsync("poi", content);
 
-        Console.WriteLine($"[POIController] Response Status: {response.StatusCode}");
-
         if (response.IsSuccessStatusCode)
         {
-            var successContent = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"[POIController] Success response: {successContent}");
-            TempData["Success"] = "Tạo POI thành công (bao gồm nội dung đa ngôn ngữ)";
+            TempData["Success"] = "Tạo POI thành công!";
             return RedirectToAction(nameof(Index));
         }
 
         var errorContent = await response.Content.ReadAsStringAsync();
-        Console.WriteLine($"[POIController] Error response: {errorContent}");
-        TempData["Error"] = $"Lỗi khi tạo POI (Status: {response.StatusCode}): {errorContent}";
+        Console.WriteLine($"[POIController] Error: {errorContent}");
+        TempData["Error"] = $"Lỗi khi tạo POI: {errorContent}";
         return View(model);
     }
 
@@ -166,14 +170,25 @@ public class POIController : Controller
     // POST: POI/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, POIViewModel model)
+    public async Task<IActionResult> Edit(int id, POIViewModel model, IFormFile? ImageFile)
     {
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
-        // Build Contents list from form inputs (same as Create)
+        // Upload new image if provided
+        if (ImageFile != null && ImageFile.Length > 0)
+        {
+            using var stream = ImageFile.OpenReadStream();
+            var imageUrl = await _storageService.UploadImageAsync(stream, ImageFile.FileName, ImageFile.ContentType);
+            if (imageUrl != null)
+            {
+                model.ImageUrl = imageUrl;
+            }
+        }
+
+        // Build Contents list from form inputs
         model.Contents = new List<POIContentViewModel>();
 
         if (!string.IsNullOrWhiteSpace(model.TextContent_vi))
@@ -199,26 +214,19 @@ public class POIController : Controller
         var client = CreateAuthenticatedClient();
         var json = JsonSerializer.Serialize(model);
 
-        // Debug logging
         Console.WriteLine($"[POIController] Updating POI ID {id}: {model.Name}");
-        Console.WriteLine($"[POIController] Contents count: {model.Contents?.Count ?? 0}");
-        Console.WriteLine($"[POIController] Full JSON payload:");
-        Console.WriteLine(json);
 
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         var response = await client.PutAsync($"poi/{id}", content);
 
-        Console.WriteLine($"[POIController] Response Status: {response.StatusCode}");
-
         if (response.IsSuccessStatusCode)
         {
-            TempData["Success"] = "Cập nhật POI thành công (bao gồm nội dung đa ngôn ngữ)";
+            TempData["Success"] = "Cập nhật POI thành công!";
             return RedirectToAction(nameof(Index));
         }
 
         var errorContent = await response.Content.ReadAsStringAsync();
-        Console.WriteLine($"[POIController] Error response: {errorContent}");
-        TempData["Error"] = $"Lỗi khi cập nhật POI (Status: {response.StatusCode}): {errorContent}";
+        TempData["Error"] = $"Lỗi khi cập nhật POI: {errorContent}";
         return View(model);
     }
 

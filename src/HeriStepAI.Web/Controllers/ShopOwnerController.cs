@@ -1,5 +1,6 @@
 using HeriStepAI.API.Data;
 using HeriStepAI.API.Models;
+using HeriStepAI.Web.Services;
 using HeriStepAI.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,14 +8,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HeriStepAI.Web.Controllers;
 
-[Authorize(Roles = "ShopOwner")]
+[Authorize]
 public class ShopOwnerController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly ISupabaseStorageService _storageService;
 
-    public ShopOwnerController(ApplicationDbContext context)
+    public ShopOwnerController(ApplicationDbContext context, ISupabaseStorageService storageService)
     {
         _context = context;
+        _storageService = storageService;
     }
 
     // GET: /ShopOwner/Dashboard
@@ -24,17 +27,18 @@ public class ShopOwnerController : Controller
         if (userId == null)
             return Unauthorized();
 
-        // Get POIs owned by current user
         var myPOIs = await _context.POIs
             .Include(p => p.Contents)
             .Where(p => p.OwnerId == userId)
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
 
-        // Get visit statistics for owned POIs
         var poiIds = myPOIs.Select(p => p.Id).ToList();
-        var visitStats = await _context.VisitLogs
+        var visitLogs = await _context.VisitLogs
             .Where(v => poiIds.Contains(v.POId))
+            .ToListAsync();
+
+        var visitStats = visitLogs
             .GroupBy(v => v.POId)
             .Select(g => new
             {
@@ -45,9 +49,8 @@ public class ShopOwnerController : Controller
                 GeofenceVisits = g.Count(v => v.VisitType == VisitType.Geofence),
                 ManualVisits = g.Count(v => v.VisitType == VisitType.MapClick)
             })
-            .ToDictionaryAsync(x => x.POId);
+            .ToDictionary(x => x.POId);
 
-        // Combine data
         var dashboardData = myPOIs.Select(poi => new ShopOwnerPOIViewModel
         {
             POI = poi,
@@ -79,39 +82,108 @@ public class ShopOwnerController : Controller
         if (poi == null)
             return NotFound("POI không tồn tại hoặc bạn không có quyền truy cập.");
 
-        return View(poi);
+        var viewModel = new ShopOwnerEditViewModel
+        {
+            POI = poi,
+            Contents = poi.Contents?.Select(c => new POIContentEditModel
+            {
+                Id = c.Id,
+                Language = c.Language,
+                TextContent = c.TextContent,
+                AudioUrl = c.AudioUrl,
+                ContentType = (int)c.ContentType
+            }).ToList() ?? new List<POIContentEditModel>()
+        };
+
+        return View(viewModel);
     }
 
     // POST: /ShopOwner/Edit/{id}
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, POI model)
+    public async Task<IActionResult> Edit(int id, POI model, IFormFile? ImageFile, List<POIContentEditModel>? Contents)
     {
         var userId = GetCurrentUserId();
         if (userId == null)
             return Unauthorized();
 
         var poi = await _context.POIs
+            .Include(p => p.Contents)
             .FirstOrDefaultAsync(p => p.Id == id && p.OwnerId == userId);
 
         if (poi == null)
             return NotFound("POI không tồn tại hoặc bạn không có quyền truy cập.");
 
-        // Only allow editing specific fields
+        // Upload new image if provided
+        if (ImageFile != null && ImageFile.Length > 0)
+        {
+            using var stream = ImageFile.OpenReadStream();
+            var imageUrl = await _storageService.UploadImageAsync(stream, ImageFile.FileName, ImageFile.ContentType);
+            if (imageUrl != null)
+            {
+                poi.ImageUrl = imageUrl;
+            }
+        }
+
+        // Update POI fields
         poi.Name = model.Name;
         poi.Description = model.Description;
         poi.Address = model.Address;
-        poi.ImageUrl = model.ImageUrl;
         poi.FoodType = model.FoodType;
         poi.PriceMin = model.PriceMin;
         poi.PriceMax = model.PriceMax;
         poi.EstimatedMinutes = model.EstimatedMinutes;
         poi.UpdatedAt = DateTime.UtcNow;
 
+        // Update POI Contents
+        var existingContents = poi.Contents?.ToList() ?? new List<POIContent>();
+        var submittedIds = Contents?.Where(c => c.Id > 0).Select(c => c.Id).ToHashSet() ?? new HashSet<int>();
+
+        // Remove deleted contents
+        foreach (var existing in existingContents)
+        {
+            if (!submittedIds.Contains(existing.Id))
+            {
+                _context.Set<POIContent>().Remove(existing);
+            }
+        }
+
+        // Update or add contents
+        if (Contents != null)
+        {
+            foreach (var content in Contents)
+            {
+                if (content.Id > 0)
+                {
+                    // Update existing
+                    var existing = existingContents.FirstOrDefault(c => c.Id == content.Id);
+                    if (existing != null)
+                    {
+                        existing.Language = content.Language;
+                        existing.TextContent = content.TextContent;
+                        existing.ContentType = (ContentType)content.ContentType;
+                    }
+                }
+                else
+                {
+                    // Add new
+                    var newContent = new POIContent
+                    {
+                        POId = poi.Id,
+                        Language = content.Language,
+                        TextContent = content.TextContent,
+                        ContentType = (ContentType)content.ContentType,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Set<POIContent>().Add(newContent);
+                }
+            }
+        }
+
         await _context.SaveChangesAsync();
 
         TempData["Success"] = "Cập nhật thông tin thành công!";
-        return RedirectToAction(nameof(Dashboard));
+        return RedirectToAction(nameof(Edit), new { id });
     }
 
     // GET: /ShopOwner/Statistics/{id}
@@ -127,7 +199,6 @@ public class ShopOwnerController : Controller
         if (poi == null)
             return NotFound("POI không tồn tại hoặc bạn không có quyền truy cập.");
 
-        // Default date range: last 30 days
         from ??= DateTime.UtcNow.AddDays(-30);
         to ??= DateTime.UtcNow;
 
@@ -136,7 +207,6 @@ public class ShopOwnerController : Controller
             .OrderByDescending(v => v.VisitTime)
             .ToListAsync();
 
-        // Daily statistics
         var dailyStats = visits
             .GroupBy(v => v.VisitTime.Date)
             .Select(g => new

@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace HeriStepAI.Web.Controllers;
 
-[Authorize]
+[Authorize(Roles = "Admin")]
 public class AnalyticsController : Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;

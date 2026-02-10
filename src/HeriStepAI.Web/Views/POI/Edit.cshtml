@@ -38,7 +38,7 @@
                             </div>
                         }
 
-                        <form method="post" asp-action="Edit" asp-route-id="@Model.Id">
+                        <form method="post" asp-action="Edit" asp-route-id="@Model.Id" enctype="multipart/form-data">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="Id" value="@Model.Id" />
                             <input type="hidden" name="CreatedAt" value="@Model.CreatedAt" />
@@ -141,15 +141,13 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label">URL hình ảnh</label>
-                                        <input type="url" class="form-control" name="ImageUrl" value="@Model.ImageUrl" />
-                                        <small class="text-muted">Link ảnh từ internet</small>
-                                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                                        {
-                                            <div class="mt-2">
-                                                <img src="@Model.ImageUrl" alt="Preview" class="img-thumbnail" style="max-width: 200px;" />
-                                            </div>
-                                        }
+                                        <label class="form-label"><i class="bi bi-image"></i> Hình ảnh</label>
+                                        <input type="file" class="form-control" name="ImageFile" id="imageFileInput" accept="image/*" />
+                                        <input type="hidden" name="ImageUrl" value="@Model.ImageUrl" />
+                                        <small class="text-muted">Chọn ảnh mới để thay thế. Để trống nếu giữ ảnh cũ.</small>
+                                        <div id="imagePreview" class="mt-2" style="@(string.IsNullOrEmpty(Model.ImageUrl) ? "display: none;" : "")">
+                                            <img id="previewImg" src="@Model.ImageUrl" alt="Preview" class="img-thumbnail" style="max-width: 200px; max-height: 200px;" />
+                                        </div>
                                     </div>
 
                                     <div class="mb-3">
@@ -240,6 +238,28 @@
 
         // Trigger on page load
         document.getElementById('categorySelect').dispatchEvent(new Event('change'));
+
+        // Image file preview
+        const imageFileInput = document.getElementById('imageFileInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+
+        imageFileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file && file.type.startsWith('image/')) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File quá lớn! Vui lòng chọn file nhỏ hơn 5MB.');
+                    this.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     </script>
 </body>
 </html>
