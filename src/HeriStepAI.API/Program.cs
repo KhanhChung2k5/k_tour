@@ -36,16 +36,15 @@ var connectionString = Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_S
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("SUPABASE_CONNECTION_STRING is required. Set it in Render Environment Variables.");
 
-// Supabase pooler cần sslmode=Require - sửa chuỗi bị cắt (ví dụ ?sslmode thiếu =Require)
+// Supabase pooler cần sslmode=Require - sửa chuỗi bị cắt (Render/env có thể cắt thành ?sslmode)
 if (connectionString.Contains("pooler.supabase.com", StringComparison.OrdinalIgnoreCase))
 {
     connectionString = connectionString.Trim();
-    var ro = System.Text.RegularExpressions.RegexOptions.IgnoreCase;
-    // Sửa ?sslmode hoặc &sslmode thiếu giá trị (Render/env có thể cắt chuỗi)
-    connectionString = System.Text.RegularExpressions.Regex.Replace(connectionString, @"\?sslmode(?=&|$)", "?sslmode=Require", ro);
-    connectionString = System.Text.RegularExpressions.Regex.Replace(connectionString, @"&sslmode(?=&|$)", "&sslmode=Require", ro);
-    // Nếu chưa có sslmode thì thêm
-    if (!connectionString.Contains("sslmode=", StringComparison.OrdinalIgnoreCase))
+    if (connectionString.EndsWith("?sslmode", StringComparison.OrdinalIgnoreCase))
+        connectionString += "=Require";
+    else if (connectionString.EndsWith("&sslmode", StringComparison.OrdinalIgnoreCase))
+        connectionString += "=Require";
+    else if (!connectionString.Contains("sslmode=", StringComparison.OrdinalIgnoreCase))
         connectionString += (connectionString.Contains("?") ? "&" : "?") + "sslmode=Require";
 }
 

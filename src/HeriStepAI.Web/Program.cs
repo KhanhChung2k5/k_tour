@@ -35,10 +35,11 @@ var connectionString = Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_S
 if (!string.IsNullOrWhiteSpace(connectionString) && connectionString.Contains("pooler.supabase.com", StringComparison.OrdinalIgnoreCase))
 {
     connectionString = connectionString.Trim();
-    var ro = System.Text.RegularExpressions.RegexOptions.IgnoreCase;
-    connectionString = System.Text.RegularExpressions.Regex.Replace(connectionString, @"\?sslmode(?=&|$)", "?sslmode=Require", ro);
-    connectionString = System.Text.RegularExpressions.Regex.Replace(connectionString, @"&sslmode(?=&|$)", "&sslmode=Require", ro);
-    if (!connectionString.Contains("sslmode=", StringComparison.OrdinalIgnoreCase))
+    if (connectionString.EndsWith("?sslmode", StringComparison.OrdinalIgnoreCase))
+        connectionString += "=Require";
+    else if (connectionString.EndsWith("&sslmode", StringComparison.OrdinalIgnoreCase))
+        connectionString += "=Require";
+    else if (!connectionString.Contains("sslmode=", StringComparison.OrdinalIgnoreCase))
         connectionString += (connectionString.Contains("?") ? "&" : "?") + "sslmode=Require";
 }
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
