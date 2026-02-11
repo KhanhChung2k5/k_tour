@@ -11,10 +11,11 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Kestrel to listen on all interfaces
+// Configure Kestrel - dùng PORT từ Render (mặc định 5000)
+var port = int.TryParse(Environment.GetEnvironmentVariable("PORT"), out var p) ? p : 5000;
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5000);
+    options.ListenAnyIP(port);
 });
 
 // Add services to the container
@@ -31,7 +32,17 @@ builder.Services.AddHttpClient();
 // Database - Supabase PostgreSQL
 var connectionString = Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_STRING") 
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
-    
+
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("SUPABASE_CONNECTION_STRING is required. Set it in Render Environment Variables.");
+
+// Thêm sslmode=Require nếu dùng Supabase pooler và chưa có
+if (connectionString.Contains("pooler.supabase.com", StringComparison.OrdinalIgnoreCase)
+    && !connectionString.Contains("sslmode=", StringComparison.OrdinalIgnoreCase))
+{
+    connectionString += (connectionString.Contains("?") ? "&" : "?") + "sslmode=Require";
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -89,18 +100,18 @@ builder.Services.AddScoped<IGeocodingService, GeocodingService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Swagger - bật cả Production để test API
+app.UseSwagger();
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "HeriStepAI API v1"));
 
 // app.UseHttpsRedirection(); // Disabled for development
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Redirect root to Swagger
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 // Initialize database (wrap in try/catch so app still starts if DB is unreachable)
 try
