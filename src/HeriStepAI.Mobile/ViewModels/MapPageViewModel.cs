@@ -89,6 +89,12 @@ public partial class MapPageViewModel : ObservableObject
         // Subscribe to geofence triggers for auto-narration
         _geofenceService.POIEntered += OnGeofencePOIEntered;
 
+        // Khi narration hoàn tất → chuyển simulator sang POI tiếp theo
+        _narrationService.NarrationCompleted += OnNarrationCompleted;
+
+        // Khi simulator đã chạy hết tất cả POI → tự dừng test mode
+        _simulator.SimulationCompleted += OnSimulationCompleted;
+
         // Run initialization in background to avoid blocking
         Task.Run(async () =>
         {
@@ -96,6 +102,10 @@ public partial class MapPageViewModel : ObservableObject
             {
                 await LoadPOIsAsync();
                 await GetCurrentLocationAsync();
+
+                // Đảm bảo GPS polling chạy liên tục (5s/lần)
+                // để geofence check hoạt động với real GPS
+                _locationService.StartLocationUpdates();
             }
             catch (Exception ex)
             {
@@ -338,6 +348,29 @@ public partial class MapPageViewModel : ObservableObject
         MapNeedsUpdate?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <summary>
+    /// Khi narration xong 1 POI → báo simulator advance sang POI kế tiếp.
+    /// </summary>
+    private void OnNarrationCompleted(object? sender, EventArgs e)
+    {
+        if (IsTestMode)
+        {
+            _simulator.AdvanceToNext();
+        }
+    }
+
+    /// <summary>
+    /// Khi simulator đã đi hết tất cả POI → tự dừng test mode.
+    /// </summary>
+    private void OnSimulationCompleted(object? sender, EventArgs e)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            AppLog.Info("✅ Simulation completed all POIs, stopping test mode");
+            StopTestMode();
+        });
+    }
+
     [RelayCommand]
     private void ToggleTestMode()
     {
@@ -353,8 +386,9 @@ public partial class MapPageViewModel : ObservableObject
             // Re-initialize geofence with the route POIs
             _geofenceService.Initialize(route);
 
-            // Start location simulation (8s per POI)
-            _simulator.StartSimulation(route, delaySeconds: 8);
+            // Start event-driven simulation (90s max timeout per POI)
+            // Simulator chờ narration xong (AdvanceToNext) rồi mới chuyển POI
+            _simulator.StartSimulation(route, maxSecondsPerPOI: 90);
 
             // Update UI state
             IsTestMode = true;
@@ -363,7 +397,7 @@ public partial class MapPageViewModel : ObservableObject
             TestModeTotalPOIs = route.Count;
             TestModeStatus = $"🧪 Mô phỏng {route.Count} POI...";
 
-            AppLog.Info($"🧪 Test Mode started with {route.Count} POIs, geofence active");
+            AppLog.Info($"🧪 Test Mode started with {route.Count} POIs, event-driven");
         }
         else
         {

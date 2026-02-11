@@ -22,23 +22,24 @@ public class AnalyticsController : Controller
             var client = CreateAuthenticatedClient();
             var poisClient = CreateAuthenticatedClient();
 
-            var topPoisTask = client.GetAsync("analytics/top-pois?count=10");
+            // Fetch all visited POIs (high count to get everything)
+            var topPoisTask = client.GetAsync("analytics/top-pois?count=1000");
             var poisTask = poisClient.GetAsync("poi");
 
             await Task.WhenAll(topPoisTask, poisTask);
 
-            // Parse top POIs
-            var topPOIs = new Dictionary<string, int>();
+            // Parse visited POIs
+            var visitedPOIs = new Dictionary<string, int>();
             if (topPoisTask.Result.IsSuccessStatusCode)
             {
                 var content = await topPoisTask.Result.Content.ReadAsStringAsync();
-                topPOIs = JsonSerializer.Deserialize<Dictionary<string, int>>(content,
+                visitedPOIs = JsonSerializer.Deserialize<Dictionary<string, int>>(content,
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
             }
-            ViewBag.TopPOIs = topPOIs;
 
-            // Parse POI names
+            // Parse ALL POIs (include ones with 0 visits)
             var poiNames = new Dictionary<string, string>();
+            var allPOIs = new Dictionary<string, int>();
             if (poisTask.Result.IsSuccessStatusCode)
             {
                 var content = await poisTask.Result.Content.ReadAsStringAsync();
@@ -47,22 +48,29 @@ public class AnalyticsController : Controller
                 {
                     var id = el.TryGetProperty("Id", out var idEl) ? idEl.GetInt32().ToString() : "";
                     var name = el.TryGetProperty("Name", out var n) ? n.GetString() ?? "" : "";
-                    if (!string.IsNullOrEmpty(id)) poiNames[id] = name;
+                    if (!string.IsNullOrEmpty(id))
+                    {
+                        poiNames[id] = name;
+                        allPOIs[id] = visitedPOIs.ContainsKey(id) ? visitedPOIs[id] : 0;
+                    }
                 }
             }
+            ViewBag.AllPOIs = allPOIs;
             ViewBag.POINames = poiNames;
 
-            // Fetch visit type breakdown for each top POI (parallel)
+            // Fetch visit type breakdown for POIs that have visits
             int totalGeofence = 0, totalManual = 0;
-            var breakdownTasks = topPOIs.Keys.Select(async poiId =>
+            var poisWithVisits = allPOIs.Where(kvp => kvp.Value > 0).Select(kvp => kvp.Key).ToList();
+
+            var breakdownTasks = poisWithVisits.Select(async poiId =>
             {
                 var c = CreateAuthenticatedClient();
                 var resp = await c.GetAsync($"analytics/poi/{poiId}/statistics");
                 if (!resp.IsSuccessStatusCode) return (poiId, 0, 0);
 
                 var json = await resp.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(json);
-                var root = doc.RootElement;
+                using var statDoc = JsonDocument.Parse(json);
+                var root = statDoc.RootElement;
                 int geo = 0, manual = 0;
                 if (root.TryGetProperty("VisitsByType", out var vbt))
                 {
@@ -89,17 +97,19 @@ public class AnalyticsController : Controller
             ViewBag.TotalGeofence = totalGeofence;
             ViewBag.TotalManual = totalManual;
             ViewBag.TotalVisits = totalGeofence + totalManual;
+            ViewBag.TotalPOIs = allPOIs.Count;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[Analytics] Error: {ex.Message}");
-            ViewBag.TopPOIs = new Dictionary<string, int>();
+            ViewBag.AllPOIs = new Dictionary<string, int>();
             ViewBag.POINames = new Dictionary<string, string>();
             ViewBag.GeofenceByPOI = new Dictionary<string, int>();
             ViewBag.ManualByPOI = new Dictionary<string, int>();
             ViewBag.TotalGeofence = 0;
             ViewBag.TotalManual = 0;
             ViewBag.TotalVisits = 0;
+            ViewBag.TotalPOIs = 0;
         }
 
         return View();

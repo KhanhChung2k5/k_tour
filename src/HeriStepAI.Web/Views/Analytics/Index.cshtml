@@ -1,26 +1,29 @@
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Analytics";
-    var topPOIs = ViewBag.TopPOIs as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var allPOIs = ViewBag.AllPOIs as Dictionary<string, int> ?? new Dictionary<string, int>();
     var poiNames = ViewBag.POINames as Dictionary<string, string> ?? new Dictionary<string, string>();
     var geoByPoi = ViewBag.GeofenceByPOI as Dictionary<string, int> ?? new Dictionary<string, int>();
     var manualByPoi = ViewBag.ManualByPOI as Dictionary<string, int> ?? new Dictionary<string, int>();
     var totalGeofence = (int)(ViewBag.TotalGeofence ?? 0);
     var totalManual = (int)(ViewBag.TotalManual ?? 0);
     var totalVisits = (int)(ViewBag.TotalVisits ?? 0);
+    var totalPOIs = (int)(ViewBag.TotalPOIs ?? 0);
+    var poisWithVisits = allPOIs.Where(x => x.Value > 0).OrderByDescending(x => x.Value).ToList();
+    var poisNoVisits = allPOIs.Where(x => x.Value == 0).ToList();
 }
 
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="page-title"><i class="bi bi-bar-chart-line me-2"></i>Analytics</h4>
-        <p class="page-subtitle">Thống kê chi tiết lượt ghé thăm theo loại</p>
+        <p class="page-subtitle">Thống kê chi tiết lượt ghé thăm tất cả địa điểm</p>
     </div>
 </div>
 
 <!-- Summary Cards -->
 <div class="row g-3 mb-4">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card shadow-sm stat-card h-100">
             <div class="card-body d-flex align-items-center gap-3 p-3">
                 <div class="stat-icon text-white" style="background:linear-gradient(135deg,#667eea,#764ba2);">
@@ -33,30 +36,44 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card shadow-sm stat-card h-100">
             <div class="card-body d-flex align-items-center gap-3 p-3">
                 <div class="stat-icon text-white" style="background:linear-gradient(135deg,#11998e,#38ef7d);">
                     <i class="bi bi-geo-alt"></i>
                 </div>
                 <div>
-                    <div class="text-muted small">Geofence (Tự động)</div>
+                    <div class="text-muted small">Geofence</div>
                     <div class="fs-3 fw-bold text-success lh-1">@totalGeofence</div>
-                    <small class="text-muted">Đi ngang qua &rarr; tự phát</small>
+                    <small class="text-muted">Tự động</small>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card shadow-sm stat-card h-100">
             <div class="card-body d-flex align-items-center gap-3 p-3">
                 <div class="stat-icon text-white" style="background:linear-gradient(135deg,#667eea,#764ba2);">
                     <i class="bi bi-hand-index"></i>
                 </div>
                 <div>
-                    <div class="text-muted small">Manual (Thủ công)</div>
+                    <div class="text-muted small">Manual</div>
                     <div class="fs-3 fw-bold text-info lh-1">@totalManual</div>
-                    <small class="text-muted">Click &rarr; nghe thuyết minh</small>
+                    <small class="text-muted">Thủ công</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm stat-card h-100">
+            <div class="card-body d-flex align-items-center gap-3 p-3">
+                <div class="stat-icon text-white" style="background:linear-gradient(135deg,#f093fb,#f5576c);">
+                    <i class="bi bi-shop"></i>
+                </div>
+                <div>
+                    <div class="text-muted small">Tổng POI</div>
+                    <div class="fs-3 fw-bold lh-1">@totalPOIs</div>
+                    <small class="text-muted">@poisWithVisits.Count có lượt ghé</small>
                 </div>
             </div>
         </div>
@@ -93,7 +110,7 @@
                 <h6 class="mb-0 fw-bold"><i class="bi bi-bar-chart-steps me-1"></i> Chi tiết theo địa điểm</h6>
             </div>
             <div class="card-body">
-                @if (topPOIs.Any())
+                @if (poisWithVisits.Any())
                 {
                     <canvas id="stackedChart" style="height:300px;"></canvas>
                 }
@@ -109,95 +126,131 @@
     </div>
 </div>
 
-<!-- Top POIs Table -->
-@if (topPOIs.Any())
-{
-    <div class="card shadow-sm">
-        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold"><i class="bi bi-trophy me-1"></i> Bảng xếp hạng địa điểm</h6>
-            <span class="badge bg-primary rounded-pill">Top @topPOIs.Count</span>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-4" style="width:50px;">#</th>
-                            <th>Địa điểm</th>
-                            <th class="text-center">Tổng</th>
-                            <th class="text-center">Geofence</th>
-                            <th class="text-center">Manual</th>
-                            <th class="text-center" style="width:200px;">Tỷ lệ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @{ var rank = 1; }
-                        @foreach (var kvp in topPOIs.OrderByDescending(x => x.Value))
-                        {
-                            var name = poiNames.ContainsKey(kvp.Key) ? poiNames[kvp.Key] : $"POI {kvp.Key}";
-                            var geo = geoByPoi.ContainsKey(kvp.Key) ? geoByPoi[kvp.Key] : 0;
-                            var manual = manualByPoi.ContainsKey(kvp.Key) ? manualByPoi[kvp.Key] : 0;
-                            var total = kvp.Value;
-                            var geoPct = total > 0 ? (geo * 100.0 / total) : 0;
-                            var manPct = total > 0 ? (manual * 100.0 / total) : 0;
-                            <tr>
-                                <td class="ps-4">
-                                    @if (rank <= 3)
-                                    {
-                                        <span class="badge rounded-pill @(rank == 1 ? "bg-warning text-dark" : rank == 2 ? "bg-secondary" : "bg-danger")">
-                                            @rank
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">@rank</span>
-                                    }
-                                </td>
-                                <td>
-                                    <span class="fw-semibold">@name</span>
-                                </td>
-                                <td class="text-center">
-                                    <span class="fw-bold">@total</span>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge bg-success-subtle text-success" style="font-size:.75rem;">
-                                        <i class="bi bi-geo-alt"></i> @geo
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge bg-info-subtle text-info" style="font-size:.75rem;">
-                                        <i class="bi bi-hand-index"></i> @manual
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <div class="progress" style="height:18px;border-radius:10px;">
-                                        <div class="progress-bar" role="progressbar"
-                                             style="width:@geoPct.ToString("F0")%;background:linear-gradient(90deg,#11998e,#38ef7d);"
-                                             title="Geofence: @geo">
-                                            @if (geoPct > 15) { <small>@geoPct.ToString("F0")%</small> }
-                                        </div>
-                                        <div class="progress-bar" role="progressbar"
-                                             style="width:@manPct.ToString("F0")%;background:linear-gradient(90deg,#667eea,#764ba2);"
-                                             title="Manual: @manual">
-                                            @if (manPct > 15) { <small>@manPct.ToString("F0")%</small> }
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            rank++;
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="card-footer bg-white py-2 px-4 border-top">
-            <div class="d-flex gap-3 small text-muted">
-                <span><span class="d-inline-block rounded" style="width:12px;height:12px;background:linear-gradient(90deg,#11998e,#38ef7d);"></span> Geofence (Tự động)</span>
-                <span><span class="d-inline-block rounded" style="width:12px;height:12px;background:linear-gradient(90deg,#667eea,#764ba2);"></span> Manual (Thủ công)</span>
-            </div>
+<!-- All POIs Statistics Table -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-table me-1"></i> Thống kê tất cả địa điểm</h6>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="badge bg-success-subtle text-success">@poisWithVisits.Count có lượt ghé</span>
+            <span class="badge bg-secondary-subtle text-secondary">@poisNoVisits.Count chưa có</span>
+            <span class="badge bg-primary rounded-pill">@totalPOIs POI</span>
         </div>
     </div>
-}
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4" style="width:50px;">#</th>
+                        <th>Địa điểm</th>
+                        <th class="text-center" style="width:100px;">Tổng</th>
+                        <th class="text-center" style="width:100px;">Geofence</th>
+                        <th class="text-center" style="width:100px;">Manual</th>
+                        <th class="text-center" style="width:220px;">Tỷ lệ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ var rank = 1; }
+                    @* POIs with visits (sorted by total desc) *@
+                    @foreach (var kvp in poisWithVisits)
+                    {
+                        var name = poiNames.ContainsKey(kvp.Key) ? poiNames[kvp.Key] : $"POI {kvp.Key}";
+                        var geo = geoByPoi.ContainsKey(kvp.Key) ? geoByPoi[kvp.Key] : 0;
+                        var manual = manualByPoi.ContainsKey(kvp.Key) ? manualByPoi[kvp.Key] : 0;
+                        var total = kvp.Value;
+                        var geoPct = total > 0 ? (geo * 100.0 / total) : 0;
+                        var manPct = total > 0 ? (manual * 100.0 / total) : 0;
+                        <tr>
+                            <td class="ps-4">
+                                @if (rank <= 3)
+                                {
+                                    <span class="badge rounded-pill @(rank == 1 ? "bg-warning text-dark" : rank == 2 ? "bg-secondary" : "bg-danger")">
+                                        @rank
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">@rank</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="fw-semibold">@name</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="fw-bold">@total</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-success-subtle text-success" style="font-size:.75rem;">
+                                    <i class="bi bi-geo-alt"></i> @geo
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-info-subtle text-info" style="font-size:.75rem;">
+                                    <i class="bi bi-hand-index"></i> @manual
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="progress" style="height:18px;border-radius:10px;">
+                                    <div class="progress-bar" role="progressbar"
+                                         style="width:@geoPct.ToString("F0")%;background:linear-gradient(90deg,#11998e,#38ef7d);"
+                                         title="Geofence: @geo">
+                                        @if (geoPct > 15) { <small>@geoPct.ToString("F0")%</small> }
+                                    </div>
+                                    <div class="progress-bar" role="progressbar"
+                                         style="width:@manPct.ToString("F0")%;background:linear-gradient(90deg,#667eea,#764ba2);"
+                                         title="Manual: @manual">
+                                        @if (manPct > 15) { <small>@manPct.ToString("F0")%</small> }
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        rank++;
+                    }
+                    @* POIs with 0 visits *@
+                    @foreach (var kvp in poisNoVisits)
+                    {
+                        var name = poiNames.ContainsKey(kvp.Key) ? poiNames[kvp.Key] : $"POI {kvp.Key}";
+                        <tr class="text-muted">
+                            <td class="ps-4">
+                                <span class="text-muted">@rank</span>
+                            </td>
+                            <td>
+                                <span>@name</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="fw-bold text-muted">0</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-muted" style="font-size:.75rem;">
+                                    <i class="bi bi-geo-alt"></i> 0
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-muted" style="font-size:.75rem;">
+                                    <i class="bi bi-hand-index"></i> 0
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="progress" style="height:18px;border-radius:10px;">
+                                    <div class="progress-bar bg-light" role="progressbar" style="width:100%;">
+                                        <small class="text-muted">Chưa có</small>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        rank++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer bg-white py-2 px-4 border-top">
+        <div class="d-flex gap-3 small text-muted">
+            <span><span class="d-inline-block rounded" style="width:12px;height:12px;background:linear-gradient(90deg,#11998e,#38ef7d);"></span> Geofence (Tự động)</span>
+            <span><span class="d-inline-block rounded" style="width:12px;height:12px;background:linear-gradient(90deg,#667eea,#764ba2);"></span> Manual (Thủ công)</span>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -205,7 +258,6 @@
         @if (totalVisits > 0)
         {
             <text>
-            // Doughnut Chart - Visit Type
             new Chart(document.getElementById('visitTypeChart').getContext('2d'), {
                 type: 'doughnut',
                 data: {
@@ -231,17 +283,20 @@
             </text>
         }
 
-        @if (topPOIs.Any())
+        @if (poisWithVisits.Any())
         {
             <text>
-            // Stacked Bar Chart
             const poiNames = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(poiNames));
-            const topData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(topPOIs));
+            const allData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(allPOIs));
             const geoData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(geoByPoi));
             const manualData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(manualByPoi));
 
-            const poiIds = Object.keys(topData).sort((a, b) => topData[b] - topData[a]);
-            const labels = poiIds.map(id => poiNames[id] || `POI ${id}`);
+            // Only show POIs with visits in the chart, sorted by total desc
+            const poiIds = Object.keys(allData).filter(id => allData[id] > 0).sort((a, b) => allData[b] - allData[a]);
+            const labels = poiIds.map(id => {
+                const name = poiNames[id] || `POI ${id}`;
+                return name.length > 20 ? name.substring(0, 18) + '...' : name;
+            });
 
             new Chart(document.getElementById('stackedChart').getContext('2d'), {
                 type: 'bar',

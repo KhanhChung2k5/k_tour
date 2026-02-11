@@ -3,16 +3,19 @@ using HeriStepAI.Mobile.Models;
 namespace HeriStepAI.Mobile.Services;
 
 /// <summary>
-/// Narration Engine - Yêu cầu: quản lý hàng đợi, không phát trùng, tự dừng khi có POI mới.
+/// Narration Engine - Hàng đợi tuần tự: khi 2 POI gần nhau, phát lần lượt thay vì hủy.
+/// forcePlay (user click) = hủy hiện tại, phát ngay. Auto (geofence) = thêm vào hàng đợi.
 /// </summary>
 public class NarrationService : INarrationService
 {
-    private bool _isPlaying = false;
-    private readonly Queue<POI> _narrationQueue = new();
-    private POI? _currentPOI = null;
-    private readonly Dictionary<int, DateTime> _lastPlayedAt = new(); // Per-POI cooldown
+    private volatile bool _isProcessing;
+    private readonly List<POI> _queue = new();
+    private readonly object _queueLock = new();
+    private POI? _currentPOI;
+    private readonly Dictionary<int, DateTime> _lastPlayedAt = new();
     private readonly TimeSpan _poiCooldown = TimeSpan.FromMinutes(5);
-    private CancellationTokenSource? _playCts;
+    private CancellationTokenSource? _cts;
+    private string _language = "vi";
     private readonly IVoicePreferenceService _voicePreference;
 
     public NarrationService(IVoicePreferenceService voicePreference)
@@ -20,98 +23,138 @@ public class NarrationService : INarrationService
         _voicePreference = voicePreference;
     }
 
-    public bool IsPlaying => _isPlaying;
+    public bool IsPlaying => _isProcessing;
 
     public event EventHandler? NarrationCompleted;
 
     public async Task PlayNarrationAsync(POI poi, string language, bool forcePlay = false)
     {
-        // Chống spam (geofence): không phát lại POI đã phát trong X phút. Bỏ qua khi user click thủ công (forcePlay).
-        if (!forcePlay && _lastPlayedAt.TryGetValue(poi.Id, out var lastTime) && DateTime.UtcNow - lastTime < _poiCooldown)
-            return;
+        _language = language;
 
-        // Tự dừng khi có POI mới - dừng phát hiện tại, xóa hàng đợi cũ
-        if (_isPlaying || _narrationQueue.Count > 0)
+        if (forcePlay)
         {
-            _playCts?.Cancel();
-            _narrationQueue.Clear();
+            // User click: hủy tất cả, phát ngay POI này
+            _cts?.Cancel();
+            lock (_queueLock) { _queue.Clear(); }
+            await Task.Delay(200); // Cho loop cũ kết thúc
+            lock (_queueLock) { _queue.Add(poi); }
+            _isProcessing = false;
+            EnsureProcessing();
+            return;
         }
 
-        _currentPOI = poi;
-        _narrationQueue.Enqueue(poi);
-
-        if (!_isPlaying)
+        // Auto-trigger (geofence): kiểm tra cooldown
+        if (_lastPlayedAt.TryGetValue(poi.Id, out var last) && DateTime.UtcNow - last < _poiCooldown)
         {
-            _playCts = new CancellationTokenSource();
-            await ProcessQueueAsync(language, _playCts.Token);
+            AppLog.Info($"⏭️ Narration cooldown skip: {poi.Name}");
+            // Vẫn fire completed để simulator biết advance
+            NarrationCompleted?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
+        // Không trùng: bỏ qua nếu đang phát hoặc đã có trong hàng đợi
+        lock (_queueLock)
+        {
+            if (_currentPOI?.Id == poi.Id) return;
+            if (_queue.Any(p => p.Id == poi.Id)) return;
+            _queue.Add(poi);
+            AppLog.Info($"📋 Queued narration: {poi.Name} (queue={_queue.Count})");
+        }
+
+        EnsureProcessing();
+    }
+
+    private void EnsureProcessing()
+    {
+        if (_isProcessing) return;
+
+        lock (_queueLock)
+        {
+            if (_isProcessing || _queue.Count == 0) return;
+            _isProcessing = true;
+        }
+
+        _cts = new CancellationTokenSource();
+        _ = ProcessLoopAsync(_cts.Token);
+    }
+
+    private async Task ProcessLoopAsync(CancellationToken ct)
+    {
+        try
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                POI? poi;
+                lock (_queueLock)
+                {
+                    if (_queue.Count == 0) break;
+                    poi = _queue[0];
+                    _queue.RemoveAt(0);
+                }
+
+                _currentPOI = poi;
+
+                try
+                {
+                    await PlaySingleAsync(poi, _language, ct);
+                    _lastPlayedAt[poi.Id] = DateTime.UtcNow;
+                    AppLog.Info($"✅ Narration done: {poi.Name}");
+                    NarrationCompleted?.Invoke(this, EventArgs.Empty);
+                }
+                catch (OperationCanceledException) { throw; }
+                catch (Exception ex)
+                {
+                    AppLog.Error($"Narration error for {poi.Name}: {ex.Message}");
+                    // Vẫn fire completed để không block simulator
+                    NarrationCompleted?.Invoke(this, EventArgs.Empty);
+                }
+                finally
+                {
+                    _currentPOI = null;
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            AppLog.Info("Narration processing cancelled");
+        }
+        finally
+        {
+            _isProcessing = false;
+            _currentPOI = null;
+
+            // Re-check: items có thể đã được thêm trong lúc shutdown
+            bool hasMore;
+            lock (_queueLock) { hasMore = _queue.Count > 0; }
+            if (hasMore && !ct.IsCancellationRequested)
+                EnsureProcessing();
         }
     }
 
-    private async Task ProcessQueueAsync(string language, CancellationToken ct = default)
+    private async Task PlaySingleAsync(POI poi, string language, CancellationToken ct)
     {
-        if (_narrationQueue.Count == 0)
-        {
-            _isPlaying = false;
-            return;
-        }
-
-        _isPlaying = true;
-        var poi = _narrationQueue.Dequeue();
-
-        var content = poi.Contents?.FirstOrDefault(c => c.Language == language) 
+        var content = poi.Contents?.FirstOrDefault(c => c.Language == language)
                    ?? poi.Contents?.FirstOrDefault(c => c.Language == "vi")
                    ?? poi.Contents?.FirstOrDefault();
 
-        string? textToSpeak = null;
-        string? audioUrl = null;
-        var contentType = ContentType.TTS;
-
-        if (content != null)
-        {
-            contentType = content.ContentType;
-            textToSpeak = content.TextContent;
-            audioUrl = content.AudioUrl;
-        }
+        string? textToSpeak = content?.TextContent;
+        string? audioUrl = content?.AudioUrl;
+        var contentType = content?.ContentType ?? ContentType.TTS;
 
         // Fallback: dùng Description nếu không có POIContent
         if (string.IsNullOrEmpty(textToSpeak) && !string.IsNullOrEmpty(poi.Description))
             textToSpeak = poi.Description;
 
-        if (content == null && string.IsNullOrEmpty(textToSpeak))
-        {
-            _isPlaying = false;
-            await ProcessQueueAsync(language, ct);
-            return;
-        }
+        if (string.IsNullOrEmpty(textToSpeak) && string.IsNullOrEmpty(audioUrl))
+            return; // Không có gì để phát
 
-        try
-        {
-            if (contentType == ContentType.AudioFile && !string.IsNullOrEmpty(audioUrl))
-            {
-                await PlayAudioFileAsync(audioUrl, ct);
-            }
-            else if (!string.IsNullOrEmpty(textToSpeak))
-            {
-                await SpeakTextAsync(textToSpeak, language, ct);
-            }
-            // Ghi log đã phát để tránh lặp (yêu cầu Step 5)
-            _lastPlayedAt[poi.Id] = DateTime.UtcNow;
-        }
-        catch (OperationCanceledException) { }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Error playing narration: {ex.Message}");
-        }
-        finally
-        {
-            _isPlaying = false;
-            NarrationCompleted?.Invoke(this, EventArgs.Empty);
-            if (!ct.IsCancellationRequested)
-                await ProcessQueueAsync(language, ct);
-        }
+        if (contentType == ContentType.AudioFile && !string.IsNullOrEmpty(audioUrl))
+            await PlayAudioFileAsync(audioUrl, ct);
+        else if (!string.IsNullOrEmpty(textToSpeak))
+            await SpeakTextAsync(textToSpeak, language, ct);
     }
 
-    private async Task SpeakTextAsync(string text, string language, CancellationToken ct = default)
+    private async Task SpeakTextAsync(string text, string language, CancellationToken ct)
     {
         try
         {
@@ -120,14 +163,11 @@ public class NarrationService : INarrationService
 
             if (language == "vi")
             {
-                // Lọc giọng Việt Nam
                 var viLocales = locales.Where(l =>
                     l.Language.StartsWith("vi", StringComparison.OrdinalIgnoreCase)).ToList();
 
-                // Chọn giọng nam/nữ
                 if (_voicePreference.VoiceGender == VoiceGender.Male)
                 {
-                    // Ưu tiên giọng nam
                     locale = viLocales.FirstOrDefault(l =>
                         l.Name.Contains("Male", StringComparison.OrdinalIgnoreCase) ||
                         l.Name.Contains("Nam", StringComparison.OrdinalIgnoreCase) ||
@@ -135,17 +175,15 @@ public class NarrationService : INarrationService
                 }
                 else
                 {
-                    // Ưu tiên giọng nữ
                     locale = viLocales.FirstOrDefault(l =>
                         l.Name.Contains("Female", StringComparison.OrdinalIgnoreCase) ||
                         l.Name.Contains("Nữ", StringComparison.OrdinalIgnoreCase) ||
                         l.Id.Contains("female", StringComparison.OrdinalIgnoreCase));
                 }
 
-                // Fallback: bất kỳ giọng Việt nào
                 locale ??= viLocales.FirstOrDefault();
             }
-            else // English
+            else
             {
                 var enLocales = locales.Where(l =>
                     l.Language.StartsWith("en", StringComparison.OrdinalIgnoreCase)).ToList();
@@ -168,39 +206,41 @@ public class NarrationService : INarrationService
 
             if (locale != null)
             {
-                AppLog.Info($"Using TTS voice: {locale.Name} ({locale.Language})");
+                AppLog.Info($"TTS voice: {locale.Name} ({locale.Language})");
                 await TextToSpeech.Default.SpeakAsync(text,
                     new Microsoft.Maui.Media.SpeechOptions
                     {
                         Locale = locale,
                         Pitch = 1.0f,
                         Volume = 1.0f
-                    });
+                    }, ct);
             }
             else
             {
-                await TextToSpeech.Default.SpeakAsync(text);
+                await TextToSpeech.Default.SpeakAsync(text, cancelToken: ct);
             }
         }
+        catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"TTS error: {ex.Message}");
-            await TextToSpeech.Default.SpeakAsync(text);
+            try { await TextToSpeech.Default.SpeakAsync(text, cancelToken: ct); }
+            catch { }
         }
     }
 
-    private async Task PlayAudioFileAsync(string audioUrl, CancellationToken ct = default)
+    private async Task PlayAudioFileAsync(string audioUrl, CancellationToken ct)
     {
-        // TODO: MediaManager / plugin để phát file audio. Hiện dùng TTS nếu có TextContent.
+        // TODO: MediaManager / plugin để phát file audio
         await Task.Delay(100, ct);
         System.Diagnostics.Debug.WriteLine($"Audio playback: {audioUrl}");
     }
 
     public void StopNarration()
     {
-        _playCts?.Cancel();
-        _narrationQueue.Clear();
-        _isPlaying = false;
+        _cts?.Cancel();
+        lock (_queueLock) { _queue.Clear(); }
+        _isProcessing = false;
         _currentPOI = null;
     }
 }
