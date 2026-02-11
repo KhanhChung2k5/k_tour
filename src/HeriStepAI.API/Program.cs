@@ -29,21 +29,27 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
 
-// Database - Supabase PostgreSQL
-var connectionString = Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_STRING") 
-    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+// Database - Supabase PostgreSQL (Secret File tránh Render cắt env tại dấu =)
+var connectionString = File.Exists("/etc/secrets/SUPABASE_CONNECTION_STRING")
+    ? File.ReadAllText("/etc/secrets/SUPABASE_CONNECTION_STRING").Trim()
+    : Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_STRING") 
+        ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("SUPABASE_CONNECTION_STRING is required. Set it in Render Environment Variables.");
 
-// Supabase pooler cần sslmode=Require - sửa chuỗi bị cắt (Render/env có thể cắt thành ?sslmode)
+// Supabase pooler cần sslmode=Require - Render cắt env tại dấu =, chuỗi nhận được ...?sslmode
 if (connectionString.Contains("pooler.supabase.com", StringComparison.OrdinalIgnoreCase))
 {
     connectionString = connectionString.Trim();
-    if (connectionString.EndsWith("?sslmode", StringComparison.OrdinalIgnoreCase))
-        connectionString += "=Require";
-    else if (connectionString.EndsWith("&sslmode", StringComparison.OrdinalIgnoreCase))
-        connectionString += "=Require";
+    var idx = connectionString.IndexOf("?sslmode", StringComparison.OrdinalIgnoreCase);
+    if (idx >= 0 && !connectionString.AsSpan(idx).StartsWith("?sslmode=", StringComparison.OrdinalIgnoreCase))
+    {
+        var end = connectionString.IndexOf('&', idx + 1);
+        var toRemove = end > 0 ? connectionString.Substring(idx, end - idx) : connectionString.Substring(idx);
+        connectionString = connectionString.Replace(toRemove, "", StringComparison.OrdinalIgnoreCase).TrimEnd('?', '&');
+        connectionString += (connectionString.Contains("?") ? "&" : "?") + "sslmode=Require";
+    }
     else if (!connectionString.Contains("sslmode=", StringComparison.OrdinalIgnoreCase))
         connectionString += (connectionString.Contains("?") ? "&" : "?") + "sslmode=Require";
 }
