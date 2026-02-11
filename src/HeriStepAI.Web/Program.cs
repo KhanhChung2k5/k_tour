@@ -34,10 +34,12 @@ var connectionString = Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_S
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
 if (!string.IsNullOrWhiteSpace(connectionString) && connectionString.Contains("pooler.supabase.com", StringComparison.OrdinalIgnoreCase))
 {
-    var sslParam = "sslmode=Require";
-    connectionString = System.Text.RegularExpressions.Regex.Replace(
-        connectionString, @"[?&]sslmode(=[^&]*)?", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-    connectionString += (connectionString.Contains("?") ? "&" : "?") + sslParam;
+    connectionString = connectionString.Trim();
+    var ro = System.Text.RegularExpressions.RegexOptions.IgnoreCase;
+    connectionString = System.Text.RegularExpressions.Regex.Replace(connectionString, @"\?sslmode(?=&|$)", "?sslmode=Require", ro);
+    connectionString = System.Text.RegularExpressions.Regex.Replace(connectionString, @"&sslmode(?=&|$)", "&sslmode=Require", ro);
+    if (!connectionString.Contains("sslmode=", StringComparison.OrdinalIgnoreCase))
+        connectionString += (connectionString.Contains("?") ? "&" : "?") + "sslmode=Require";
 }
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
