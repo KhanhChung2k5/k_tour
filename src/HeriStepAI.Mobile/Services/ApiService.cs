@@ -7,7 +7,12 @@ namespace HeriStepAI.Mobile.Services;
 public class ApiService : IApiService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _baseUrl = "http://10.0.2.2:5000/api/"; // Update with your API URL
+    private static readonly string _baseUrl = 
+#if DEBUG
+        "http://10.0.2.2:5000/api/"; // Emulator local API
+#else
+        "https://heristep.onrender.com/api/"; // Production
+#endif
 
     public ApiService()
     {

@@ -1,0 +1,19 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+COPY src/HeriStepAI.API/HeriStepAI.API.csproj HeriStepAI.API/
+COPY src/HeriStepAI.Web/HeriStepAI.Web.csproj HeriStepAI.Web/
+RUN dotnet restore HeriStepAI.Web/HeriStepAI.Web.csproj
+
+COPY src/HeriStepAI.API/ HeriStepAI.API/
+COPY src/HeriStepAI.Web/ HeriStepAI.Web/
+WORKDIR /src/HeriStepAI.Web
+RUN dotnet publish HeriStepAI.Web.csproj -c Release -o /app/publish
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish .
+
+ENV ASPNETCORE_URLS=http://0.0.0.0:5000
+EXPOSE 5000
+CMD sh -c 'export ASPNETCORE_URLS=http://0.0.0.0:${PORT:-5000} && dotnet HeriStepAI.Web.dll'

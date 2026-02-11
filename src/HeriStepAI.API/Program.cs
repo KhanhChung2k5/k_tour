@@ -36,11 +36,14 @@ var connectionString = Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_S
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("SUPABASE_CONNECTION_STRING is required. Set it in Render Environment Variables.");
 
-// Thêm sslmode=Require nếu dùng Supabase pooler và chưa có
-if (connectionString.Contains("pooler.supabase.com", StringComparison.OrdinalIgnoreCase)
-    && !connectionString.Contains("sslmode=", StringComparison.OrdinalIgnoreCase))
+// Supabase pooler cần sslmode=Require - đảm bảo có giá trị đầy đủ
+if (connectionString.Contains("pooler.supabase.com", StringComparison.OrdinalIgnoreCase))
 {
-    connectionString += (connectionString.Contains("?") ? "&" : "?") + "sslmode=Require";
+    var sslParam = "sslmode=Require";
+    // Remove any existing sslmode param (có thể malformed như ?sslmode thiếu =Require)
+    connectionString = System.Text.RegularExpressions.Regex.Replace(
+        connectionString, @"[?&]sslmode(=[^&]*)?", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    connectionString += (connectionString.Contains("?") ? "&" : "?") + sslParam;
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

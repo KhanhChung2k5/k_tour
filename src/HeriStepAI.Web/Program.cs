@@ -14,7 +14,8 @@ foreach (var p in envPaths) { if (File.Exists(p)) { Env.Load(p); break; } }
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(5001));
+var port = int.TryParse(Environment.GetEnvironmentVariable("PORT"), out var p) ? p : 5001;
+builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(port));
 
 // Chỉ load controllers từ Web assembly, không load từ API
 builder.Services.AddControllersWithViews()
@@ -28,8 +29,16 @@ builder.Services.AddControllersWithViews()
         }
     });
 
-// Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// Database - dùng env SUPABASE_CONNECTION_STRING khi deploy lên Render
+var connectionString = Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_STRING")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+if (!string.IsNullOrWhiteSpace(connectionString) && connectionString.Contains("pooler.supabase.com", StringComparison.OrdinalIgnoreCase))
+{
+    var sslParam = "sslmode=Require";
+    connectionString = System.Text.RegularExpressions.Regex.Replace(
+        connectionString, @"[?&]sslmode(=[^&]*)?", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    connectionString += (connectionString.Contains("?") ? "&" : "?") + sslParam;
+}
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -50,7 +59,7 @@ builder.Services.AddSingleton<ISupabaseStorageService, SupabaseStorageService>()
 // HTTP Client for API
 builder.Services.AddHttpClient("API", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:7001/api/");
+    client.BaseAddress = new Uri(Environment.GetEnvironmentVariable("API_BASE_URL") ?? builder.Configuration["ApiSettings:BaseUrl"] ?? "https://heristep.onrender.com/api/");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
