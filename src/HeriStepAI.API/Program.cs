@@ -38,20 +38,52 @@ var connectionString = File.Exists("/etc/secrets/SUPABASE_CONNECTION_STRING")
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("SUPABASE_CONNECTION_STRING is required. Set it in Render Environment Variables.");
 
-// Supabase pooler cần sslmode=Require - Render cắt env tại dấu =, chuỗi nhận được ...?sslmode
-if (connectionString.Contains("pooler.supabase.com", StringComparison.OrdinalIgnoreCase))
+// Convert PostgreSQL URI format to ADO.NET key-value format for Npgsql
+if (connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase)
+    || connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
 {
-    connectionString = connectionString.Trim();
-    var idx = connectionString.IndexOf("?sslmode", StringComparison.OrdinalIgnoreCase);
-    if (idx >= 0 && !connectionString.AsSpan(idx).StartsWith("?sslmode=", StringComparison.OrdinalIgnoreCase))
+    var uri = new Uri(connectionString);
+    var userInfo = uri.UserInfo.Split(':', 2);
+    var username = Uri.UnescapeDataString(userInfo[0]);
+    var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+    var database = uri.AbsolutePath.TrimStart('/');
+
+    var sb = new StringBuilder();
+    sb.Append($"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password}");
+
+    // Parse query string params (e.g. ?sslmode=Require)
+    var hasSslMode = false;
+    var queryString = uri.Query.TrimStart('?');
+    if (!string.IsNullOrEmpty(queryString))
     {
-        var end = connectionString.IndexOf('&', idx + 1);
-        var toRemove = end > 0 ? connectionString.Substring(idx, end - idx) : connectionString.Substring(idx);
-        connectionString = connectionString.Replace(toRemove, "", StringComparison.OrdinalIgnoreCase).TrimEnd('?', '&');
-        connectionString += (connectionString.Contains("?") ? "&" : "?") + "sslmode=Require";
+        foreach (var param in queryString.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = param.Split('=', 2);
+            var key = parts[0];
+            var value = parts.Length > 1 ? parts[1] : "";
+            if (key.Equals("sslmode", StringComparison.OrdinalIgnoreCase))
+            {
+                hasSslMode = true;
+                if (!string.IsNullOrEmpty(value))
+                    sb.Append($";SSL Mode={value}");
+            }
+            else if (!string.IsNullOrEmpty(key))
+            {
+                sb.Append($";{key}={value}");
+            }
+        }
     }
-    else if (!connectionString.Contains("sslmode=", StringComparison.OrdinalIgnoreCase))
-        connectionString += (connectionString.Contains("?") ? "&" : "?") + "sslmode=Require";
+
+    if (!hasSslMode || string.IsNullOrEmpty(queryString))
+        sb.Append(";SSL Mode=Require");
+    sb.Append(";Trust Server Certificate=true");
+
+    connectionString = sb.ToString();
+}
+else if (!connectionString.Contains("SSL Mode", StringComparison.OrdinalIgnoreCase)
+    && !connectionString.Contains("sslmode", StringComparison.OrdinalIgnoreCase))
+{
+    connectionString += ";SSL Mode=Require;Trust Server Certificate=true";
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
