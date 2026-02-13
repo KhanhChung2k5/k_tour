@@ -124,15 +124,15 @@
                                     CommandParameter="{Binding .}" />
                             </Frame.GestureRecognizers>
 
-                            <Grid ColumnDefinitions="90,*" HeightRequest="85">
+                            <Grid ColumnDefinitions="95,*" MinimumHeightRequest="85">
                                 <!-- POI Image -->
                                 <Image Grid.Column="0"
                                        Source="{Binding ImageUrl}"
                                        Aspect="AspectFill"
-                                       WidthRequest="90"
-                                       HeightRequest="85">
+                                       HorizontalOptions="FillAndExpand"
+                                       VerticalOptions="FillAndExpand">
                                     <Image.Clip>
-                                        <RoundRectangleGeometry Rect="0,0,90,85" CornerRadius="12,0,0,12" />
+                                        <RoundRectangleGeometry Rect="0,0,95,85" CornerRadius="12,0,0,12" />
                                     </Image.Clip>
                                 </Image>
 
@@ -140,7 +140,8 @@
                                 <VerticalStackLayout Grid.Column="1"
                                                      Padding="12,8"
                                                      Spacing="4"
-                                                     VerticalOptions="Center">
+                                                     VerticalOptions="Center"
+                                                     HorizontalOptions="FillAndExpand">
                                     <!-- Name -->
                                     <Label Text="{Binding Name}"
                                            FontSize="13"

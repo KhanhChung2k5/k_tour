@@ -106,7 +106,7 @@ public static class ResponsiveHelper
     }
 
     /// <summary>
-    /// Check if device is a tablet (screen width > 600dp)
+    /// Check if device is a tablet (screen width &gt; 600dp)
     /// </summary>
     public static bool IsTablet()
     {
@@ -114,7 +114,7 @@ public static class ResponsiveHelper
     }
 
     /// <summary>
-    /// Check if device is a small phone (screen width < 360dp)
+    /// Check if device is a small phone (screen width &lt; 360dp)
     /// </summary>
     public static bool IsSmallPhone()
     {

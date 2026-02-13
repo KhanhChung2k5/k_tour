@@ -1,0 +1,13 @@
+<Project>
+  <!-- Production signing configuration -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- Uncomment and configure for production signing -->
+    <!--
+    <AndroidKeyStore>true</AndroidKeyStore>
+    <AndroidSigningKeyStore>heristepai.keystore</AndroidSigningKeyStore>
+    <AndroidSigningKeyAlias>heristepai</AndroidSigningKeyAlias>
+    <AndroidSigningStorePass>YOUR_PASSWORD</AndroidSigningStorePass>
+    <AndroidSigningKeyPass>YOUR_PASSWORD</AndroidSigningKeyPass>
+    -->
+  </PropertyGroup>
+</Project>

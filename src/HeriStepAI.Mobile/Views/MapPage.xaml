@@ -81,7 +81,8 @@
         <!-- Map View - Full Screen -->
         <WebView Grid.Row="1"
                  x:Name="MapWebView"
-                 Margin="0,-60,0,0"
+                 Margin="0"
+                 MinimumHeightRequest="300"
                  ZIndex="1" />
 
         <!-- Test Mode Status Banner (shown when test mode is active) -->
@@ -111,13 +112,13 @@
         <Frame Grid.Row="1"
                BackgroundColor="{StaticResource White}"
                CornerRadius="22"
-               WidthRequest="48"
-               HeightRequest="48"
+               WidthRequest="44"
+               HeightRequest="44"
                Padding="0"
                HasShadow="True"
                HorizontalOptions="End"
                VerticalOptions="End"
-               Margin="0,0,16,16"
+               Margin="0,0,16,76"
                ZIndex="5">
             <Frame.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding CenterOnLocationCommand}" />
@@ -136,7 +137,7 @@
                HasShadow="True"
                HorizontalOptions="End"
                VerticalOptions="End"
-               Margin="0,0,16,68"
+               Margin="0,0,16,128"
                ZIndex="5">
             <Frame.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding ToggleTestModeCommand}" />
@@ -275,8 +276,10 @@
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:POI">
                                 <Frame Style="{StaticResource CardFrame}"
-                                       WidthRequest="130"
-                                       HeightRequest="110"
+                                       MinimumWidthRequest="120"
+                                       WidthRequest="135"
+                                       MinimumHeightRequest="100"
+                                       HeightRequest="115"
                                        Padding="0">
                                     <Frame.GestureRecognizers>
                                         <TapGestureRecognizer

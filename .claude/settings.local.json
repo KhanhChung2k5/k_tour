@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)",
+      "Bash(dotnet add reference:*)",
+      "Bash(dotnet add package:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(Remove-Item -Recurse -Force bin,obj -ErrorAction SilentlyContinue)",
+      "Bash(dotnet run:*)",
+      "Bash(dotnet publish:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(dir:*)",
+      "Bash(tasklist:*)",
+      "Bash(adb install:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git reset:*)",
+      "Bash(git push:*)",
+      "Bash(Get-Process)",
+      "Bash(Where-Object {$_ProcessName -like \"*dotnet*\"})",
+      "Bash(Select-Object Id, ProcessName, Path)",
+      "Bash(Format-Table)",
+      "Bash(ls:*)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet ef database update:*)",
+      "Bash(dotnet ef dbcontext scaffold:*)",
+      "Bash(where:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet ef migrations list:*)",
+      "Bash(Select-String -Pattern \"error\" -Context 0,2)",
+      "Bash(git restore:*)",
+      "Bash(git pull:*)"
+    ]
+  }
+}

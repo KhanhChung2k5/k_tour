@@ -11,7 +11,8 @@
     <LangVersion>latest</LangVersion>
     <ApplicationTitle>HeriStepAI</ApplicationTitle>
     <ApplicationId>com.companyname.heristepai</ApplicationId>
-    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationVersion>2</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0.2</ApplicationDisplayVersion>
     <JavaSdkDirectory>C:\Users\Lenovo\.jdk\jdk-17.0.16</JavaSdkDirectory>
     <AndroidSdkDirectory>c:\android-sdk</AndroidSdkDirectory>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>

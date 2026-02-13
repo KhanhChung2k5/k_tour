@@ -18,38 +18,51 @@ public class ApiService : IApiService
     {
         try
         {
-            _httpClient = new HttpClient
+            _httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate })
             {
                 BaseAddress = new Uri(_baseUrl)
             };
-            _httpClient.Timeout = TimeSpan.FromSeconds(15);
+            _httpClient.Timeout = TimeSpan.FromSeconds(45);
+            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
+            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "HeriStepAI-Mobile/1.0");
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error initializing ApiService: {ex.Message}");
-            _httpClient = new HttpClient();
+            _httpClient = new HttpClient { BaseAddress = new Uri(_baseUrl), Timeout = TimeSpan.FromSeconds(45) };
         }
     }
 
     public async Task<List<POI>?> GetAllPOIsAsync()
     {
-        try
+        const int maxRetries = 3;
+        for (var attempt = 1; attempt <= maxRetries; attempt++)
         {
-            var response = await _httpClient.GetAsync("poi");
-            AppLog.Info($"ApiService GET poi -> {response.StatusCode}");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var json = await response.Content.ReadAsStringAsync();
-                var pois = JsonConvert.DeserializeObject<List<POI>>(json);
-                AppLog.Info($"ApiService Deserialized {pois?.Count ?? 0} POIs");
-                return pois;
+                AppLog.Info($"ApiService GET poi (attempt {attempt}/{maxRetries})");
+                var response = await _httpClient.GetAsync("poi");
+                AppLog.Info($"ApiService GET poi -> {response.StatusCode}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var pois = JsonConvert.DeserializeObject<List<POI>>(json);
+                    AppLog.Info($"ApiService Deserialized {pois?.Count ?? 0} POIs");
+                    return pois ?? new List<POI>();
+                }
+                var errBody = await response.Content.ReadAsStringAsync();
+                AppLog.Error($"ApiService Error {response.StatusCode}: {errBody}");
             }
-            var errBody = await response.Content.ReadAsStringAsync();
-            AppLog.Error($"ApiService Error response: {errBody}");
-        }
-        catch (Exception ex)
-        {
-            AppLog.Error($"ApiService Error: {ex.Message}");
+            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+            {
+                AppLog.Error($"ApiService Timeout (attempt {attempt}) - Render cold start?");
+                if (attempt < maxRetries) await Task.Delay(2000 * attempt);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"ApiService Error (attempt {attempt}): {ex.Message}");
+                if (attempt < maxRetries) await Task.Delay(2000 * attempt);
+            }
         }
         return null;
     }

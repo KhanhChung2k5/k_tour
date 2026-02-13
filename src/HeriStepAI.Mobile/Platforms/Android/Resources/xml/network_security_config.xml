@@ -14,5 +14,6 @@
         <domain includeSubdomains="true">unpkg.com</domain>
         <domain includeSubdomains="true">supabase.co</domain>
         <domain includeSubdomains="true">heristepai.app</domain>
+        <domain includeSubdomains="true">cartocdn.com</domain>
     </domain-config>
 </network-security-config>

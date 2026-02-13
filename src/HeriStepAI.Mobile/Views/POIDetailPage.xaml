@@ -81,7 +81,8 @@
                             <Label Text="{Binding SelectedPoi.Address}"
                                    Style="{StaticResource BodyLabel}"
                                    FontSize="12"
-                                   LineBreakMode="WordWrap" />
+                                   LineBreakMode="WordWrap"
+                                   MaxLines="4" />
                         </VerticalStackLayout>
                     </HorizontalStackLayout>
                 </Frame>

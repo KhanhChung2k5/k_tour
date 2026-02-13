@@ -227,13 +227,14 @@
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MainPageViewModel}}, Path=SelectTourCommand}"
                                         CommandParameter="{Binding .}" />
                                 </Frame.GestureRecognizers>
-                                <Grid ColumnDefinitions="85,*" HeightRequest="80">
+                                <Grid ColumnDefinitions="90,*" MinimumHeightRequest="80">
                                     <!-- Tour Image -->
                                     <Image Source="{Binding ImageUrl}"
                                            Aspect="AspectFill"
-                                           WidthRequest="85">
+                                           HorizontalOptions="FillAndExpand"
+                                           VerticalOptions="FillAndExpand">
                                         <Image.Clip>
-                                            <RoundRectangleGeometry Rect="0,0,85,80" CornerRadius="12,0,0,12" />
+                                            <RoundRectangleGeometry Rect="0,0,90,80" CornerRadius="12,0,0,12" />
                                         </Image.Clip>
                                     </Image>
 
@@ -241,7 +242,8 @@
                                     <VerticalStackLayout Grid.Column="1"
                                                          Padding="10,8"
                                                          VerticalOptions="Center"
-                                                         Spacing="3">
+                                                         Spacing="3"
+                                                         HorizontalOptions="FillAndExpand">
                                         <Label Text="{Binding Name}"
                                                Style="{StaticResource TitleLabel}"
                                                FontSize="13"
