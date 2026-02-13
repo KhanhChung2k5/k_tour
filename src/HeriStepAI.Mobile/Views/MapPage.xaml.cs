@@ -482,15 +482,23 @@ public partial class MapPage : ContentPage
             sb.AppendLine("  console.log('[Map] ✅ Default location marker added');");
         }
 
-        // Find nearest POI to highlight
-        var nearestPoiId = currentLocation != null && pois.Any()
-            ? pois.OrderBy(p => HaversineDistance(currentLocation.Latitude, currentLocation.Longitude, p.Latitude, p.Longitude)).First().Id
+        // Find nearest POI to highlight (only from valid POIs)
+        var validPois = pois.Where(p => p.Latitude != 0 && p.Longitude != 0).ToList();
+        var nearestPoiId = currentLocation != null && validPois.Any()
+            ? validPois.OrderBy(p => HaversineDistance(currentLocation.Latitude, currentLocation.Longitude, p.Latitude, p.Longitude)).First().Id
             : (int?)null;
 
         // Add POI markers with geofence radius circles
         sb.AppendLine($"  console.log('[Map] Adding {pois.Count} POI markers...');");
         foreach (var poi in pois)
         {
+            // Skip POIs with invalid coordinates
+            if (poi.Latitude == 0 || poi.Longitude == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MapPage] ⚠️ Skipping POI #{poi.Id} '{poi.Name}' - invalid coordinates ({poi.Latitude}, {poi.Longitude})");
+                continue;
+            }
+
             var escapedName = EscapeJs(poi.Name);
             var escapedDesc = EscapeJs(poi.Description);
             var escapedAddr = EscapeJs(poi.Address ?? "");
