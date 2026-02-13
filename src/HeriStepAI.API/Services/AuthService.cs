@@ -31,7 +31,7 @@ public class AuthService : IAuthService
         return GenerateJwtToken(user);
     }
 
-    public async Task<User?> RegisterAsync(string username, string email, string password, UserRole role)
+    public async Task<User?> RegisterAsync(string username, string email, string password, UserRole role, string? fullName = null, string? phone = null)
     {
         if (await _context.Users.AnyAsync(u => u.Email == email))
         {
@@ -43,6 +43,8 @@ public class AuthService : IAuthService
             Username = username,
             Email = email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            FullName = fullName,
+            Phone = phone,
             Role = role,
             CreatedAt = DateTime.UtcNow,
             IsActive = true

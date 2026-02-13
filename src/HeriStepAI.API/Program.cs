@@ -65,7 +65,7 @@ if (connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreC
             {
                 hasSslMode = true;
                 if (!string.IsNullOrEmpty(value))
-                    sb.Append($";SSL Mode={value}");
+                    sb.Append($";SslMode={value}");
             }
             else if (!string.IsNullOrEmpty(key))
             {
@@ -75,15 +75,15 @@ if (connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreC
     }
 
     if (!hasSslMode || string.IsNullOrEmpty(queryString))
-        sb.Append(";SSL Mode=Require");
+        sb.Append(";SslMode=Require");
     sb.Append(";Trust Server Certificate=true");
 
     connectionString = sb.ToString();
 }
-else if (!connectionString.Contains("SSL Mode", StringComparison.OrdinalIgnoreCase)
+else if (!connectionString.Contains("SslMode", StringComparison.OrdinalIgnoreCase)
     && !connectionString.Contains("sslmode", StringComparison.OrdinalIgnoreCase))
 {
-    connectionString += ";SSL Mode=Require;Trust Server Certificate=true";
+    connectionString += ";SslMode=Require;Trust Server Certificate=true";
 }
 
 // Configure connection pooling for Supabase (free tier has limited connections)

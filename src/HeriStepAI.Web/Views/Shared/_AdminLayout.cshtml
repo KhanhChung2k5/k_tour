@@ -6,114 +6,461 @@
     <title>@ViewData["Title"] - HeriStepAI Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --sidebar-w: 256px;
-            --topbar-h: 60px;
+            --sidebar-w: 260px;
+            --topbar-h: 64px;
             --primary: #667eea;
             --primary-dark: #5a67d8;
-            --sidebar-bg: linear-gradient(180deg, #1e1e2d 0%, #1a1a2e 100%);
-            --sidebar-text: #8a8aad;
+            --primary-light: rgba(102,126,234,0.1);
+            --sidebar-bg: #0f0f1a;
+            --sidebar-text: #8b8ba7;
             --sidebar-active: #667eea;
+            --card-border: #e5e7eb;
+            --hover-shadow: 0 8px 30px rgba(102,126,234,0.08);
+            --emerald: #10b981;
+            --amber: #f59e0b;
+            --red: #ef4444;
         }
-        * { font-family: 'Inter', sans-serif; }
-        body { background: #f0f2f5; margin: 0; overflow-x: hidden; }
 
-        /* ---- Sidebar ---- */
+        * {
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f8f9fb;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* ===== Sidebar ===== */
         .admin-sidebar {
-            position: fixed; top: 0; left: 0;
-            width: var(--sidebar-w); height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-w);
+            height: 100vh;
             background: var(--sidebar-bg);
-            z-index: 1050; overflow-y: auto;
-            transition: transform .3s;
+            z-index: 1050;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            border-right: 1px solid rgba(255,255,255,0.05);
         }
+
         .sidebar-brand {
-            padding: 18px 22px;
-            display: flex; align-items: center; gap: 12px;
-            border-bottom: 1px solid rgba(255,255,255,.06);
+            height: 64px;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
+
         .sidebar-brand .brand-icon {
-            width: 36px; height: 36px; border-radius: 10px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; font-size: 1.1rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.1rem;
+            flex-shrink: 0;
         }
-        .sidebar-brand h5 { color: #fff; font-weight: 700; margin: 0; font-size: 1.1rem; }
-        .sidebar-menu { padding: 14px 12px; }
+
+        .sidebar-brand h5 {
+            color: #fff;
+            font-weight: 700;
+            margin: 0;
+            font-size: 1.125rem;
+            letter-spacing: -0.01em;
+        }
+
+        .sidebar-menu {
+            padding: 16px 12px;
+        }
+
         .sidebar-label {
-            color: #5a5a7a; font-size: .68rem; font-weight: 600;
-            text-transform: uppercase; letter-spacing: 1px;
-            padding: 10px 16px 4px; margin-top: 6px;
+            color: rgba(139,139,167,0.6);
+            font-size: 0.688rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 12px 12px 8px;
+            margin-top: 8px;
         }
+
         .sidebar-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 10px 16px; border-radius: 10px;
-            color: var(--sidebar-text); text-decoration: none;
-            font-size: .85rem; font-weight: 500;
-            transition: all .2s; margin-bottom: 2px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 4px;
         }
-        .sidebar-item:hover { background: rgba(102,126,234,.1); color: #c0c0e0; }
-        .sidebar-item.active { background: rgba(102,126,234,.15); color: var(--sidebar-active); }
-        .sidebar-item i { font-size: 1.1rem; width: 22px; text-align: center; }
 
-        /* ---- Main ---- */
+        .sidebar-item:hover {
+            background: rgba(102,126,234,0.08);
+            color: #c8c8e0;
+        }
+
+        .sidebar-item.active {
+            background: rgba(102,126,234,0.12);
+            color: var(--sidebar-active);
+            box-shadow: 0 0 0 1px rgba(102,126,234,0.2);
+        }
+
+        .sidebar-item.active::after {
+            content: '';
+            position: absolute;
+            right: 12px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+
+        .sidebar-item i {
+            font-size: 1.25rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-item.active i {
+            color: var(--primary);
+        }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            background: rgba(0,0,0,0.2);
+        }
+
+        .sidebar-user-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            border-radius: 12px;
+        }
+
+        .sidebar-user .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.875rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .sidebar-user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar-user-info .name {
+            color: #fff;
+            font-size: 0.875rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .sidebar-user-info .role {
+            color: rgba(139,139,167,0.8);
+            font-size: 0.75rem;
+            line-height: 1.2;
+        }
+
+        /* ===== Main Area ===== */
         .admin-main {
-            margin-left: var(--sidebar-w); min-height: 100vh;
-            display: flex; flex-direction: column; transition: margin-left .3s;
+            margin-left: var(--sidebar-w);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s ease;
         }
 
-        /* ---- Top bar ---- */
+        /* ===== Top Bar ===== */
         .admin-topbar {
-            height: var(--topbar-h); background: #fff;
-            border-bottom: 1px solid #e8e8ef;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 24px; position: sticky; top: 0; z-index: 100;
+            height: var(--topbar-h);
+            background: #fff;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
+
         .sidebar-toggle {
-            background: none; border: none; font-size: 1.2rem;
-            color: #666; cursor: pointer; padding: 6px; border-radius: 8px; display: none;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: #666;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 10px;
+            display: none;
+            transition: background 0.2s;
         }
-        .sidebar-toggle:hover { background: #f0f0f5; }
+
+        .sidebar-toggle:hover {
+            background: #f3f4f6;
+        }
+
+        .topbar-breadcrumb {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
         .topbar-user {
-            display: flex; align-items: center; gap: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
+
         .topbar-user .user-avatar {
-            width: 34px; height: 34px; border-radius: 10px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; font-size: .85rem; font-weight: 600;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary), #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.875rem;
+            font-weight: 600;
         }
 
-        /* ---- Content ---- */
-        .admin-content { flex: 1; padding: 24px; }
+        .topbar-user-info .name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            line-height: 1.2;
+            color: #111827;
+        }
 
-        /* ---- Footer ---- */
+        .topbar-user-info .role {
+            font-size: 0.75rem;
+            color: #6b7280;
+            line-height: 1.2;
+        }
+
+        /* ===== Content ===== */
+        .admin-content {
+            flex: 1;
+            padding: 24px;
+        }
+
+        /* ===== Footer ===== */
         .admin-footer {
-            padding: 14px 24px; border-top: 1px solid #e8e8ef;
-            background: #fff; display: flex; justify-content: space-between;
-            align-items: center; font-size: .78rem; color: #999;
+            padding: 16px 24px;
+            border-top: 1px solid var(--card-border);
+            background: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.813rem;
+            color: #9ca3af;
         }
 
-        /* ---- Common ---- */
-        .card { border-radius: 14px !important; border: none !important; }
-        .stat-card { transition: transform .2s, box-shadow .2s; }
-        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,.08) !important; }
+        /* ===== Common Components ===== */
+        .card {
+            border-radius: 16px !important;
+            border: 1px solid var(--card-border) !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03) !important;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--hover-shadow) !important;
+        }
+
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(102,126,234,0.12) !important;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover::after {
+            opacity: 1;
+        }
+
         .stat-icon {
-            width: 48px; height: 48px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
         }
-        .page-title { font-size: 1.35rem; font-weight: 700; margin-bottom: 0; }
-        .page-subtitle { color: #999; font-size: .85rem; margin-bottom: 0; }
 
-        /* ---- Responsive ---- */
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1);
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0;
+            letter-spacing: -0.02em;
+            color: #111827;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 0;
+            margin-top: 4px;
+        }
+
+        /* ===== Buttons ===== */
+        .btn {
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+        }
+
+        /* ===== Badges ===== */
+        .badge {
+            font-weight: 500;
+            padding: 4px 10px;
+        }
+
+        /* ===== Table Improvements ===== */
+        .table > thead {
+            background: #f9fafb;
+        }
+
+        .table > thead > tr > th {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #6b7280;
+            border-bottom: 1px solid var(--card-border);
+            padding: 12px 16px;
+        }
+
+        .table > tbody > tr {
+            transition: background 0.2s ease;
+        }
+
+        .table > tbody > tr:hover {
+            background: #f9fafb;
+        }
+
+        .table > tbody > tr > td {
+            padding: 16px;
+            vertical-align: middle;
+            border-color: #f3f4f6;
+        }
+
+        /* ===== Alerts ===== */
+        .alert {
+            border-radius: 12px;
+            border: none;
+            font-size: 0.875rem;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* ===== Responsive ===== */
         @@media (max-width: 992px) {
-            .admin-sidebar { transform: translateX(-100%); }
-            .admin-sidebar.show { transform: translateX(0); }
-            .admin-main { margin-left: 0; }
-            .sidebar-toggle { display: block; }
-            .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1040; }
-            .sidebar-overlay.show { display: block; }
+            .admin-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .admin-sidebar.show {
+                transform: translateX(0);
+                box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+            }
+
+            .admin-main {
+                margin-left: 0;
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1040;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
         }
 
         @@RenderSection("Styles", required: false)
@@ -126,9 +473,12 @@
     <!-- Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="sidebar-brand">
-            <div class="brand-icon"><i class="bi bi-geo-alt-fill"></i></div>
+            <div class="brand-icon">
+                <i class="bi bi-geo-alt-fill"></i>
+            </div>
             <h5>HeriStepAI</h5>
         </div>
+
         <div class="sidebar-menu">
             <div class="sidebar-label">Menu</div>
             @{
@@ -137,24 +487,41 @@
             }
             <a href="@Url.Action("Dashboard", "Home")"
                class="sidebar-item @(ctrl == "Home" && act == "Dashboard" ? "active" : "")">
-                <i class="bi bi-grid-1x2"></i> Dashboard
+                <i class="bi bi-grid-1x2"></i>
+                <span>Dashboard</span>
             </a>
             <a href="@Url.Action("Index", "POI")"
                class="sidebar-item @(ctrl == "POI" ? "active" : "")">
-                <i class="bi bi-shop"></i> Qu&#7843;n l&#253; POI
+                <i class="bi bi-shop"></i>
+                <span>Quản lý POI</span>
             </a>
             <a href="@Url.Action("Index", "Analytics")"
                class="sidebar-item @(ctrl == "Analytics" ? "active" : "")">
-                <i class="bi bi-bar-chart-line"></i> Analytics
+                <i class="bi bi-bar-chart-line"></i>
+                <span>Analytics</span>
             </a>
 
-            <div class="sidebar-label mt-3">H&#7879; th&#7889;ng</div>
-            <a class="sidebar-item" style="opacity:.5;pointer-events:none;">
-                <i class="bi bi-gear"></i> C&#224;i &#273;&#7863;t
+            <div class="sidebar-label">Hệ thống</div>
+            <a class="sidebar-item" style="opacity:0.5;pointer-events:none;">
+                <i class="bi bi-gear"></i>
+                <span>Cài đặt</span>
             </a>
-            <a class="sidebar-item" style="opacity:.5;pointer-events:none;">
-                <i class="bi bi-people"></i> Ng&#432;&#7901;i d&#249;ng
+            <a class="sidebar-item" style="opacity:0.5;pointer-events:none;">
+                <i class="bi bi-people"></i>
+                <span>Người dùng</span>
             </a>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="sidebar-user-content">
+                <div class="user-avatar">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <div class="sidebar-user-info">
+                    <div class="name">@(User.Identity?.Name ?? "Admin")</div>
+                    <div class="role">Administrator</div>
+                </div>
+            </div>
         </div>
     </aside>
 
@@ -166,20 +533,23 @@
                 <button class="sidebar-toggle" onclick="toggleSidebar()">
                     <i class="bi bi-list"></i>
                 </button>
-                <h6 class="mb-0 fw-semibold text-muted d-none d-md-block" style="font-size:.9rem;">
-                    @ViewData["Title"]
-                </h6>
+                <div class="topbar-breadcrumb">@ViewData["Title"]</div>
             </div>
-            <div class="d-flex align-items-center gap-3">
-                <div class="topbar-user">
-                    <div class="user-avatar"><i class="bi bi-person-fill"></i></div>
-                    <div class="d-none d-md-block">
-                        <div class="fw-semibold small lh-1">@User.Identity?.Name</div>
-                        <div class="text-muted" style="font-size:.68rem;">Admin</div>
+
+            <div class="topbar-actions">
+                <div class="topbar-user d-none d-md-flex">
+                    <div class="user-avatar">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div class="topbar-user-info">
+                        <div class="name">@(User.Identity?.Name ?? "Admin")</div>
+                        <div class="role">Administrator</div>
                     </div>
                 </div>
                 <form asp-controller="Auth" asp-action="Logout" method="post" class="mb-0">
-                    <button type="submit" class="btn btn-outline-secondary btn-sm" style="border-radius:8px;" title="&#272;&#259;ng xu&#7845;t">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm"
+                            style="border-radius:10px;padding:8px 12px;"
+                            title="Đăng xuất">
                         <i class="bi bi-box-arrow-right"></i>
                     </button>
                 </form>
@@ -193,8 +563,8 @@
 
         <!-- Footer -->
         <footer class="admin-footer">
-            <span>&copy; 2026 HeriStepAI &mdash; H&#7879; th&#7889;ng Thuy&#7871;t minh Du l&#7883;ch T&#7921; &#273;&#7897;ng</span>
-            <span>v1.0</span>
+            <span>&copy; 2026 HeriStepAI — Hệ thống Thuyết minh Du lịch Tự động</span>
+            <span>v1.0.0</span>
         </footer>
     </div>
 
@@ -205,6 +575,15 @@
             document.getElementById('adminSidebar').classList.toggle('show');
             document.getElementById('sidebarOverlay').classList.toggle('show');
         }
+
+        // Close sidebar when clicking a link (mobile)
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (window.innerWidth <= 992) {
+                    toggleSidebar();
+                }
+            });
+        });
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

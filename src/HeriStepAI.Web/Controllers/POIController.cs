@@ -88,6 +88,8 @@ public class POIController : Controller
                 Username = model.OwnerUsername,
                 Email = model.OwnerEmail,
                 Password = model.OwnerPassword,
+                FullName = model.OwnerFullName,
+                Phone = model.OwnerPhone,
                 Role = 2 // ShopOwner
             };
 

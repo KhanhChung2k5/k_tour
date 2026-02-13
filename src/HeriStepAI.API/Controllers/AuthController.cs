@@ -55,8 +55,14 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var user = await _authService.RegisterAsync(request.Username, request.Email, request.Password, request.Role);
-            return Ok(new { UserId = user!.Id, Username = user.Username, Email = user.Email });
+            var user = await _authService.RegisterAsync(
+                request.Username,
+                request.Email,
+                request.Password,
+                request.Role,
+                request.FullName,
+                request.Phone);
+            return Ok(new { UserId = user!.Id, Username = user.Username, Email = user.Email, FullName = user.FullName });
         }
         catch (InvalidOperationException ex)
         {
@@ -87,5 +93,7 @@ public class RegisterRequest
     public string Username { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+    public string? FullName { get; set; }
+    public string? Phone { get; set; }
     public UserRole Role { get; set; }
 }
