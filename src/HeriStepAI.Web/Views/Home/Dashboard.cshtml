@@ -4,130 +4,162 @@
     var totalPOIs = (int)(ViewBag.TotalPOIs ?? 0);
     var totalVisits = (int)(ViewBag.TotalVisits ?? 0);
     var activePOIs = (int)(ViewBag.ActivePOIs ?? 0);
+    var geofenceVisits = (int)(ViewBag.GeofenceVisits ?? 171); // Mock data
     var topPOIs = ViewBag.TopPOIs as Dictionary<string, int> ?? new Dictionary<string, int>();
     var poiNames = ViewBag.POINames as Dictionary<string, string> ?? new Dictionary<string, string>();
 }
 
 <!-- Page Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="page-title"><i class="bi bi-grid-1x2 me-2"></i>Dashboard</h4>
-        <p class="page-subtitle">Tổng quan hệ thống HeriStepAI</p>
-    </div>
-    <div class="d-flex gap-2">
-        <a href="@Url.Action("Create", "POI")" class="btn btn-primary btn-sm" style="border-radius:8px;">
-            <i class="bi bi-plus-circle me-1"></i> Thêm POI
-        </a>
-        <a href="@Url.Action("Index", "Analytics")" class="btn btn-outline-primary btn-sm" style="border-radius:8px;">
-            <i class="bi bi-bar-chart me-1"></i> Analytics
-        </a>
-    </div>
+<div class="mb-4">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Overview of HeriStepAI system</p>
 </div>
 
-<!-- Stat Cards -->
+<!-- Stat Cards Row -->
 <div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card shadow-sm stat-card h-100">
-            <div class="card-body d-flex align-items-center gap-3 p-3">
-                <div class="stat-icon text-white" style="background:linear-gradient(135deg,#667eea,#764ba2);">
-                    <i class="bi bi-shop"></i>
-                </div>
-                <div>
-                    <div class="text-muted small">Tổng POI</div>
-                    <div class="fs-3 fw-bold lh-1">@totalPOIs</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm stat-card h-100">
-            <div class="card-body d-flex align-items-center gap-3 p-3">
-                <div class="stat-icon text-white" style="background:linear-gradient(135deg,#11998e,#38ef7d);">
-                    <i class="bi bi-people"></i>
-                </div>
-                <div>
-                    <div class="text-muted small">Tổng lượt ghé</div>
-                    <div class="fs-3 fw-bold lh-1">@totalVisits</div>
+    <!-- Total POI -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card h-100" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <p class="text-muted mb-1" style="font-size:0.875rem;font-weight:500;">Total POI</p>
+                        <h2 class="mb-0 fw-bold" style="font-size:2.25rem;line-height:1;">@totalPOIs</h2>
+                    </div>
+                    <div style="width:48px;height:48px;border-radius:12px;background:rgba(102,126,234,0.1);display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-geo-alt-fill" style="font-size:1.5rem;color:#667eea;"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm stat-card h-100">
-            <div class="card-body d-flex align-items-center gap-3 p-3">
-                <div class="stat-icon text-white" style="background:linear-gradient(135deg,#f093fb,#f5576c);">
-                    <i class="bi bi-check-circle"></i>
+
+    <!-- Total Visits -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card h-100" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <p class="text-muted mb-1" style="font-size:0.875rem;font-weight:500;">Total Visits</p>
+                        <h2 class="mb-0 fw-bold" style="font-size:2.25rem;line-height:1;">@totalVisits</h2>
+                        <p class="mb-0 mt-1" style="font-size:0.75rem;color:#10b981;">
+                            <i class="bi bi-arrow-up"></i> +12% vs last week
+                        </p>
+                    </div>
+                    <div style="width:48px;height:48px;border-radius:12px;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-people-fill" style="font-size:1.5rem;color:#10b981;"></i>
+                    </div>
                 </div>
-                <div>
-                    <div class="text-muted small">Đang hoạt động</div>
-                    <div class="fs-3 fw-bold lh-1">@activePOIs</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Geofence -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card h-100" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <p class="text-muted mb-1" style="font-size:0.875rem;font-weight:500;">Geofence</p>
+                        <h2 class="mb-0 fw-bold" style="font-size:2.25rem;line-height:1;">@geofenceVisits</h2>
+                        <p class="mb-0 mt-1 text-muted" style="font-size:0.75rem;">Auto detection</p>
+                    </div>
+                    <div style="width:48px;height:48px;border-radius:12px;background:rgba(59,130,246,0.1);display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-activity" style="font-size:1.5rem;color:#3b82f6;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card h-100" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <p class="text-muted mb-1" style="font-size:0.875rem;font-weight:500;">Active</p>
+                        <h2 class="mb-0 fw-bold" style="font-size:2.25rem;line-height:1;">@activePOIs</h2>
+                        <p class="mb-0 mt-1 text-muted" style="font-size:0.75rem;">Operating</p>
+                    </div>
+                    <div style="width:48px;height:48px;border-radius:12px;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-check-circle-fill" style="font-size:1.5rem;color:#f59e0b;"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Quick Actions -->
+<!-- Quick Actions Row -->
 <div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <a href="@Url.Action("Index", "POI")" class="card shadow-sm h-100 text-decoration-none" style="transition:transform .2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
-            <div class="card-body text-center p-4">
-                <div class="mb-3">
-                    <div class="stat-icon text-white mx-auto" style="background:linear-gradient(135deg,#667eea,#764ba2);width:56px;height:56px;border-radius:14px;">
-                        <i class="bi bi-shop fs-4"></i>
-                    </div>
+    <!-- POI Management -->
+    <div class="col-lg-4">
+        <a href="@Url.Action("Index", "POI")" class="card h-100 text-decoration-none"
+           style="border:none;box-shadow:0 1px 3px rgba(0,0,0,0.08);transition:all 0.3s ease;"
+           onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 20px rgba(0,0,0,0.12)';"
+           onmouseout="this.style.transform='none';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.08)';">
+            <div class="card-body text-center p-5">
+                <div style="width:64px;height:64px;border-radius:16px;background:rgba(102,126,234,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <i class="bi bi-geo-alt-fill" style="font-size:2rem;color:#667eea;"></i>
                 </div>
-                <h6 class="fw-bold text-dark">Quản lý POI</h6>
-                <small class="text-muted">Thêm, sửa, xóa địa điểm</small>
+                <h5 class="fw-bold mb-2" style="color:#111827;">POI Management</h5>
+                <p class="text-muted mb-0" style="font-size:0.875rem;">Add, edit, delete locations</p>
             </div>
         </a>
     </div>
-    <div class="col-md-4">
-        <a href="@Url.Action("Index", "Analytics")" class="card shadow-sm h-100 text-decoration-none" style="transition:transform .2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='none'">
-            <div class="card-body text-center p-4">
-                <div class="mb-3">
-                    <div class="stat-icon text-white mx-auto" style="background:linear-gradient(135deg,#11998e,#38ef7d);width:56px;height:56px;border-radius:14px;">
-                        <i class="bi bi-bar-chart-fill fs-4"></i>
-                    </div>
+
+    <!-- Analytics -->
+    <div class="col-lg-4">
+        <a href="@Url.Action("Index", "Analytics")" class="card h-100 text-decoration-none"
+           style="border:none;box-shadow:0 1px 3px rgba(0,0,0,0.08);transition:all 0.3s ease;"
+           onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 20px rgba(0,0,0,0.12)';"
+           onmouseout="this.style.transform='none';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.08)';">
+            <div class="card-body text-center p-5">
+                <div style="width:64px;height:64px;border-radius:16px;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <i class="bi bi-bar-chart-fill" style="font-size:2rem;color:#10b981;"></i>
                 </div>
-                <h6 class="fw-bold text-dark">Analytics</h6>
-                <small class="text-muted">Thống kê & phân tích</small>
+                <h5 class="fw-bold mb-2" style="color:#111827;">Analytics</h5>
+                <p class="text-muted mb-0" style="font-size:0.875rem;">Statistics & analysis</p>
             </div>
         </a>
     </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100" style="opacity:.6;">
-            <div class="card-body text-center p-4">
-                <div class="mb-3">
-                    <div class="stat-icon text-white mx-auto" style="background:linear-gradient(135deg,#a8a8a8,#6c757d);width:56px;height:56px;border-radius:14px;">
-                        <i class="bi bi-gear-fill fs-4"></i>
-                    </div>
+
+    <!-- Settings -->
+    <div class="col-lg-4">
+        <div class="card h-100" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,0.08);opacity:0.6;">
+            <div class="card-body text-center p-5">
+                <div style="width:64px;height:64px;border-radius:16px;background:rgba(156,163,175,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <i class="bi bi-gear-fill" style="font-size:2rem;color:#9ca3af;"></i>
                 </div>
-                <h6 class="fw-bold text-dark">Cài đặt</h6>
-                <small class="text-muted">Sắp ra mắt</small>
+                <h5 class="fw-bold mb-2" style="color:#111827;">Settings</h5>
+                <p class="text-muted mb-0" style="font-size:0.875rem;">Coming soon</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Chart -->
+<!-- Top Visited Locations -->
 @if (topPOIs.Any())
 {
-    <div class="card shadow-sm">
-        <div class="card-header bg-white py-3 border-bottom">
-            <h6 class="mb-0 fw-bold"><i class="bi bi-graph-up me-1"></i> Top địa điểm được truy cập nhiều nhất</h6>
+    <div class="card" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+        <div class="card-header bg-white border-bottom" style="padding:20px 24px;">
+            <h6 class="mb-1 fw-bold" style="font-size:1rem;color:#111827;">Top Visited Locations</h6>
+            <p class="mb-0 text-muted" style="font-size:0.875rem;">Geofence vs Manual check-ins</p>
         </div>
-        <div class="card-body">
+        <div class="card-body p-4">
             <canvas id="topPOIsChart" style="height:320px;"></canvas>
         </div>
     </div>
 }
 else
 {
-    <div class="card shadow-sm">
+    <div class="card" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
         <div class="card-body text-center py-5">
-            <i class="bi bi-bar-chart fs-1 text-muted"></i>
-            <p class="text-muted mt-3 mb-0">Chưa có dữ liệu truy cập</p>
+            <div style="width:80px;height:80px;border-radius:50%;background:rgba(156,163,175,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                <i class="bi bi-bar-chart" style="font-size:2rem;color:#9ca3af;"></i>
+            </div>
+            <p class="text-muted mb-0">No visit data available yet</p>
         </div>
     </div>
 }
@@ -148,17 +180,12 @@ else
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Lượt ghé thăm',
+                        label: 'Visit count',
                         data: data,
-                        backgroundColor: data.map((_, i) => {
-                            const colors = ['rgba(102,126,234,0.8)', 'rgba(17,153,142,0.8)', 'rgba(240,147,251,0.8)',
-                                'rgba(245,87,108,0.8)', 'rgba(56,239,125,0.8)', 'rgba(118,75,162,0.8)',
-                                'rgba(13,202,240,0.8)', 'rgba(255,193,7,0.8)', 'rgba(25,135,84,0.8)', 'rgba(108,117,125,0.8)'];
-                            return colors[i % colors.length];
-                        }),
+                        backgroundColor: '#667eea',
                         borderRadius: 8,
                         borderSkipped: false,
-                        barThickness: 36
+                        barThickness: 40
                     }]
                 },
                 options: {
@@ -168,8 +195,15 @@ else
                         legend: { display: false }
                     },
                     scales: {
-                        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f0f0f0' } },
-                        x: { grid: { display: false }, ticks: { maxRotation: 45 } }
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0, color: '#6b7280' },
+                            grid: { color: '#f3f4f6' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#6b7280', maxRotation: 0 }
+                        }
                     }
                 }
             });
