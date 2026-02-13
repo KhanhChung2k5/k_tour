@@ -14,24 +14,24 @@
         <Frame Grid.Row="0"
                BackgroundColor="{StaticResource White}"
                CornerRadius="0"
-               Padding="16,50,16,12"
+               x:Name="TopBar"
                HasShadow="True"
                ZIndex="10">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <!-- Back Button -->
                 <Frame Grid.Column="0"
                        BackgroundColor="{StaticResource Gray100}"
-                       CornerRadius="20"
-                       WidthRequest="40"
-                       HeightRequest="40"
+                       CornerRadius="16"
+                       WidthRequest="32"
+                       HeightRequest="32"
                        Padding="0"
                        HasShadow="False"
-                       Margin="0,0,12,0">
+                       Margin="0,0,10,0">
                     <Frame.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding GoBackCommand}" />
                     </Frame.GestureRecognizers>
                     <Label Text="←"
-                           FontSize="20"
+                           FontSize="16"
                            HorizontalOptions="Center"
                            VerticalOptions="Center" />
                 </Frame>
@@ -39,19 +39,19 @@
                 <!-- Search Entry -->
                 <Frame Grid.Column="1"
                        BackgroundColor="{StaticResource Gray100}"
-                       CornerRadius="25"
-                       Padding="16,0"
+                       CornerRadius="20"
+                       Padding="12,0"
                        HasShadow="False">
                     <Grid ColumnDefinitions="Auto,*">
                         <Label Text="🔍"
-                               FontSize="16"
+                               FontSize="13"
                                VerticalOptions="Center"
-                               Margin="0,0,8,0" />
+                               Margin="0,0,6,0" />
                         <Entry Grid.Column="1"
                                Placeholder="Tìm kiếm..."
                                Text="{Binding SearchText}"
                                BackgroundColor="Transparent"
-                               FontSize="16"
+                               FontSize="13"
                                VerticalOptions="Center" />
                     </Grid>
                 </Frame>
@@ -59,18 +59,18 @@
                 <!-- List View Button -->
                 <Frame Grid.Column="2"
                        BackgroundColor="{StaticResource Primary}"
-                       CornerRadius="20"
-                       WidthRequest="40"
-                       HeightRequest="40"
+                       CornerRadius="16"
+                       WidthRequest="32"
+                       HeightRequest="32"
                        Padding="0"
                        HasShadow="False"
-                       Margin="12,0,0,0">
+                       Margin="10,0,0,0">
                     <Frame.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding ShowListCommand}" />
                     </Frame.GestureRecognizers>
                     <Label Text="≡"
                            TextColor="{StaticResource White}"
-                           FontSize="20"
+                           FontSize="16"
                            FontAttributes="Bold"
                            HorizontalOptions="Center"
                            VerticalOptions="Center" />
@@ -110,20 +110,20 @@
         <!-- Floating My Location Button -->
         <Frame Grid.Row="1"
                BackgroundColor="{StaticResource White}"
-               CornerRadius="25"
-               WidthRequest="50"
-               HeightRequest="50"
+               CornerRadius="20"
+               WidthRequest="40"
+               HeightRequest="40"
                Padding="0"
                HasShadow="True"
                HorizontalOptions="End"
                VerticalOptions="End"
-               Margin="0,0,16,16"
+               Margin="0,0,14,14"
                ZIndex="5">
             <Frame.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding CenterOnLocationCommand}" />
             </Frame.GestureRecognizers>
             <Label Text="📍"
-                   FontSize="24"
+                   FontSize="18"
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
         </Frame>
@@ -131,19 +131,19 @@
         <!-- Floating Test Mode Button -->
         <Frame Grid.Row="1"
                BackgroundColor="{StaticResource Primary}"
-               CornerRadius="20"
-               Padding="14,8"
+               CornerRadius="16"
+               Padding="10,6"
                HasShadow="True"
                HorizontalOptions="End"
                VerticalOptions="End"
-               Margin="0,0,16,80"
+               Margin="0,0,14,62"
                ZIndex="5">
             <Frame.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding ToggleTestModeCommand}" />
             </Frame.GestureRecognizers>
             <Label Text="{Binding TestModeButtonText}"
                    TextColor="{StaticResource White}"
-                   FontSize="13"
+                   FontSize="11"
                    FontAttributes="Bold"
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
@@ -157,32 +157,32 @@
                HasShadow="True"
                IsVisible="{Binding HasSelectedPOI}"
                ZIndex="10">
-            <VerticalStackLayout Padding="20" Spacing="12">
+            <VerticalStackLayout Padding="14,10,14,14" Spacing="8">
 
                 <!-- Handle Bar -->
                 <BoxView Color="{StaticResource Gray300}"
-                         WidthRequest="40"
+                         WidthRequest="36"
                          HeightRequest="4"
                          CornerRadius="2"
                          HorizontalOptions="Center"
-                         Margin="0,0,0,8" />
+                         Margin="0,0,0,4" />
 
                 <!-- POI Header -->
                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
                     <Label Grid.Column="0"
                            Text="{Binding SelectedPOI.Name}"
                            Style="{StaticResource TitleLabel}"
-                           FontSize="18" />
+                           FontSize="14" />
 
                     <!-- Distance Badge -->
                     <Frame Grid.Column="1"
                            BackgroundColor="{StaticResource PrimaryLight}"
-                           CornerRadius="12"
-                           Padding="10,4"
+                           CornerRadius="10"
+                           Padding="8,3"
                            HasShadow="False">
                         <Label Text="{Binding SelectedPOI.DistanceText}"
                                TextColor="{StaticResource PrimaryDark}"
-                               FontSize="12"
+                               FontSize="11"
                                FontAttributes="Bold" />
                     </Frame>
 
@@ -191,48 +191,56 @@
                            Grid.ColumnSpan="2"
                            Text="{Binding SelectedPOI.Address}"
                            Style="{StaticResource CaptionLabel}"
+                           FontSize="11"
                            LineBreakMode="TailTruncation"
                            MaxLines="2"
-                           Margin="0,4,0,0" />
+                           Margin="0,2,0,0" />
                 </Grid>
 
                 <!-- Rating and Time -->
-                <HorizontalStackLayout Spacing="16">
-                    <HorizontalStackLayout Spacing="4">
-                        <Label Text="⭐" FontSize="14" />
+                <HorizontalStackLayout Spacing="12">
+                    <HorizontalStackLayout Spacing="3">
+                        <Label Text="⭐" FontSize="11" />
                         <Label Text="{Binding SelectedPOI.RatingText}"
-                               Style="{StaticResource BodyLabel}" />
+                               FontSize="11"
+                               TextColor="{StaticResource TextSecondary}" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Spacing="4">
-                        <Label Text="⏱" FontSize="14" TextColor="{StaticResource Primary}" />
+                    <HorizontalStackLayout Spacing="3">
+                        <Label Text="⏱" FontSize="11" TextColor="{StaticResource Primary}" />
                         <Label Text="{Binding SelectedPOI.EstimatedMinutes, StringFormat='{0} phút'}"
-                               Style="{StaticResource BodyLabel}" />
+                               FontSize="11"
+                               TextColor="{StaticResource TextSecondary}" />
                     </HorizontalStackLayout>
-                    <HorizontalStackLayout Spacing="4">
-                        <Label Text="📂" FontSize="14" />
+                    <HorizontalStackLayout Spacing="3">
+                        <Label Text="📂" FontSize="11" />
                         <Label Text="{Binding SelectedPOI.CategoryText}"
-                               Style="{StaticResource BodyLabel}" />
+                               FontSize="11"
+                               TextColor="{StaticResource TextSecondary}" />
                     </HorizontalStackLayout>
                 </HorizontalStackLayout>
 
                 <!-- Action Buttons -->
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                     <Button Grid.Column="0"
                             Text="🔊 Nghe thuyết minh"
                             Command="{Binding PlayNarrationCommand}"
                             BackgroundColor="{StaticResource Primary}"
                             TextColor="{StaticResource White}"
-                            CornerRadius="25"
-                            HeightRequest="50" />
+                            FontSize="12"
+                            CornerRadius="20"
+                            HeightRequest="40"
+                            Padding="4,0" />
                     <Button Grid.Column="1"
-                            Text="Chỉ đường"
+                            Text="🗺️ Chỉ đường"
                             Command="{Binding NavigateCommand}"
                             BackgroundColor="{StaticResource White}"
                             TextColor="{StaticResource Primary}"
                             BorderColor="{StaticResource Primary}"
-                            BorderWidth="2"
-                            CornerRadius="25"
-                            HeightRequest="50" />
+                            BorderWidth="1.5"
+                            FontSize="12"
+                            CornerRadius="20"
+                            HeightRequest="40"
+                            Padding="4,0" />
                 </Grid>
             </VerticalStackLayout>
         </Frame>
@@ -245,56 +253,57 @@
                HasShadow="True"
                IsVisible="{Binding HasSelectedPOI, Converter={StaticResource InvertBoolConverter}}"
                ZIndex="10">
-            <VerticalStackLayout Padding="20,12,20,20" Spacing="8">
+            <VerticalStackLayout Padding="14,8,14,14" Spacing="6">
 
                 <!-- Handle Bar -->
                 <BoxView Color="{StaticResource Gray300}"
-                         WidthRequest="40"
+                         WidthRequest="36"
                          HeightRequest="4"
                          CornerRadius="2"
                          HorizontalOptions="Center"
-                         Margin="0,0,0,4" />
+                         Margin="0,0,0,2" />
 
                 <Label Text="Địa điểm gần bạn"
-                       Style="{StaticResource SectionHeader}"
+                       FontSize="13"
+                       FontAttributes="Bold"
                        Margin="0" />
 
                 <ScrollView Orientation="Horizontal"
                             HorizontalScrollBarVisibility="Never">
-                    <HorizontalStackLayout Spacing="12"
+                    <HorizontalStackLayout Spacing="8"
                                            BindableLayout.ItemsSource="{Binding NearbyPOIs}">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:POI">
                                 <Frame Style="{StaticResource CardFrame}"
-                                       WidthRequest="140"
-                                       HeightRequest="120"
+                                       WidthRequest="120"
+                                       HeightRequest="100"
                                        Padding="0">
                                     <Frame.GestureRecognizers>
                                         <TapGestureRecognizer
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MapPageViewModel}}, Path=POISelectedCommand}"
                                             CommandParameter="{Binding .}" />
                                     </Frame.GestureRecognizers>
-                                    <Grid RowDefinitions="70,*">
+                                    <Grid RowDefinitions="60,*">
                                         <Image Source="{Binding ImageUrl}"
                                                Aspect="AspectFill"
-                                               HeightRequest="70" />
+                                               HeightRequest="60" />
                                         <VerticalStackLayout Grid.Row="1"
-                                                             Padding="8,6"
-                                                             Spacing="2">
+                                                             Padding="6,4"
+                                                             Spacing="1">
                                             <Label Text="{Binding Name}"
-                                                   FontSize="12"
+                                                   FontSize="11"
                                                    FontAttributes="Bold"
                                                    LineBreakMode="TailTruncation"
                                                    MaxLines="1" />
-                                            <HorizontalStackLayout Spacing="4">
+                                            <HorizontalStackLayout Spacing="3">
                                                 <Label Text="{Binding DistanceText}"
-                                                       FontSize="10"
+                                                       FontSize="9"
                                                        TextColor="{StaticResource Primary}" />
                                                 <Label Text="•"
-                                                       FontSize="10"
+                                                       FontSize="9"
                                                        TextColor="{StaticResource TextMuted}" />
                                                 <Label Text="{Binding RatingText, StringFormat='⭐ {0}'}"
-                                                       FontSize="10"
+                                                       FontSize="9"
                                                        TextColor="{StaticResource TextMuted}" />
                                             </HorizontalStackLayout>
                                         </VerticalStackLayout>

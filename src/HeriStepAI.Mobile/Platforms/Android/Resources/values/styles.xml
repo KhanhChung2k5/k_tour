@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <!-- Reduce bottom tab bar text size to prevent truncation -->
+    <dimen name="design_bottom_navigation_text_size">10sp</dimen>
+    <dimen name="design_bottom_navigation_active_text_size">11sp</dimen>
+</resources>

@@ -86,8 +86,25 @@ else if (!connectionString.Contains("SSL Mode", StringComparison.OrdinalIgnoreCa
     connectionString += ";SSL Mode=Require;Trust Server Certificate=true";
 }
 
+// Configure connection pooling for Supabase (free tier has limited connections)
+// Add pooling parameters to connection string
+if (!connectionString.Contains("Pooling"))
+{
+    connectionString += ";Pooling=true;Minimum Pool Size=0;Maximum Pool Size=10;Connection Lifetime=300;Connection Idle Lifetime=60";
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+{
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+    {
+        // Command timeout 30s (prevent long-running queries)
+        npgsqlOptions.CommandTimeout(30);
+        // Enable retry on failure
+        npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorCodesToAdd: null);
+    });
+    // Disable query tracking for read-only queries (better performance)
+    options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+});
 
 // CORS
 builder.Services.AddCors(options =>

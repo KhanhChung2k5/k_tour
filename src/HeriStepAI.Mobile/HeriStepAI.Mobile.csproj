@@ -15,6 +15,10 @@
     <JavaSdkDirectory>C:\Users\Lenovo\.jdk\jdk-17.0.16</JavaSdkDirectory>
     <AndroidSdkDirectory>c:\android-sdk</AndroidSdkDirectory>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+    <!-- Disable code shrinking/linking to prevent WebView/SQLite issues in release builds -->
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <PublishTrimmed>false</PublishTrimmed>
+    <RunAOTCompilation>false</RunAOTCompilation>
   </PropertyGroup>
 
   <ItemGroup>

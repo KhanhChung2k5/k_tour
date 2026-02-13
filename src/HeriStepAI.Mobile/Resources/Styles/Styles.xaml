@@ -13,10 +13,10 @@
     <Style TargetType="Button">
         <Setter Property="TextColor" Value="{StaticResource White}" />
         <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
-        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontSize" Value="14" />
         <Setter Property="FontAttributes" Value="Bold" />
-        <Setter Property="CornerRadius" Value="25" />
-        <Setter Property="Padding" Value="20,14" />
+        <Setter Property="CornerRadius" Value="22" />
+        <Setter Property="Padding" Value="16,10" />
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">
@@ -43,10 +43,10 @@
         <Setter Property="TextColor" Value="{StaticResource Primary}" />
         <Setter Property="BackgroundColor" Value="{StaticResource White}" />
         <Setter Property="BorderColor" Value="{StaticResource Primary}" />
-        <Setter Property="BorderWidth" Value="2" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="CornerRadius" Value="20" />
-        <Setter Property="Padding" Value="16,10" />
+        <Setter Property="BorderWidth" Value="1.5" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="CornerRadius" Value="18" />
+        <Setter Property="Padding" Value="12,8" />
     </Style>
 
     <!-- Chip Button (for voice selection) -->
@@ -89,7 +89,7 @@
     <!-- Card Frame -->
     <Style x:Key="CardFrame" TargetType="Frame">
         <Setter Property="BackgroundColor" Value="{StaticResource White}" />
-        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="HasShadow" Value="True" />
         <Setter Property="BorderColor" Value="Transparent" />
@@ -98,18 +98,18 @@
     <!-- Modern Card with Elevated Shadow -->
     <Style x:Key="ElevatedCard" TargetType="Frame">
         <Setter Property="BackgroundColor" Value="{StaticResource White}" />
-        <Setter Property="CornerRadius" Value="20" />
-        <Setter Property="Padding" Value="16" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Padding" Value="12" />
         <Setter Property="HasShadow" Value="True" />
         <Setter Property="BorderColor" Value="{StaticResource Gray100}" />
-        <Setter Property="Margin" Value="0,8" />
+        <Setter Property="Margin" Value="0,6" />
     </Style>
 
     <!-- Stat Card Style -->
     <Style x:Key="StatCard" TargetType="Frame">
         <Setter Property="BackgroundColor" Value="{StaticResource White}" />
-        <Setter Property="CornerRadius" Value="16" />
-        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="12,10" />
         <Setter Property="HasShadow" Value="True" />
         <Setter Property="BorderColor" Value="Transparent" />
     </Style>
@@ -119,29 +119,29 @@
         <Setter Property="BackgroundColor" Value="{StaticResource Gray100}" />
         <Setter Property="PlaceholderColor" Value="{StaticResource Gray500}" />
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
-        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontSize" Value="14" />
     </Style>
 
     <!-- Labels -->
     <Style TargetType="Label">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="13" />
     </Style>
 
     <Style x:Key="HeaderLabel" TargetType="Label">
         <Setter Property="TextColor" Value="{StaticResource Primary}" />
-        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontSize" Value="22" />
         <Setter Property="FontAttributes" Value="Bold" />
     </Style>
 
     <Style x:Key="SubHeaderLabel" TargetType="Label">
         <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="13" />
     </Style>
 
     <Style x:Key="TitleLabel" TargetType="Label">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
-        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontSize" Value="15" />
         <Setter Property="FontAttributes" Value="Bold" />
     </Style>
 
@@ -158,9 +158,9 @@
     <!-- Section Header -->
     <Style x:Key="SectionHeader" TargetType="Label">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
-        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontSize" Value="15" />
         <Setter Property="FontAttributes" Value="Bold" />
-        <Setter Property="Margin" Value="0,16,0,8" />
+        <Setter Property="Margin" Value="0,12,0,6" />
     </Style>
 
     <!-- Shell Styles -->

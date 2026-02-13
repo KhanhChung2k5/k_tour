@@ -54,6 +54,20 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
+        // Configure Android WebView to allow loading external resources (map tiles)
+        Microsoft.Maui.Handlers.WebViewHandler.Mapper.AppendToMapping("MapTiles", (handler, view) =>
+        {
+#if ANDROID
+            var settings = handler.PlatformView.Settings;
+            settings.AllowUniversalAccessFromFileURLs = true;
+            settings.AllowFileAccessFromFileURLs = true;
+            settings.MixedContentMode = Android.Webkit.MixedContentHandling.AlwaysAllow;
+            settings.DomStorageEnabled = true;
+            settings.JavaScriptEnabled = true;
+            settings.SetGeolocationEnabled(true);
+#endif
+        });
+
         return builder.Build();
     }
 }

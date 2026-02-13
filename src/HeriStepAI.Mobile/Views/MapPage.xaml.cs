@@ -1,5 +1,6 @@
 using HeriStepAI.Mobile.Models;
 using HeriStepAI.Mobile.ViewModels;
+using HeriStepAI.Mobile.Helpers;
 using System.Text;
 
 namespace HeriStepAI.Mobile.Views;
@@ -10,6 +11,8 @@ public partial class MapPage : ContentPage
 
     public MapPage() : this(GetViewModel()) { }
 
+    private bool _mapLoaded;
+
     public MapPage(MapPageViewModel viewModel)
     {
         try
@@ -18,7 +21,8 @@ public partial class MapPage : ContentPage
             _viewModel = viewModel;
             BindingContext = viewModel;
 
-            LoadMapAsync();
+            // Apply responsive padding to top bar
+            TopBar.Padding = ResponsiveHelper.HeaderPadding();
 
             // Subscribe to POI selection from map
             MapWebView.Navigating += OnMapNavigating;
@@ -42,6 +46,16 @@ public partial class MapPage : ContentPage
     static MapPageViewModel GetViewModel() =>
         App.Services?.GetService<MapPageViewModel>()
         ?? throw new InvalidOperationException("MapPageViewModel not found. Check DI.");
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        if (!_mapLoaded)
+        {
+            _mapLoaded = true;
+            LoadMapAsync();
+        }
+    }
 
     private void OnMapNeedsUpdate(object? sender, EventArgs e)
     {
@@ -105,8 +119,40 @@ public partial class MapPage : ContentPage
         await Task.Delay(500); // Wait for view model to load POIs
 
         var html = GenerateMapHtml(_viewModel.POIs, _viewModel.CurrentLocation);
-        var htmlSource = new HtmlWebViewSource { Html = html };
-        MapWebView.Source = htmlSource;
+
+#if ANDROID
+        // Use loadDataWithBaseURL to give the HTML an HTTPS origin.
+        // This avoids ERR_ACCESS_DENIED (file:// approach) and null-origin
+        // cross-origin blocks (HtmlWebViewSource approach) when loading map tiles.
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            try
+            {
+                if (MapWebView.Handler is Microsoft.Maui.Handlers.WebViewHandler handler
+                    && handler.PlatformView is Android.Webkit.WebView webView)
+                {
+                    webView.LoadDataWithBaseURL(
+                        "https://heristepai.app/",
+                        html,
+                        "text/html",
+                        "utf-8",
+                        null);
+                }
+                else
+                {
+                    // Fallback if handler not ready yet
+                    MapWebView.Source = new HtmlWebViewSource { Html = html };
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading map: {ex.Message}");
+                MapWebView.Source = new HtmlWebViewSource { Html = html };
+            }
+        });
+#else
+        MapWebView.Source = new HtmlWebViewSource { Html = html };
+#endif
     }
 
     private void OnMapNavigating(object? sender, WebNavigatingEventArgs e)

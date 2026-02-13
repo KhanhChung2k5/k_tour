@@ -1,4 +1,5 @@
 using HeriStepAI.Mobile.ViewModels;
+using HeriStepAI.Mobile.Helpers;
 
 namespace HeriStepAI.Mobile.Views;
 
@@ -10,6 +11,9 @@ public partial class MainPage : ContentPage
         {
             InitializeComponent();
             BindingContext = viewModel;
+
+            // Apply responsive padding
+            MainHeader.Padding = ResponsiveHelper.HeaderPadding();
         }
         catch (Exception ex)
         {

@@ -106,6 +106,10 @@ public partial class MapPageViewModel : ObservableObject
                 // Đảm bảo GPS polling chạy liên tục (5s/lần)
                 // để geofence check hoạt động với real GPS
                 _locationService.StartLocationUpdates();
+
+                // Start foreground service to keep location tracking active in background
+                LocationForegroundServiceManager.Start();
+                AppLog.Info("Location foreground service started for background tracking");
             }
             catch (Exception ex)
             {

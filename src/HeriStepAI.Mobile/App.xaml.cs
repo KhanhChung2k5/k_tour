@@ -1,3 +1,6 @@
+using HeriStepAI.Mobile.Helpers;
+using HeriStepAI.Mobile.Services;
+
 namespace HeriStepAI.Mobile;
 
 public partial class App : Application
@@ -13,6 +16,29 @@ public partial class App : Application
             Services = serviceProvider;
             LogToDebug("App: InitializeComponent...");
             InitializeComponent();
+
+            // Initialize responsive helper for adaptive layouts
+            ResponsiveHelper.Initialize();
+            LogToDebug($"App: ResponsiveHelper initialized");
+
+            // Trigger initial POI sync from server to SQLite for offline mode
+            Task.Run(async () =>
+            {
+                try
+                {
+                    var poiService = serviceProvider.GetService<IPOIService>();
+                    if (poiService != null)
+                    {
+                        await poiService.SyncPOIsFromServerAsync();
+                        LogToDebug("App: Initial POI sync completed");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogToDebug($"App: Initial POI sync failed: {ex.Message}");
+                }
+            });
+
             LogToDebug("App: Creating AppShell...");
             MainPage = serviceProvider.GetRequiredService<AppShell>();
             LogToDebug("App: Started successfully");
