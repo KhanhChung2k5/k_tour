@@ -21,6 +21,15 @@
     <RunAOTCompilation>false</RunAOTCompilation>
   </PropertyGroup>
 
+  <!-- Release build specific settings -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <AndroidEnableProguard>true</AndroidEnableProguard>
+    <AndroidUseAapt2>true</AndroidUseAapt2>
+    <AndroidDexTool>d8</AndroidDexTool>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.14" />
     <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.14" />
@@ -41,6 +50,11 @@
     <MauiImage Include="Resources\Images\location.svg" />
     <MauiImage Include="Resources\Images\settings.svg" />
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- ProGuard rules for Release build to preserve WebView classes -->
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <ProguardConfiguration Include="Platforms\Android\proguard-rules.pro" />
   </ItemGroup>
 
 </Project>
