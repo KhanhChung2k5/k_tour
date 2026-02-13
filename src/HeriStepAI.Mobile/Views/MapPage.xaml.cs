@@ -63,12 +63,18 @@ public partial class MapPage : ContentPage
                 androidWebView.Settings.AllowContentAccess = true;
                 androidWebView.Settings.MixedContentMode = Android.Webkit.MixedContentHandling.AlwaysAllow;
                 androidWebView.Settings.SetGeolocationEnabled(true);
+                // User-Agent giống Chrome để tránh OSM chặn WebView
+                androidWebView.Settings.UserAgentString = "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+                androidWebView.Settings.CacheMode = Android.Webkit.CacheModes.Normal;
 
                 // Enable remote debugging for troubleshooting
                 Android.Webkit.WebView.SetWebContentsDebuggingEnabled(true);
 
                 // Set custom WebViewClient to prevent external navigation
                 androidWebView.SetWebViewClient(new MapWebViewClient());
+
+                // Set custom WebChromeClient to capture JavaScript console messages
+                androidWebView.SetWebChromeClient(new MapWebChromeClient());
 
                 System.Diagnostics.Debug.WriteLine("[MapPage] ✅ WebView configured for Android");
             }
@@ -78,33 +84,52 @@ public partial class MapPage : ContentPage
 
 #if ANDROID
     /// <summary>
-    /// Custom WebViewClient that blocks external navigation while allowing resource loading
+    /// Custom WebChromeClient - captures JavaScript console messages for debugging
+    /// </summary>
+    private class MapWebChromeClient : Android.Webkit.WebChromeClient
+    {
+        public override bool OnConsoleMessage(Android.Webkit.ConsoleMessage? consoleMessage)
+        {
+            if (consoleMessage != null)
+            {
+                var messageLevel = consoleMessage.InvokeMessageLevel();
+                string level;
+
+                if (messageLevel == Android.Webkit.ConsoleMessage.MessageLevel.Error)
+                    level = "❌ ERROR";
+                else if (messageLevel == Android.Webkit.ConsoleMessage.MessageLevel.Warning)
+                    level = "⚠️ WARN";
+                else if (messageLevel == Android.Webkit.ConsoleMessage.MessageLevel.Log)
+                    level = "ℹ️ LOG";
+                else
+                    level = "📝 DEBUG";
+
+                System.Diagnostics.Debug.WriteLine($"[JS Console] {level}: {consoleMessage.Message()} at {consoleMessage.SourceId()}:{consoleMessage.LineNumber()}");
+            }
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Custom WebViewClient - chỉ chặn main-frame navigation ra ngoài, CHO PHÉP load script/tile
     /// </summary>
     private class MapWebViewClient : Android.Webkit.WebViewClient
     {
         public override bool ShouldOverrideUrlLoading(Android.Webkit.WebView? view, Android.Webkit.IWebResourceRequest? request)
         {
-            var url = request?.Url?.ToString() ?? "";
+            if (request == null) return false;
+            var url = request.Url?.ToString() ?? "";
 
-            // Allow poi:// custom scheme for POI selection
             if (url.StartsWith("poi://"))
-            {
-                return false; // Let MAUI WebView handle it via Navigating event
-            }
+                return false;
 
-            // Block navigation to external URLs (tile servers, CDN, etc.)
-            // These should only be loaded as resources, not page navigations
-            if (url.Contains("openstreetmap.org") ||
-                url.Contains("unpkg.com") ||
-                url.Contains("tile.") ||
-                url.StartsWith("http://") ||
-                url.StartsWith("https://"))
+            // Chỉ chặn khi là main-frame (user click link) - CHO PHÉP script, CSS, tile load
+            if (request.IsForMainFrame && (url.StartsWith("http://") || url.StartsWith("https://")))
             {
-                System.Diagnostics.Debug.WriteLine($"[MapWebViewClient] 🚫 Blocked navigation to: {url}");
-                return true; // Block navigation
+                System.Diagnostics.Debug.WriteLine($"[MapWebViewClient] Blocked main-frame nav to: {url}");
+                return true;
             }
-
-            return base.ShouldOverrideUrlLoading(view, request);
+            return false;
         }
 
         public override void OnPageFinished(Android.Webkit.WebView? view, string? url)
@@ -192,9 +217,13 @@ public partial class MapPage : ContentPage
     {
         await Task.Delay(1000); // Wait for WebView handler and POIs to load
 
+        System.Diagnostics.Debug.WriteLine($"[MapPage] 🗺️ Generating map HTML for {_viewModel.POIs.Count} POIs");
         var html = GenerateMapHtml(_viewModel.POIs, _viewModel.CurrentLocation);
+        System.Diagnostics.Debug.WriteLine($"[MapPage] ✅ HTML generated ({html.Length} chars)");
 
-        System.Diagnostics.Debug.WriteLine($"[MapPage] 🗺️ Loading map with {_viewModel.POIs.Count} POIs");
+        // Log first 500 chars of HTML for debugging
+        var preview = html.Length > 500 ? html.Substring(0, 500) + "..." : html;
+        System.Diagnostics.Debug.WriteLine($"[MapPage] HTML Preview: {preview}");
 
 #if ANDROID
         // Use loadDataWithBaseURL to give the HTML an HTTPS origin.
@@ -260,8 +289,8 @@ public partial class MapPage : ContentPage
         sb.AppendLine("<script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>");
         sb.AppendLine("<style>");
         sb.AppendLine("* { margin: 0; padding: 0; box-sizing: border-box; }");
-        sb.AppendLine("body { margin: 0; padding: 0; overflow: hidden; }");
-        sb.AppendLine("#map { width: 100vw; height: 100vh; }");
+        sb.AppendLine("html, body { margin: 0; padding: 0; overflow: hidden; width: 100%; height: 100%; }");
+        sb.AppendLine("#map { width: 100%; height: 100%; min-height: 300px; position: absolute; top:0; left:0; right:0; bottom:0; background: #e0e0e0; }");
         sb.AppendLine(@"
             .poi-marker {
                 background: linear-gradient(135deg, #E07B4C 0%, #C96A3E 100%);
@@ -360,47 +389,97 @@ public partial class MapPage : ContentPage
                 background: white;
             }
         ");
+        sb.AppendLine(@"
+            #loading-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: white;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            }
+            .spinner {
+                width: 50px;
+                height: 50px;
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #E07B4C;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            .loading-text {
+                margin-top: 16px;
+                color: #666;
+                font-size: 14px;
+            }
+        ");
         sb.AppendLine("</style>");
         sb.AppendLine("</head>");
         sb.AppendLine("<body>");
+        sb.AppendLine("<div id='loading-overlay'>");
+        sb.AppendLine("  <div class='spinner'></div>");
+        sb.AppendLine("  <div class='loading-text'>Đang tải bản đồ...</div>");
+        sb.AppendLine("</div>");
         sb.AppendLine("<div id='map'></div>");
         sb.AppendLine("<script>");
+        sb.AppendLine("try {");
 
         var centerLat = currentLocation?.Latitude ?? 16.0544;
         var centerLng = currentLocation?.Longitude ?? 108.2022;
 
-        // Initialize Leaflet map with OpenStreetMap
-        sb.AppendLine("console.log('[Map] Initializing Leaflet map...');");
-        sb.AppendLine($"var map = L.map('map', {{ zoomControl: false }}).setView([{centerLat}, {centerLng}], 15);");
-        sb.AppendLine("L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {");
-        sb.AppendLine("  attribution: '© OpenStreetMap',");
-        sb.AppendLine("  maxZoom: 19");
-        sb.AppendLine("}).addTo(map);");
-        sb.AppendLine("console.log('[Map] ✅ Map tiles loaded');");
+        // Initialize Leaflet map - OSM chính, CartoDB dự phòng
+        sb.AppendLine("  console.log('[Map] Starting map initialization...');");
+        sb.AppendLine("  console.log('[Map] Leaflet version: ' + (typeof L !== 'undefined' ? L.version : 'NOT LOADED'));");
+        sb.AppendLine($"  console.log('[Map] Center: [{centerLat}, {centerLng}]');");
+        sb.AppendLine($"  var map = L.map('map', {{ zoomControl: false }}).setView([{centerLat}, {centerLng}], 15);");
+        sb.AppendLine("  console.log('[Map] ✅ Map object created');");
+        sb.AppendLine("  var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM', maxZoom: 19 });");
+        sb.AppendLine("  var carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', { attribution: '© CartoDB', maxZoom: 19 });");
+        sb.AppendLine("  console.log('[Map] ✅ Tile layers created');");
+        sb.AppendLine("  osm.addTo(map);");
+        sb.AppendLine("  console.log('[Map] ✅ OSM tiles added to map');");
+        sb.AppendLine("  osm.on('tileerror', function(e){ console.error('[Map] ❌ OSM tile error:', e); console.log('[Map] Switching to CartoDB...'); map.removeLayer(osm); carto.addTo(map); });");
+        sb.AppendLine("  osm.on('tileload', function(){ console.log('[Map] ✅ OSM tile loaded successfully'); });");
+        sb.AppendLine("  setTimeout(function(){ map.invalidateSize(); console.log('[Map] Map resized (100ms)'); }, 100);");
+        sb.AppendLine("  setTimeout(function(){ map.invalidateSize(); console.log('[Map] Map resized (500ms)'); }, 500);");
+        sb.AppendLine("  window.addEventListener('resize', function(){ map.invalidateSize(); console.log('[Map] Map resized (window resize)'); });");
 
         // Global variable for geofence highlight circle
-        sb.AppendLine("var geoCircle = null;");
+        sb.AppendLine("  var geoCircle = null;");
 
         // Add current location marker (global var so JS can update it)
         if (currentLocation != null)
         {
-            sb.AppendLine($"var currentLocationIcon = L.divIcon({{");
-            sb.AppendLine("  className: 'current-location',");
-            sb.AppendLine("  iconSize: [20, 20],");
-            sb.AppendLine("  iconAnchor: [10, 10]");
-            sb.AppendLine("});");
-            sb.AppendLine($"var currentMarker = L.marker([{currentLocation.Latitude}, {currentLocation.Longitude}], {{ icon: currentLocationIcon }}).addTo(map);");
-            sb.AppendLine("currentMarker.bindPopup('<div class=\"popup-content\"><div class=\"popup-title\">📍 Vị trí của bạn</div></div>');");
+            sb.AppendLine("  console.log('[Map] Adding current location marker...');");
+            sb.AppendLine($"  var currentLocationIcon = L.divIcon({{");
+            sb.AppendLine("    className: 'current-location',");
+            sb.AppendLine("    iconSize: [20, 20],");
+            sb.AppendLine("    iconAnchor: [10, 10]");
+            sb.AppendLine("  });");
+            sb.AppendLine($"  var currentMarker = L.marker([{currentLocation.Latitude}, {currentLocation.Longitude}], {{ icon: currentLocationIcon }}).addTo(map);");
+            sb.AppendLine("  currentMarker.bindPopup('<div class=\"popup-content\"><div class=\"popup-title\">📍 Vị trí của bạn</div></div>');");
+            sb.AppendLine("  console.log('[Map] ✅ Current location marker added');");
         }
         else
         {
             // Create marker at default position so test mode can move it
-            sb.AppendLine($"var currentLocationIcon = L.divIcon({{");
-            sb.AppendLine("  className: 'current-location',");
-            sb.AppendLine("  iconSize: [20, 20],");
-            sb.AppendLine("  iconAnchor: [10, 10]");
-            sb.AppendLine("});");
-            sb.AppendLine($"var currentMarker = L.marker([{centerLat}, {centerLng}], {{ icon: currentLocationIcon }}).addTo(map);");
+            sb.AppendLine("  console.log('[Map] Adding default location marker (no GPS)...');");
+            sb.AppendLine($"  var currentLocationIcon = L.divIcon({{");
+            sb.AppendLine("    className: 'current-location',");
+            sb.AppendLine("    iconSize: [20, 20],");
+            sb.AppendLine("    iconAnchor: [10, 10]");
+            sb.AppendLine("  });");
+            sb.AppendLine($"  var currentMarker = L.marker([{centerLat}, {centerLng}], {{ icon: currentLocationIcon }}).addTo(map);");
+            sb.AppendLine("  console.log('[Map] ✅ Default location marker added');");
         }
 
         // Find nearest POI to highlight
@@ -409,7 +488,7 @@ public partial class MapPage : ContentPage
             : (int?)null;
 
         // Add POI markers with geofence radius circles
-        sb.AppendLine($"console.log('[Map] Adding {pois.Count} POI markers...');");
+        sb.AppendLine($"  console.log('[Map] Adding {pois.Count} POI markers...');");
         foreach (var poi in pois)
         {
             var escapedName = EscapeJs(poi.Name);
@@ -422,27 +501,27 @@ public partial class MapPage : ContentPage
             var distanceText = distance < 1000 ? $"{distance:F0}m" : $"{distance / 1000:F1}km";
             var rating = poi.Rating?.ToString("F1") ?? "4.5";
 
-            sb.AppendLine($"var poiIcon{poi.Id} = L.divIcon({{");
-            sb.AppendLine($"  className: '{(isNearest ? "nearest-marker" : "poi-marker")}',");
-            sb.AppendLine($"  iconSize: [{(isNearest ? 44 : 36)}, {(isNearest ? 44 : 36)}],");
-            sb.AppendLine($"  iconAnchor: [{(isNearest ? 22 : 18)}, {(isNearest ? 44 : 36)}],");
-            sb.AppendLine($"  popupAnchor: [0, {(isNearest ? -44 : -36)}],");
-            sb.AppendLine($"  html: '<div class=\"poi-marker-inner\">📍</div>'");
-            sb.AppendLine("});");
+            sb.AppendLine($"  var poiIcon{poi.Id} = L.divIcon({{");
+            sb.AppendLine($"    className: '{(isNearest ? "nearest-marker" : "poi-marker")}',");
+            sb.AppendLine($"    iconSize: [{(isNearest ? 44 : 36)}, {(isNearest ? 44 : 36)}],");
+            sb.AppendLine($"    iconAnchor: [{(isNearest ? 22 : 18)}, {(isNearest ? 44 : 36)}],");
+            sb.AppendLine($"    popupAnchor: [0, {(isNearest ? -44 : -36)}],");
+            sb.AppendLine($"    html: '<div class=\"poi-marker-inner\">📍</div>'");
+            sb.AppendLine("  });");
 
-            sb.AppendLine($"var marker{poi.Id} = L.marker([{poi.Latitude}, {poi.Longitude}], {{ icon: poiIcon{poi.Id} }}).addTo(map);");
+            sb.AppendLine($"  var marker{poi.Id} = L.marker([{poi.Latitude}, {poi.Longitude}], {{ icon: poiIcon{poi.Id} }}).addTo(map);");
 
             // Add a subtle geofence radius circle for each POI
             if (poi.Radius > 0)
             {
-                sb.AppendLine($"L.circle([{poi.Latitude}, {poi.Longitude}], {{");
-                sb.AppendLine($"  radius: {poi.Radius},");
-                sb.AppendLine("  color: '#E07B4C',");
-                sb.AppendLine("  fillColor: '#E07B4C',");
-                sb.AppendLine("  fillOpacity: 0.05,");
-                sb.AppendLine("  weight: 1,");
-                sb.AppendLine("  dashArray: '4 4'");
-                sb.AppendLine("}).addTo(map);");
+                sb.AppendLine($"  L.circle([{poi.Latitude}, {poi.Longitude}], {{");
+                sb.AppendLine($"    radius: {poi.Radius},");
+                sb.AppendLine("    color: '#E07B4C',");
+                sb.AppendLine("    fillColor: '#E07B4C',");
+                sb.AppendLine("    fillOpacity: 0.05,");
+                sb.AppendLine("    weight: 1,");
+                sb.AppendLine("    dashArray: '4 4'");
+                sb.AppendLine("  }).addTo(map);");
             }
 
             var addrHtml = string.IsNullOrEmpty(poi.Address) ? "" : $"<div class=\"popup-address\">📍 {escapedAddr}</div>";
@@ -460,14 +539,34 @@ public partial class MapPage : ContentPage
                 </div>
             ".Replace("\n", "").Replace("\r", "");
 
-            sb.AppendLine($"marker{poi.Id}.bindPopup('{popupHtml}');");
+            sb.AppendLine($"  marker{poi.Id}.bindPopup('{popupHtml}');");
         }
-        sb.AppendLine("console.log('[Map] ✅ All POI markers added');");
+        sb.AppendLine("  console.log('[Map] ✅ All POI markers added');");
+
+        // Hide loading overlay once map is fully initialized
+        sb.AppendLine("  setTimeout(function() {");
+        sb.AppendLine("    var overlay = document.getElementById('loading-overlay');");
+        sb.AppendLine("    if (overlay) {");
+        sb.AppendLine("      overlay.style.display = 'none';");
+        sb.AppendLine("      console.log('[Map] ✅ Loading overlay hidden - map ready!');");
+        sb.AppendLine("    }");
+        sb.AppendLine("  }, 1000);");
 
         // Function to handle POI selection
-        sb.AppendLine("function selectPOI(poiId) {");
-        sb.AppendLine("  console.log('[Map] POI selected: ' + poiId);");
-        sb.AppendLine("  window.location.href = 'poi://' + poiId;");
+        sb.AppendLine("  function selectPOI(poiId) {");
+        sb.AppendLine("    console.log('[Map] POI selected: ' + poiId);");
+        sb.AppendLine("    window.location.href = 'poi://' + poiId;");
+        sb.AppendLine("  }");
+
+        // Close try-catch block
+        sb.AppendLine("} catch (error) {");
+        sb.AppendLine("  console.error('[Map] ❌ CRITICAL ERROR during initialization:', error);");
+        sb.AppendLine("  console.error('[Map] Error message:', error.message);");
+        sb.AppendLine("  console.error('[Map] Error stack:', error.stack);");
+        sb.AppendLine("  var overlay = document.getElementById('loading-overlay');");
+        sb.AppendLine("  if (overlay) {");
+        sb.AppendLine("    overlay.innerHTML = '<div style=\"text-align:center;padding:20px;\"><div style=\"font-size:48px;\">❌</div><div style=\"color:#f44336;font-weight:bold;margin-top:12px;\">Lỗi tải bản đồ</div><div style=\"color:#666;margin-top:8px;font-size:13px;\">' + error.message + '</div></div>';");
+        sb.AppendLine("  }");
         sb.AppendLine("}");
 
         sb.AppendLine("</script>");
