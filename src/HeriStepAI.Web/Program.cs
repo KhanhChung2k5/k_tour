@@ -32,16 +32,41 @@ builder.Services.AddControllersWithViews()
 // Database - dùng env SUPABASE_CONNECTION_STRING khi deploy lên Render
 var connectionString = Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_STRING")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
-if (!string.IsNullOrWhiteSpace(connectionString) && connectionString.Contains("pooler.supabase.com", StringComparison.OrdinalIgnoreCase))
+
+// Fix and convert connection string
+if (!string.IsNullOrWhiteSpace(connectionString))
 {
     connectionString = connectionString.Trim();
-    if (connectionString.EndsWith("?sslmode", StringComparison.OrdinalIgnoreCase))
-        connectionString += "=Require";
-    else if (connectionString.EndsWith("&sslmode", StringComparison.OrdinalIgnoreCase))
-        connectionString += "=Require";
-    else if (!connectionString.Contains("sslmode=", StringComparison.OrdinalIgnoreCase))
-        connectionString += (connectionString.Contains("?") ? "&" : "?") + "sslmode=Require";
+
+    // If URI format (postgresql://...), convert to Npgsql key-value format
+    if (connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase))
+    {
+        try
+        {
+            var uri = new Uri(connectionString.Replace("?sslmode=", "?sslmode=require").Replace("?sslmode", "?sslmode=require"));
+            var userInfo = uri.UserInfo.Split(':');
+            var username = Uri.UnescapeDataString(userInfo[0]);
+            var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+            var database = uri.AbsolutePath.TrimStart('/');
+
+            connectionString = $"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password};SSL Mode=Require;Pooling=true;Minimum Pool Size=0;Maximum Pool Size=10;Connection Lifetime=300";
+            Console.WriteLine($"[Web] Converted URI connection string to Npgsql format");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Web] Error converting connection string: {ex.Message}");
+        }
+    }
+    // Fix key-value format if needed
+    else if (connectionString.Contains("pooler.supabase.com", StringComparison.OrdinalIgnoreCase))
+    {
+        if (!connectionString.Contains("Pooling", StringComparison.OrdinalIgnoreCase))
+        {
+            connectionString += ";Pooling=true;Minimum Pool Size=0;Maximum Pool Size=10;Connection Lifetime=300";
+        }
+    }
 }
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
