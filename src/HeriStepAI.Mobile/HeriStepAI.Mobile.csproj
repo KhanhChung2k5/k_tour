@@ -23,7 +23,8 @@
 
   <!-- Release build specific settings -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <AndroidEnableProguard>true</AndroidEnableProguard>
+    <AndroidLinkTool>r8</AndroidLinkTool>
+    <AndroidEnableProguard>false</AndroidEnableProguard>
     <AndroidUseAapt2>true</AndroidUseAapt2>
     <AndroidDexTool>d8</AndroidDexTool>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
