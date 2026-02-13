@@ -40,10 +40,10 @@
                             BackgroundColor="{StaticResource White}"
                             TextColor="{StaticResource Primary}"
                             FontAttributes="Bold"
-                            FontSize="12"
-                            WidthRequest="40"
-                            HeightRequest="32"
-                            CornerRadius="16"
+                            FontSize="13"
+                            WidthRequest="44"
+                            HeightRequest="44"
+                            CornerRadius="22"
                             Padding="0"
                             VerticalOptions="Start" />
 
@@ -51,13 +51,13 @@
                     <Frame Grid.Row="0" Grid.Column="2"
                            BackgroundColor="{StaticResource White}"
                            CornerRadius="16"
-                           WidthRequest="32"
-                           HeightRequest="32"
+                           WidthRequest="44"
+                           HeightRequest="44"
                            Padding="0"
                            HasShadow="False"
                            VerticalOptions="Start">
                         <Label Text="📍"
-                               FontSize="14"
+                               FontSize="16"
                                HorizontalOptions="Center"
                                VerticalOptions="Center" />
                     </Frame>
@@ -163,11 +163,12 @@
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:Tour">
                                 <Frame Style="{StaticResource CardFrame}"
-                                       WidthRequest="140"
-                                       HeightRequest="100"
-                                       Padding="0">
+                                       HeightRequest="110"
+                                       MinimumWidthRequest="150"
+                                       Padding="0"
+                                       Margin="0,0,6,0">
                                     <Frame.GestureRecognizers>
-                                        <TapGestureRecognizer 
+                                        <TapGestureRecognizer
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MainPageViewModel}}, Path=SelectTourCommand}"
                                             CommandParameter="{Binding .}" />
                                     </Frame.GestureRecognizers>
@@ -175,9 +176,9 @@
                                         <!-- Tour Image Background -->
                                         <Image Source="{Binding ImageUrl}"
                                                Aspect="AspectFill"
-                                               Opacity="0.8" />
+                                               Opacity="0.85" />
                                         <!-- Overlay -->
-                                        <BoxView Color="{StaticResource Black}" Opacity="0.3" />
+                                        <BoxView Color="{StaticResource Black}" Opacity="0.35" />
                                         <!-- Tour Name and Price -->
                                         <VerticalStackLayout VerticalOptions="End" Margin="8" Spacing="1">
                                             <Label Text="{Binding Name}"
@@ -205,9 +206,10 @@
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="{StaticResource White}"
                         FontSize="14"
-                        CornerRadius="22"
-                        HeightRequest="42"
-                        Margin="0,4,0,0" />
+                        FontAttributes="Bold"
+                        CornerRadius="24"
+                        HeightRequest="46"
+                        Margin="0,6,0,0" />
                 
                 <!-- Recent Tours Section -->
                 <Label Text="{Binding LblRecentTours}"
@@ -225,13 +227,13 @@
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MainPageViewModel}}, Path=SelectTourCommand}"
                                         CommandParameter="{Binding .}" />
                                 </Frame.GestureRecognizers>
-                                <Grid ColumnDefinitions="80,*" HeightRequest="70">
+                                <Grid ColumnDefinitions="85,*" HeightRequest="80">
                                     <!-- Tour Image -->
                                     <Image Source="{Binding ImageUrl}"
                                            Aspect="AspectFill"
-                                           WidthRequest="80">
+                                           WidthRequest="85">
                                         <Image.Clip>
-                                            <RoundRectangleGeometry Rect="0,0,80,70" CornerRadius="12,0,0,12" />
+                                            <RoundRectangleGeometry Rect="0,0,85,80" CornerRadius="12,0,0,12" />
                                         </Image.Clip>
                                     </Image>
 

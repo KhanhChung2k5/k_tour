@@ -1,87 +1,226 @@
-@model POIViewModel
+@model CreatePOIWithOwnerViewModel
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Thêm POI mới";
 }
 
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    .card:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+    .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px 12px 0 0 !important;
+        color: white;
+        padding: 1rem 1.5rem;
+    }
+    .card-header.bg-white {
+        background: white !important;
+        color: #333;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1.5px solid #e0e0e0;
+        padding: 0.625rem 0.875rem;
+        transition: all 0.2s ease;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 12px 24px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    .btn-outline-secondary {
+        border-radius: 8px;
+        border: 2px solid #e0e0e0;
+        color: #6c757d;
+        padding: 8px 16px;
+        transition: all 0.2s ease;
+    }
+    .btn-outline-secondary:hover {
+        background: #f8f9fa;
+        border-color: #6c757d;
+        color: #495057;
+    }
+    .alert {
+        border-radius: 10px;
+        border: none;
+        padding: 1rem 1.25rem;
+    }
+    .page-title {
+        color: #2d3748;
+        font-weight: 700;
+        font-size: 1.75rem;
+    }
+    .page-subtitle {
+        color: #718096;
+        font-size: 0.95rem;
+        margin: 0;
+    }
+    .section-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+    }
+</style>
+
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="page-title"><i class="bi bi-plus-circle me-2"></i>Thêm POI mới</h4>
-        <p class="page-subtitle">Tạo cửa hàng / địa điểm mới</p>
+        <h4 class="page-title">
+            <i class="bi bi-plus-circle me-2" style="color: #667eea;"></i>Thêm POI & Tạo Tài Khoản Chủ Quán
+        </h4>
+        <p class="page-subtitle">Tạo địa điểm mới và tài khoản quản lý cho chủ quán</p>
     </div>
-    <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm" style="border-radius:8px;">
+    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i> Quay lại
     </a>
 </div>
 
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show" style="border-radius:10px;">
-        <i class="bi bi-exclamation-triangle me-1"></i> @TempData["Error"]
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 
 <form method="post" asp-action="Create" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="alert alert-danger" style="display:none;"></div>
 
     <div class="row g-4">
-        <!-- Left Column: Basic Info -->
+        <!-- Left Column: POI Info -->
         <div class="col-lg-7">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-info-circle me-1"></i> Thông tin cơ bản</h6>
+            <!-- Basic Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2 text-primary"></i> Thông tin cơ bản POI</h6>
                 </div>
                 <div class="card-body p-4">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small">Tên POI <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="Name" required placeholder="VD: Quán Bún Bò Huế Đông Ba" />
+                        <label class="form-label">Tên POI <span class="text-danger">*</span></label>
+                        <input asp-for="Name" class="form-control" placeholder="VD: Quán Bún Bò Huế Đông Ba" required />
+                        <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small">Mô tả <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="Description" rows="3" required placeholder="Mô tả ngắn gọn về địa điểm..."></textarea>
+                        <label class="form-label">Mô tả <span class="text-danger">*</span></label>
+                        <textarea asp-for="Description" class="form-control" rows="3" required placeholder="Mô tả ngắn gọn về địa điểm..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small">Địa chỉ</label>
-                        <input type="text" class="form-control" name="Address" placeholder="Số nhà, đường, phường..." />
+                        <label class="form-label">Địa chỉ</label>
+                        <input asp-for="Address" class="form-control" placeholder="Số nhà, đường, phường, quận..." />
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold small">Vĩ độ (Latitude) <span class="text-danger">*</span></label>
-                            <input type="number" step="any" class="form-control" name="Latitude" required placeholder="16.0544" />
+                            <label class="form-label">Vĩ độ (Latitude) <span class="text-danger">*</span></label>
+                            <input asp-for="Latitude" type="number" step="any" class="form-control" required placeholder="16.0544" />
+                            <span asp-validation-for="Latitude" class="text-danger"></span>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold small">Kinh độ (Longitude) <span class="text-danger">*</span></label>
-                            <input type="number" step="any" class="form-control" name="Longitude" required placeholder="108.2022" />
+                            <label class="form-label">Kinh độ (Longitude) <span class="text-danger">*</span></label>
+                            <input asp-for="Longitude" type="number" step="any" class="form-control" required placeholder="108.2022" />
+                            <span asp-validation-for="Longitude" class="text-danger"></span>
                         </div>
                     </div>
                     <div class="mb-0">
-                        <label class="form-label fw-semibold small">Bán kính geofence (m)</label>
-                        <input type="number" class="form-control" name="Radius" value="50" />
+                        <label class="form-label">Bán kính geofence (m)</label>
+                        <input asp-for="Radius" type="number" class="form-control" value="50" />
                         <small class="text-muted">Bán kính kích hoạt thuyết minh tự động</small>
                     </div>
                 </div>
             </div>
 
+            <!-- Owner Account Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-person-badge me-2"></i> Thông tin tài khoản chủ quán</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info border-0 mb-3">
+                        <i class="bi bi-info-circle me-2"></i> <strong>Lưu ý:</strong> Tài khoản này sẽ được tạo với quyền ShopOwner (Role = 2) để quản lý POI này.
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tên đầy đủ</label>
+                            <input asp-for="OwnerFullName" class="form-control" placeholder="Nguyễn Văn A" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Số điện thoại</label>
+                            <input asp-for="OwnerPhone" class="form-control" placeholder="0912345678" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên đăng nhập <span class="text-danger">*</span></label>
+                        <input asp-for="OwnerUsername" class="form-control" required placeholder="owner_username" />
+                        <span asp-validation-for="OwnerUsername" class="text-danger"></span>
+                        <small class="text-muted">Từ 3-50 ký tự</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email <span class="text-danger">*</span></label>
+                        <input asp-for="OwnerEmail" type="email" class="form-control" required placeholder="owner@example.com" />
+                        <span asp-validation-for="OwnerEmail" class="text-danger"></span>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
+                        <input asp-for="OwnerPassword" type="password" class="form-control" required placeholder="Tối thiểu 6 ký tự" />
+                        <span asp-validation-for="OwnerPassword" class="text-danger"></span>
+                        <small class="text-muted">Từ 6-100 ký tự</small>
+                    </div>
+                </div>
+            </div>
+
             <!-- Content -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-translate me-1"></i> Nội dung thuyết minh</h6>
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-translate me-2 text-success"></i> Nội dung thuyết minh</h6>
                 </div>
                 <div class="card-body p-4">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold small">
+                            <label class="form-label">
                                 <img src="https://flagcdn.com/w20/vn.png" alt="VI" class="me-1" /> Tiếng Việt
                             </label>
-                            <textarea class="form-control" name="TextContent_vi" rows="5" placeholder="Nội dung thuyết minh tiếng Việt..."></textarea>
+                            <textarea asp-for="TextContent_vi" class="form-control" rows="5" placeholder="Nội dung thuyết minh tiếng Việt..."></textarea>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold small">
+                            <label class="form-label">
                                 <img src="https://flagcdn.com/w20/us.png" alt="EN" class="me-1" /> English
                             </label>
-                            <textarea class="form-control" name="TextContent_en" rows="5" placeholder="English narration content..."></textarea>
+                            <textarea asp-for="TextContent_en" class="form-control" rows="5" placeholder="English narration content..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -90,14 +229,15 @@
 
         <!-- Right Column: Category & Image -->
         <div class="col-lg-5">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-tag me-1"></i> Phân loại</h6>
+            <!-- Category & Settings -->
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-tag-fill me-2 text-warning"></i> Phân loại & Cài đặt</h6>
                 </div>
                 <div class="card-body p-4">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small">Loại POI <span class="text-danger">*</span></label>
-                        <select class="form-select" name="Category" id="categorySelect" required>
+                        <label class="form-label">Loại POI <span class="text-danger">*</span></label>
+                        <select asp-for="Category" class="form-select" id="categorySelect" required>
                             <option value="0">Tất cả</option>
                             <option value="1">Tham quan</option>
                             <option value="2" selected>Ẩm thực</option>
@@ -109,8 +249,8 @@
                         </select>
                     </div>
                     <div class="mb-3" id="foodTypeDiv">
-                        <label class="form-label fw-semibold small">Loại món ăn</label>
-                        <select class="form-select" name="FoodType">
+                        <label class="form-label">Loại món ăn</label>
+                        <select asp-for="FoodType" class="form-select">
                             <option value="0">Khác</option>
                             <option value="1">Hải sản</option>
                             <option value="2">Món chay</option>
@@ -122,33 +262,33 @@
                     </div>
                     <div class="row" id="priceDiv">
                         <div class="col-6 mb-3">
-                            <label class="form-label fw-semibold small">Giá min (VND)</label>
-                            <input type="number" class="form-control" name="PriceMin" value="0" />
+                            <label class="form-label">Giá min (VND)</label>
+                            <input asp-for="PriceMin" type="number" class="form-control" value="0" />
                         </div>
                         <div class="col-6 mb-3">
-                            <label class="form-label fw-semibold small">Giá max (VND)</label>
-                            <input type="number" class="form-control" name="PriceMax" value="0" />
+                            <label class="form-label">Giá max (VND)</label>
+                            <input asp-for="PriceMax" type="number" class="form-control" value="0" />
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small">Thời gian tham quan (phút)</label>
-                        <input type="number" class="form-control" name="EstimatedMinutes" value="30" />
+                        <label class="form-label">Thời gian tham quan (phút)</label>
+                        <input asp-for="EstimatedMinutes" type="number" class="form-control" value="30" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small">Ưu tiên</label>
-                        <select class="form-select" name="Priority">
+                        <label class="form-label">Ưu tiên</label>
+                        <select asp-for="Priority" class="form-select">
                             <option value="1" selected>Thấp</option>
                             <option value="2">Trung bình</option>
                             <option value="3">Cao</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold small">Link Google Maps</label>
-                        <input type="url" class="form-control" name="MapLink" placeholder="https://maps.google.com/..." />
+                        <label class="form-label">Link Google Maps</label>
+                        <input asp-for="MapLink" type="url" class="form-control" placeholder="https://maps.google.com/..." />
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="IsActive" value="true" checked />
-                        <label class="form-check-label small">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" value="true" checked />
+                        <label class="form-check-label">
                             <i class="bi bi-check-circle text-success"></i> Kích hoạt ngay
                         </label>
                     </div>
@@ -156,30 +296,34 @@
             </div>
 
             <!-- Image Upload -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-image me-1"></i> Hình ảnh</h6>
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-image me-2 text-info"></i> Hình ảnh</h6>
                 </div>
                 <div class="card-body p-4">
                     <input type="file" class="form-control" name="ImageFile" id="imageFileInput" accept="image/*" />
                     <small class="text-muted">JPG, PNG, WebP. Tối đa 5MB</small>
                     <div id="imagePreview" class="mt-3 text-center" style="display:none;">
-                        <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width:100%;max-height:200px;border-radius:10px;" />
+                        <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width:100%;max-height:250px;border-radius:12px;border:3px solid #f0f0f0;" />
                     </div>
                 </div>
             </div>
 
-            <!-- Submit -->
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary" style="border-radius:10px;padding:10px;">
-                    <i class="bi bi-save me-1"></i> Tạo POI
+            <!-- Submit Button -->
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-save me-2"></i> Tạo POI & Tài Khoản
                 </button>
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i> Hủy bỏ
+                </a>
             </div>
         </div>
     </div>
 </form>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
         document.getElementById('categorySelect').addEventListener('change', function () {
             document.getElementById('foodTypeDiv').style.display = this.value == '2' ? 'block' : 'none';
@@ -190,11 +334,29 @@
         document.getElementById('imageFileInput').addEventListener('change', function () {
             const file = this.files[0];
             if (file && file.type.startsWith('image/')) {
-                if (file.size > 5 * 1024 * 1024) { alert('File quá lớn! Tối đa 5MB.'); this.value = ''; return; }
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File quá lớn! Tối đa 5MB.');
+                    this.value = '';
+                    return;
+                }
                 const reader = new FileReader();
-                reader.onload = e => { document.getElementById('previewImg').src = e.target.result; document.getElementById('imagePreview').style.display = 'block'; };
+                reader.onload = e => {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
                 reader.readAsDataURL(file);
-            } else { document.getElementById('imagePreview').style.display = 'none'; }
+            } else {
+                document.getElementById('imagePreview').style.display = 'none';
+            }
+        });
+
+        // Auto-generate username from email
+        document.querySelector('input[name="OwnerEmail"]').addEventListener('blur', function() {
+            const username = document.querySelector('input[name="OwnerUsername"]');
+            if (!username.value) {
+                const emailPart = this.value.split('@@')[0];
+                username.value = emailPart.toLowerCase().replace(/[^a-z0-9_]/g, '');
+            }
         });
     </script>
 }

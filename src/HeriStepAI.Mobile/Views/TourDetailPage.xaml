@@ -11,19 +11,19 @@
     <Grid RowDefinitions="Auto,*,Auto">
 
         <!-- Header with Tour Image -->
-        <Grid Grid.Row="0" HeightRequest="170">
+        <Grid Grid.Row="0" x:Name="HeaderGrid">
             <Image Source="{Binding Tour.ImageUrl}"
                    Aspect="AspectFill" />
             <BoxView Color="{StaticResource Black}" Opacity="0.4" />
 
             <!-- Header Content -->
-            <Grid RowDefinitions="Auto,*,Auto" Padding="16,44,16,14">
+            <Grid RowDefinitions="Auto,*,Auto" x:Name="HeaderContent">
                 <!-- Back Button -->
                 <Frame Grid.Row="0"
                        BackgroundColor="{StaticResource White}"
                        CornerRadius="16"
-                       WidthRequest="32"
-                       HeightRequest="32"
+                       WidthRequest="44"
+                       HeightRequest="44"
                        Padding="0"
                        HasShadow="False"
                        HorizontalOptions="Start">
@@ -31,7 +31,7 @@
                         <TapGestureRecognizer Command="{Binding GoBackCommand}" />
                     </Frame.GestureRecognizers>
                     <Label Text="←"
-                           FontSize="16"
+                           FontSize="18"
                            HorizontalOptions="Center"
                            VerticalOptions="Center" />
                 </Frame>
@@ -77,7 +77,7 @@
 
         <!-- POI List -->
         <ScrollView Grid.Row="1">
-            <VerticalStackLayout Padding="14,12,14,70" Spacing="8">
+            <VerticalStackLayout x:Name="ContentStack" Spacing="8">
                 <Label Text="Danh sách quán ăn"
                        Style="{StaticResource SectionHeader}" />
 
@@ -152,7 +152,7 @@
                     TextColor="{StaticResource White}"
                     FontSize="14"
                     CornerRadius="22"
-                    HeightRequest="42" />
+                    HeightRequest="44" />
         </Frame>
     </Grid>
 

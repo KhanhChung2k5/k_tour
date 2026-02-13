@@ -21,8 +21,8 @@
                 <Frame Grid.Column="0"
                        BackgroundColor="{StaticResource Gray100}"
                        CornerRadius="16"
-                       WidthRequest="32"
-                       HeightRequest="32"
+                       WidthRequest="44"
+                       HeightRequest="44"
                        Padding="0"
                        HasShadow="False"
                        Margin="0,0,10,0">
@@ -124,22 +124,22 @@
                                     CommandParameter="{Binding .}" />
                             </Frame.GestureRecognizers>
 
-                            <Grid ColumnDefinitions="85,*" HeightRequest="80">
+                            <Grid ColumnDefinitions="90,*" HeightRequest="85">
                                 <!-- POI Image -->
                                 <Image Grid.Column="0"
                                        Source="{Binding ImageUrl}"
                                        Aspect="AspectFill"
-                                       WidthRequest="85"
-                                       HeightRequest="80">
+                                       WidthRequest="90"
+                                       HeightRequest="85">
                                     <Image.Clip>
-                                        <RoundRectangleGeometry Rect="0,0,85,80" CornerRadius="12,0,0,12" />
+                                        <RoundRectangleGeometry Rect="0,0,90,85" CornerRadius="12,0,0,12" />
                                     </Image.Clip>
                                 </Image>
 
                                 <!-- POI Info -->
                                 <VerticalStackLayout Grid.Column="1"
-                                                     Padding="10,6"
-                                                     Spacing="3"
+                                                     Padding="12,8"
+                                                     Spacing="4"
                                                      VerticalOptions="Center">
                                     <!-- Name -->
                                     <Label Text="{Binding Name}"
@@ -216,8 +216,8 @@
                                Color="{StaticResource White}"
                                HorizontalOptions="Center"
                                VerticalOptions="Center"
-                               WidthRequest="40"
-                               HeightRequest="40" />
+                               WidthRequest="44"
+                               HeightRequest="44" />
         </Grid>
     </Grid>
 

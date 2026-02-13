@@ -24,6 +24,9 @@ public partial class MapPage : ContentPage
             // Apply responsive padding to top bar
             TopBar.Padding = ResponsiveHelper.HeaderPadding();
 
+            // Configure WebView for map display
+            ConfigureWebView();
+
             // Subscribe to POI selection from map
             MapWebView.Navigating += OnMapNavigating;
 
@@ -46,6 +49,77 @@ public partial class MapPage : ContentPage
     static MapPageViewModel GetViewModel() =>
         App.Services?.GetService<MapPageViewModel>()
         ?? throw new InvalidOperationException("MapPageViewModel not found. Check DI.");
+
+    private void ConfigureWebView()
+    {
+#if ANDROID
+        MapWebView.HandlerChanged += (s, e) =>
+        {
+            if (MapWebView.Handler?.PlatformView is Android.Webkit.WebView androidWebView)
+            {
+                androidWebView.Settings.JavaScriptEnabled = true;
+                androidWebView.Settings.DomStorageEnabled = true;
+                androidWebView.Settings.AllowFileAccess = true;
+                androidWebView.Settings.AllowContentAccess = true;
+                androidWebView.Settings.MixedContentMode = Android.Webkit.MixedContentHandling.AlwaysAllow;
+                androidWebView.Settings.SetGeolocationEnabled(true);
+
+                // Enable remote debugging for troubleshooting
+                Android.Webkit.WebView.SetWebContentsDebuggingEnabled(true);
+
+                // Set custom WebViewClient to prevent external navigation
+                androidWebView.SetWebViewClient(new MapWebViewClient());
+
+                System.Diagnostics.Debug.WriteLine("[MapPage] ✅ WebView configured for Android");
+            }
+        };
+#endif
+    }
+
+#if ANDROID
+    /// <summary>
+    /// Custom WebViewClient that blocks external navigation while allowing resource loading
+    /// </summary>
+    private class MapWebViewClient : Android.Webkit.WebViewClient
+    {
+        public override bool ShouldOverrideUrlLoading(Android.Webkit.WebView? view, Android.Webkit.IWebResourceRequest? request)
+        {
+            var url = request?.Url?.ToString() ?? "";
+
+            // Allow poi:// custom scheme for POI selection
+            if (url.StartsWith("poi://"))
+            {
+                return false; // Let MAUI WebView handle it via Navigating event
+            }
+
+            // Block navigation to external URLs (tile servers, CDN, etc.)
+            // These should only be loaded as resources, not page navigations
+            if (url.Contains("openstreetmap.org") ||
+                url.Contains("unpkg.com") ||
+                url.Contains("tile.") ||
+                url.StartsWith("http://") ||
+                url.StartsWith("https://"))
+            {
+                System.Diagnostics.Debug.WriteLine($"[MapWebViewClient] 🚫 Blocked navigation to: {url}");
+                return true; // Block navigation
+            }
+
+            return base.ShouldOverrideUrlLoading(view, request);
+        }
+
+        public override void OnPageFinished(Android.Webkit.WebView? view, string? url)
+        {
+            base.OnPageFinished(view, url);
+            System.Diagnostics.Debug.WriteLine($"[MapWebViewClient] ✅ Page loaded: {url}");
+        }
+
+        public override void OnReceivedError(Android.Webkit.WebView? view, Android.Webkit.IWebResourceRequest? request, Android.Webkit.WebResourceError? error)
+        {
+            base.OnReceivedError(view, request, error);
+            System.Diagnostics.Debug.WriteLine($"[MapWebViewClient] ❌ Error loading resource: {request?.Url} - {error?.Description}");
+        }
+    }
+#endif
 
     protected override void OnAppearing()
     {
@@ -116,9 +190,11 @@ public partial class MapPage : ContentPage
 
     private async void LoadMapAsync()
     {
-        await Task.Delay(500); // Wait for view model to load POIs
+        await Task.Delay(1000); // Wait for WebView handler and POIs to load
 
         var html = GenerateMapHtml(_viewModel.POIs, _viewModel.CurrentLocation);
+
+        System.Diagnostics.Debug.WriteLine($"[MapPage] 🗺️ Loading map with {_viewModel.POIs.Count} POIs");
 
 #if ANDROID
         // Use loadDataWithBaseURL to give the HTML an HTTPS origin.
@@ -131,22 +207,24 @@ public partial class MapPage : ContentPage
                 if (MapWebView.Handler is Microsoft.Maui.Handlers.WebViewHandler handler
                     && handler.PlatformView is Android.Webkit.WebView webView)
                 {
+                    System.Diagnostics.Debug.WriteLine("[MapPage] ✅ Loading map HTML with BaseURL");
                     webView.LoadDataWithBaseURL(
                         "https://heristepai.app/",
                         html,
                         "text/html",
-                        "utf-8",
+                        "UTF-8",
                         null);
                 }
                 else
                 {
-                    // Fallback if handler not ready yet
-                    MapWebView.Source = new HtmlWebViewSource { Html = html };
+                    // Fallback if handler not ready yet - wait and retry
+                    System.Diagnostics.Debug.WriteLine("[MapPage] ⚠️ Handler not ready, retrying in 500ms...");
+                    Task.Delay(500).ContinueWith(_ => LoadMapAsync());
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error loading map: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[MapPage] ❌ Error loading map: {ex.Message}");
                 MapWebView.Source = new HtmlWebViewSource { Html = html };
             }
         });
@@ -176,6 +254,7 @@ public partial class MapPage : ContentPage
         sb.AppendLine("<!DOCTYPE html>");
         sb.AppendLine("<html>");
         sb.AppendLine("<head>");
+        sb.AppendLine("<meta charset='UTF-8'>");
         sb.AppendLine("<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'>");
         sb.AppendLine("<link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' />");
         sb.AppendLine("<script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>");
@@ -291,11 +370,13 @@ public partial class MapPage : ContentPage
         var centerLng = currentLocation?.Longitude ?? 108.2022;
 
         // Initialize Leaflet map with OpenStreetMap
+        sb.AppendLine("console.log('[Map] Initializing Leaflet map...');");
         sb.AppendLine($"var map = L.map('map', {{ zoomControl: false }}).setView([{centerLat}, {centerLng}], 15);");
         sb.AppendLine("L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {");
         sb.AppendLine("  attribution: '© OpenStreetMap',");
         sb.AppendLine("  maxZoom: 19");
         sb.AppendLine("}).addTo(map);");
+        sb.AppendLine("console.log('[Map] ✅ Map tiles loaded');");
 
         // Global variable for geofence highlight circle
         sb.AppendLine("var geoCircle = null;");
@@ -328,6 +409,7 @@ public partial class MapPage : ContentPage
             : (int?)null;
 
         // Add POI markers with geofence radius circles
+        sb.AppendLine($"console.log('[Map] Adding {pois.Count} POI markers...');");
         foreach (var poi in pois)
         {
             var escapedName = EscapeJs(poi.Name);
@@ -380,9 +462,11 @@ public partial class MapPage : ContentPage
 
             sb.AppendLine($"marker{poi.Id}.bindPopup('{popupHtml}');");
         }
+        sb.AppendLine("console.log('[Map] ✅ All POI markers added');");
 
         // Function to handle POI selection
         sb.AppendLine("function selectPOI(poiId) {");
+        sb.AppendLine("  console.log('[Map] POI selected: ' + poiId);");
         sb.AppendLine("  window.location.href = 'poi://' + poiId;");
         sb.AppendLine("}");
 

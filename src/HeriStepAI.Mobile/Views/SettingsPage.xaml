@@ -58,7 +58,8 @@
                             <Picker Grid.Column="2"
                                     ItemsSource="{Binding AvailableLanguages}"
                                     SelectedItem="{Binding SelectedLanguage}"
-                                    WidthRequest="90" />
+                                    HorizontalOptions="End"
+                                    MinimumWidthRequest="90" />
                         </Grid>
 
                         <BoxView Grid.Row="1"
@@ -93,7 +94,8 @@
                         <Picker Grid.Column="2"
                                 ItemsSource="{Binding AvailableVoiceGenders}"
                                 SelectedItem="{Binding SelectedVoiceGender}"
-                                WidthRequest="80" />
+                                HorizontalOptions="End"
+                                MinimumWidthRequest="90" />
                     </Grid>
                 </Frame>
 
@@ -202,8 +204,9 @@
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="{StaticResource White}"
                         FontSize="14"
-                        CornerRadius="22"
-                        HeightRequest="42"
+                        FontAttributes="Bold"
+                        CornerRadius="24"
+                        HeightRequest="46"
                         Margin="0,12,0,0" />
                 
             </VerticalStackLayout>

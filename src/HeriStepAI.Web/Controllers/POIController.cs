@@ -63,77 +63,140 @@ public class POIController : Controller
     // GET: POI/Create
     public IActionResult Create()
     {
-        return View(new POIViewModel());
+        return View(new CreatePOIWithOwnerViewModel());
     }
 
     // POST: POI/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(POIViewModel model, IFormFile? ImageFile)
+    public async Task<IActionResult> Create(CreatePOIWithOwnerViewModel model, IFormFile? ImageFile)
     {
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
-        // Upload image to Supabase Storage if file provided
-        if (ImageFile != null && ImageFile.Length > 0)
+        var client = CreateAuthenticatedClient();
+
+        try
         {
-            using var stream = ImageFile.OpenReadStream();
-            var imageUrl = await _storageService.UploadImageAsync(stream, ImageFile.FileName, ImageFile.ContentType);
-            if (imageUrl != null)
+            // Step 1: Create ShopOwner account
+            Console.WriteLine($"[POIController] Creating ShopOwner account: {model.OwnerUsername}");
+
+            var registerRequest = new
             {
-                model.ImageUrl = imageUrl;
-            }
-            else
+                Username = model.OwnerUsername,
+                Email = model.OwnerEmail,
+                Password = model.OwnerPassword,
+                Role = 2 // ShopOwner
+            };
+
+            var registerJson = JsonSerializer.Serialize(registerRequest);
+            var registerContent = new StringContent(registerJson, Encoding.UTF8, "application/json");
+            var registerResponse = await client.PostAsync("auth/register", registerContent);
+
+            if (!registerResponse.IsSuccessStatusCode)
             {
-                TempData["Error"] = "Lỗi khi upload hình ảnh. Vui lòng thử lại.";
+                var errorContent = await registerResponse.Content.ReadAsStringAsync();
+                Console.WriteLine($"[POIController] Error creating owner account: {errorContent}");
+                TempData["Error"] = $"Lỗi khi tạo tài khoản chủ quán: {errorContent}";
                 return View(model);
             }
-        }
 
-        // Build Contents list from form inputs
-        model.Contents = new List<POIContentViewModel>();
-
-        if (!string.IsNullOrWhiteSpace(model.TextContent_vi))
-        {
-            model.Contents.Add(new POIContentViewModel
+            var userResult = await registerResponse.Content.ReadAsStringAsync();
+            var userResponse = JsonSerializer.Deserialize<JsonElement>(userResult, new JsonSerializerOptions
             {
-                Language = "vi",
-                TextContent = model.TextContent_vi,
-                ContentType = 1 // TTS
+                PropertyNameCaseInsensitive = true
             });
-        }
+            var ownerId = userResponse.GetProperty("userId").GetInt32();
 
-        if (!string.IsNullOrWhiteSpace(model.TextContent_en))
-        {
-            model.Contents.Add(new POIContentViewModel
+            Console.WriteLine($"[POIController] Owner account created successfully. OwnerId: {ownerId}");
+
+            // Step 2: Upload image if provided
+            if (ImageFile != null && ImageFile.Length > 0)
             {
-                Language = "en",
-                TextContent = model.TextContent_en,
-                ContentType = 1 // TTS
-            });
+                using var stream = ImageFile.OpenReadStream();
+                var imageUrl = await _storageService.UploadImageAsync(stream, ImageFile.FileName, ImageFile.ContentType);
+                if (imageUrl != null)
+                {
+                    model.ImageUrl = imageUrl;
+                }
+                else
+                {
+                    TempData["Error"] = "Lỗi khi upload hình ảnh. Vui lòng thử lại.";
+                    return View(model);
+                }
+            }
+
+            // Step 3: Build Contents list
+            var contents = new List<POIContentViewModel>();
+
+            if (!string.IsNullOrWhiteSpace(model.TextContent_vi))
+            {
+                contents.Add(new POIContentViewModel
+                {
+                    Language = "vi",
+                    TextContent = model.TextContent_vi,
+                    ContentType = 1 // TTS
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.TextContent_en))
+            {
+                contents.Add(new POIContentViewModel
+                {
+                    Language = "en",
+                    TextContent = model.TextContent_en,
+                    ContentType = 1 // TTS
+                });
+            }
+
+            // Step 4: Create POI with OwnerId
+            var poiData = new POIViewModel
+            {
+                Name = model.Name,
+                Description = model.Description,
+                Latitude = model.Latitude,
+                Longitude = model.Longitude,
+                Address = model.Address,
+                Radius = model.Radius,
+                Priority = model.Priority,
+                OwnerId = ownerId, // Link to owner account
+                ImageUrl = model.ImageUrl,
+                MapLink = model.MapLink,
+                IsActive = model.IsActive,
+                Category = model.Category,
+                TourId = model.TourId,
+                EstimatedMinutes = model.EstimatedMinutes,
+                FoodType = model.FoodType,
+                PriceMin = model.PriceMin,
+                PriceMax = model.PriceMax,
+                Contents = contents
+            };
+
+            var poiJson = JsonSerializer.Serialize(poiData);
+            Console.WriteLine($"[POIController] Creating POI: {model.Name} with OwnerId: {ownerId}");
+
+            var poiContent = new StringContent(poiJson, Encoding.UTF8, "application/json");
+            var poiResponse = await client.PostAsync("poi", poiContent);
+
+            if (poiResponse.IsSuccessStatusCode)
+            {
+                TempData["Success"] = $"✅ Tạo POI thành công! Tài khoản chủ quán: {model.OwnerUsername} ({model.OwnerEmail})";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var poiError = await poiResponse.Content.ReadAsStringAsync();
+            Console.WriteLine($"[POIController] Error creating POI: {poiError}");
+            TempData["Error"] = $"Tạo tài khoản thành công nhưng lỗi khi tạo POI: {poiError}";
+            return View(model);
         }
-
-        var client = CreateAuthenticatedClient();
-        var json = JsonSerializer.Serialize(model);
-
-        Console.WriteLine($"[POIController] Creating POI: {model.Name}");
-        Console.WriteLine($"[POIController] ImageUrl: {model.ImageUrl}");
-
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-        var response = await client.PostAsync("poi", content);
-
-        if (response.IsSuccessStatusCode)
+        catch (Exception ex)
         {
-            TempData["Success"] = "Tạo POI thành công!";
-            return RedirectToAction(nameof(Index));
+            Console.WriteLine($"[POIController] Exception: {ex.Message}");
+            TempData["Error"] = $"Lỗi: {ex.Message}";
+            return View(model);
         }
-
-        var errorContent = await response.Content.ReadAsStringAsync();
-        Console.WriteLine($"[POIController] Error: {errorContent}");
-        TempData["Error"] = $"Lỗi khi tạo POI: {errorContent}";
-        return View(model);
     }
 
     // GET: POI/Edit/5

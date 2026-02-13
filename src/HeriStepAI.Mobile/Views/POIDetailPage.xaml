@@ -10,19 +10,19 @@
     <Grid RowDefinitions="Auto,*,Auto">
 
         <!-- Header with POI Image -->
-        <Grid Grid.Row="0" HeightRequest="190">
+        <Grid Grid.Row="0" x:Name="HeaderGrid">
             <Image Source="{Binding SelectedPoi.ImageUrl}"
                    Aspect="AspectFill" />
             <BoxView Color="{StaticResource Black}" Opacity="0.4" />
 
             <!-- Header Overlay -->
-            <Grid RowDefinitions="Auto,*" Padding="16,44,16,14">
+            <Grid RowDefinitions="Auto,*" x:Name="HeaderOverlay">
                 <!-- Back Button -->
                 <Frame Grid.Row="0"
                        BackgroundColor="{StaticResource White}"
                        CornerRadius="16"
-                       WidthRequest="32"
-                       HeightRequest="32"
+                       WidthRequest="44"
+                       HeightRequest="44"
                        Padding="0"
                        HasShadow="False"
                        HorizontalOptions="Start">
@@ -30,7 +30,7 @@
                         <TapGestureRecognizer Command="{Binding GoBackCommand}" />
                     </Frame.GestureRecognizers>
                     <Label Text="←"
-                           FontSize="16"
+                           FontSize="18"
                            HorizontalOptions="Center"
                            VerticalOptions="Center" />
                 </Frame>
@@ -66,7 +66,7 @@
 
         <!-- Content -->
         <ScrollView Grid.Row="1">
-            <VerticalStackLayout Padding="14,14,14,70" Spacing="10">
+            <VerticalStackLayout x:Name="ContentStack" Spacing="10">
 
                 <!-- Address -->
                 <Frame Style="{StaticResource CardFrame}" Padding="12">
@@ -168,8 +168,8 @@
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="{StaticResource White}"
                         FontSize="12"
-                        CornerRadius="20"
-                        HeightRequest="40"
+                        CornerRadius="22"
+                        HeightRequest="44"
                         Padding="4,0" />
                 <Button Grid.Column="1"
                         Text="🗺️ Chỉ đường"
@@ -179,8 +179,8 @@
                         BorderColor="{StaticResource Primary}"
                         BorderWidth="1.5"
                         FontSize="12"
-                        CornerRadius="20"
-                        HeightRequest="40"
+                        CornerRadius="22"
+                        HeightRequest="44"
                         Padding="4,0" />
             </Grid>
         </Frame>
