@@ -11,28 +11,43 @@ public interface ISupabaseStorageService
 public class SupabaseStorageService : ISupabaseStorageService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _supabaseUrl;
+    private readonly string? _supabaseUrl;
+    private readonly string? _serviceKey;
     private readonly string _bucket;
+    private readonly bool _isConfigured;
 
     public SupabaseStorageService(IConfiguration configuration)
     {
         _httpClient = new HttpClient();
         _supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL")
-            ?? configuration["Supabase:Url"]
-            ?? throw new InvalidOperationException("SUPABASE_URL not configured");
-        var serviceKey = Environment.GetEnvironmentVariable("SUPABASE_SERVICE_ROLE_KEY")
-            ?? configuration["Supabase:ServiceRoleKey"]
-            ?? throw new InvalidOperationException("SUPABASE_SERVICE_ROLE_KEY not configured");
+            ?? configuration["Supabase:Url"];
+        _serviceKey = Environment.GetEnvironmentVariable("SUPABASE_SERVICE_ROLE_KEY")
+            ?? configuration["Supabase:ServiceRoleKey"];
         _bucket = Environment.GetEnvironmentVariable("SUPABASE_BUCKET")
             ?? configuration["Supabase:Bucket"]
             ?? "c-media";
 
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", serviceKey);
-        _httpClient.DefaultRequestHeaders.Add("apikey", serviceKey);
+        _isConfigured = !string.IsNullOrEmpty(_supabaseUrl) && !string.IsNullOrEmpty(_serviceKey);
+
+        if (_isConfigured && _serviceKey != null)
+        {
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _serviceKey);
+            _httpClient.DefaultRequestHeaders.Add("apikey", _serviceKey);
+        }
+        else
+        {
+            Console.WriteLine("[SupabaseStorage] WARNING: Supabase Storage not configured. Image upload will be disabled.");
+        }
     }
 
     public async Task<string?> UploadImageAsync(Stream fileStream, string fileName, string contentType)
     {
+        if (!_isConfigured || string.IsNullOrEmpty(_supabaseUrl))
+        {
+            Console.WriteLine("[SupabaseStorage] Upload skipped: Supabase not configured");
+            return null; // Return null instead of throwing - image upload is optional
+        }
+
         try
         {
             // Generate unique file path: poi-images/{timestamp}_{filename}
@@ -67,6 +82,12 @@ public class SupabaseStorageService : ISupabaseStorageService
 
     public async Task<bool> DeleteImageAsync(string filePath)
     {
+        if (!_isConfigured || string.IsNullOrEmpty(_supabaseUrl))
+        {
+            Console.WriteLine("[SupabaseStorage] Delete skipped: Supabase not configured");
+            return false; // Return false instead of throwing - deletion is optional
+        }
+
         try
         {
             // Extract path from full URL
