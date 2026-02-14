@@ -133,62 +133,54 @@
                 }
             </div>
         </div>
-    </div>
 
-    <!-- Narration Content -->
-    @if (Model.Contents != null && Model.Contents.Any())
-    {
-        <div class="col-12">
-            <div class="card shadow-sm mb-4">
+        <!-- Narration Content -->
+        @if (Model.Contents != null && Model.Contents.Any())
+        {
+            <div class="card shadow-sm">
                 <div class="card-header bg-white py-3 border-bottom">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-translate me-1"></i> Nội dung thuyết minh (@Model.Contents.Count ngôn ngữ)</h6>
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-translate me-1"></i> Nội dung thuyết minh</h6>
                 </div>
                 <div class="card-body p-4">
                     <ul class="nav nav-tabs" id="detailLangTabs" role="tablist">
-                        @{
-                            var langMap = new Dictionary<string, (string flag, string name)>
-                            {
-                                ["vi"] = ("🇻🇳", "Tiếng Việt"),
-                                ["en"] = ("🇬🇧", "English"),
-                                ["ko"] = ("🇰🇷", "한국어"),
-                                ["zh"] = ("🇨🇳", "中文"),
-                                ["ja"] = ("🇯🇵", "日本語"),
-                                ["th"] = ("🇹🇭", "ภาษาไทย"),
-                                ["fr"] = ("🇫🇷", "Français")
-                            };
-                            var isFirst = true;
-                        }
-                        @foreach (var content in Model.Contents)
-                        {
-                            var info = langMap.ContainsKey(content.Language) ? langMap[content.Language] : ("🌐", content.Language);
-                            var infoFlag = info.Item1;
-                            var infoName = info.Item2;
-                            <li class="nav-item">
-                                <a class="nav-link @(isFirst ? "active" : "")" data-bs-toggle="tab" href="#detail-tab-@content.Language">@infoFlag @infoName</a>
-                            </li>
-                            isFirst = false;
-                        }
+                        <li class="nav-item"><a class="nav-link @(Model.Contents.Any(c => c.Language == "vi") ? "active" : "")" data-bs-toggle="tab" href="#detail-tab-vi">🇻🇳 Tiếng Việt</a></li>
+                        <li class="nav-item"><a class="nav-link @(!Model.Contents.Any(c => c.Language == "vi") && Model.Contents.Any(c => c.Language == "en") ? "active" : "")" data-bs-toggle="tab" href="#detail-tab-en">🇬🇧 English</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#detail-tab-ko">🇰🇷 한국어</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#detail-tab-zh">🇨🇳 中文</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#detail-tab-ja">🇯🇵 日本語</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#detail-tab-th">🇹🇭 ภาษาไทย</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#detail-tab-fr">🇫🇷 Français</a></li>
                     </ul>
                     <div class="tab-content pt-3">
-                        @{ isFirst = true; }
-                        @foreach (var content in Model.Contents)
+                        @{
+                            var languages = new[] { "vi", "en", "ko", "zh", "ja", "th", "fr" };
+                            var firstLang = Model.Contents.Select(c => c.Language).FirstOrDefault(l => languages.Contains(l)) ?? "";
+                        }
+                        @foreach (var lang in languages)
                         {
-                            <div class="tab-pane fade @(isFirst ? "show active" : "")" id="detail-tab-@content.Language">
-                                <p style="white-space: pre-wrap;">@content.TextContent</p>
-                                @if (!string.IsNullOrEmpty(content.AudioUrl))
+                            var content = Model.Contents.FirstOrDefault(c => c.Language == lang);
+                            <div class="tab-pane fade @(lang == firstLang ? "show active" : "")" id="detail-tab-@lang">
+                                @if (content != null)
                                 {
-                                    <div class="mt-2">
-                                        <audio controls src="@content.AudioUrl" class="w-100"></audio>
-                                    </div>
+                                    <p style="white-space: pre-wrap;">@content.TextContent</p>
+                                    @if (!string.IsNullOrEmpty(content.AudioUrl))
+                                    {
+                                        <div class="mt-2">
+                                            <audio controls src="@content.AudioUrl" class="w-100"></audio>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <p class="text-muted fst-italic">Chưa có nội dung cho ngôn ngữ này.</p>
                                 }
                             </div>
-                            isFirst = false;
                         }
                     </div>
                 </div>
             </div>
-        </div>
-    }
+        }
+    </div>
 
     <!-- Side Panel -->
     <div class="col-lg-4">
