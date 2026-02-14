@@ -1,4 +1,5 @@
 using SQLite;
+using HeriStepAI.Mobile.Services;
 
 namespace HeriStepAI.Mobile.Models;
 
@@ -43,35 +44,65 @@ public class POI
     public string RatingText => Rating.HasValue ? $"{Rating.Value:F1}" : "N/A";
     
     [Ignore]
-    public string CategoryText => (POICategory)Category switch
+    public string CategoryText
     {
-        POICategory.Sightseeing => "Tham quan",
-        POICategory.Food => "Ẩm thực",
-        POICategory.Accommodation => "Nghỉ dưỡng",
-        POICategory.Shopping => "Mua sắm",
-        POICategory.Entertainment => "Giải trí",
-        POICategory.Historical => "Di tích",
-        POICategory.Nature => "Thiên nhiên",
-        _ => "Tất cả"
-    };
+        get
+        {
+            var loc = GetLocalizationService();
+            return (POICategory)Category switch
+            {
+                POICategory.Sightseeing => loc.GetString("CatSightseeing"),
+                POICategory.Food => loc.GetString("CatFood"),
+                POICategory.Accommodation => loc.GetString("CatAccommodation"),
+                POICategory.Shopping => loc.GetString("CatShopping"),
+                POICategory.Entertainment => loc.GetString("CatEntertainment"),
+                POICategory.Historical => loc.GetString("CatHistorical"),
+                POICategory.Nature => loc.GetString("CatNature"),
+                _ => loc.GetString("CatAll")
+            };
+        }
+    }
+
+    [Ignore]
+    public string FoodTypeText
+    {
+        get
+        {
+            var loc = GetLocalizationService();
+            return this.FoodType switch
+            {
+                1 => loc.GetString("FoodSeafood"),
+                2 => loc.GetString("FoodVegetarian"),
+                3 => loc.GetString("FoodSpecialty"),
+                4 => loc.GetString("FoodStreet"),
+                5 => loc.GetString("FoodGrilled"),
+                6 => loc.GetString("FoodNoodles"),
+                _ => ""
+            };
+        }
+    }
+
+    private static ILocalizationService GetLocalizationService()
+    {
+        try { return IPlatformApplication.Current!.Services.GetRequiredService<ILocalizationService>(); }
+        catch { return new Services.LocalizationService(); }
+    }
     
     [Ignore]
-    public string FoodTypeText => this.FoodType switch
+    public string EstimatedTimeText
     {
-        1 => "Hải sản",
-        2 => "Món chay",
-        3 => "Đặc sản",
-        4 => "Ẩm thực đường phố",
-        5 => "Nướng",
-        6 => "Bún/Phở/Mì",
-        _ => ""
-    };
-    
+        get
+        {
+            var loc = GetLocalizationService();
+            return $"{EstimatedMinutes} {loc.GetString("Minutes")}";
+        }
+    }
+
     [Ignore]
-    public string PriceRangeText => PriceMin > 0 || PriceMax > 0 
-        ? $"{PriceMin:N0} - {PriceMax:N0}đ" 
+    public string PriceRangeText => PriceMin > 0 || PriceMax > 0
+        ? $"{PriceMin:N0} - {PriceMax:N0}đ"
         : "";
-    
+
     [Ignore]
     public List<POIContent> Contents { get; set; } = new();
 }

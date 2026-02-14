@@ -47,7 +47,7 @@
                                VerticalOptions="Center"
                                Margin="0,0,6,0" />
                         <Entry Grid.Column="1"
-                               Placeholder="Tìm kiếm địa điểm..."
+                               Placeholder="{Binding LblSearchPlaces}"
                                Text="{Binding SearchText}"
                                BackgroundColor="Transparent"
                                FontSize="13"
@@ -63,7 +63,7 @@
                     HorizontalScrollBarVisibility="Never"
                     BackgroundColor="{StaticResource White}">
             <HorizontalStackLayout Padding="14,6" Spacing="6">
-                <Button Text="Tất cả"
+                <Button Text="{Binding LblCatAll}"
                         Command="{Binding SelectCategoryCommand}"
                         CommandParameter="0"
                         FontSize="12"
@@ -72,7 +72,7 @@
                         Padding="12,0"
                         BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='0'}"
                         TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='0'}" />
-                <Button Text="Tham quan"
+                <Button Text="{Binding LblCatSightseeing}"
                         Command="{Binding SelectCategoryCommand}"
                         CommandParameter="1"
                         FontSize="12"
@@ -81,7 +81,7 @@
                         Padding="12,0"
                         BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='1'}"
                         TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='1'}" />
-                <Button Text="Ẩm thực"
+                <Button Text="{Binding LblCatFood}"
                         Command="{Binding SelectCategoryCommand}"
                         CommandParameter="2"
                         FontSize="12"
@@ -90,7 +90,7 @@
                         Padding="12,0"
                         BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='2'}"
                         TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='2'}" />
-                <Button Text="Nghỉ dưỡng"
+                <Button Text="{Binding LblCatAccommodation}"
                         Command="{Binding SelectCategoryCommand}"
                         CommandParameter="3"
                         FontSize="12"
@@ -169,7 +169,7 @@
                                             <Label Text="⏱"
                                                    FontSize="10"
                                                    TextColor="{StaticResource Primary}" />
-                                            <Label Text="{Binding EstimatedMinutes, StringFormat='{0} phút'}"
+                                            <Label Text="{Binding EstimatedTimeText}"
                                                    FontSize="11"
                                                    TextColor="{StaticResource TextSecondary}" />
                                         </HorizontalStackLayout>
@@ -197,10 +197,10 @@
                         <Label Text="📍"
                                FontSize="36"
                                HorizontalOptions="Center" />
-                        <Label Text="Không tìm thấy địa điểm"
+                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.LblNoPlacesFound}"
                                Style="{StaticResource TitleLabel}"
                                HorizontalOptions="Center" />
-                        <Label Text="Thử tìm với từ khóa khác hoặc kéo xuống để đồng bộ"
+                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.LblTryDifferentSearch}"
                                Style="{StaticResource BodyLabel}"
                                HorizontalOptions="Center"
                                HorizontalTextAlignment="Center" />

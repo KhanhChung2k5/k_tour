@@ -55,6 +55,12 @@ public partial class MapPageViewModel : ObservableObject
     [ObservableProperty]
     private string testModeCurrentPOIName = "";
 
+    // Localized labels
+    public string LblSearch => _localizationService.GetString("Search");
+    public string LblNearbyPlaces => _localizationService.GetString("NearbyPlaces");
+    public string LblListenNarration => $"🔊 {_localizationService.GetString("ListenNarration")}";
+    public string LblGetDirections => $"🗺️ {_localizationService.GetString("GetDirections")}";
+
     // Event to notify map update
     public event EventHandler? MapNeedsUpdate;
 
@@ -82,6 +88,8 @@ public partial class MapPageViewModel : ObservableObject
         _localizationService = localizationService;
         _simulator = simulator;
         _geofenceService = geofenceService;
+
+        _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
 
         // Subscribe to location changes for geofence checking
         _locationService.LocationChanged += OnLocationChanged;
@@ -115,6 +123,17 @@ public partial class MapPageViewModel : ObservableObject
             {
                 System.Diagnostics.Debug.WriteLine($"Error in MapPageViewModel initialization: {ex.Message}");
             }
+        });
+    }
+
+    private void RefreshTranslations()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            OnPropertyChanged(nameof(LblSearch));
+            OnPropertyChanged(nameof(LblNearbyPlaces));
+            OnPropertyChanged(nameof(LblListenNarration));
+            OnPropertyChanged(nameof(LblGetDirections));
         });
     }
 
@@ -396,10 +415,10 @@ public partial class MapPageViewModel : ObservableObject
 
             // Update UI state
             IsTestMode = true;
-            TestModeButtonText = "🛑 Dừng";
+            TestModeButtonText = "🛑 Stop";
             ShowTestModeStatus = true;
             TestModeTotalPOIs = route.Count;
-            TestModeStatus = $"🧪 Mô phỏng {route.Count} POI...";
+            TestModeStatus = $"🧪 Simulating {route.Count} POI...";
 
             AppLog.Info($"🧪 Test Mode started with {route.Count} POIs, event-driven");
         }

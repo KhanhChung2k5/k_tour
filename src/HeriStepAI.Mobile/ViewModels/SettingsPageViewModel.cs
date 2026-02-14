@@ -21,10 +21,25 @@ public partial class SettingsPageViewModel : ObservableObject
     private bool isLocationEnabled;
 
     [ObservableProperty]
-    private string gpsStatusText = "Đang kiểm tra...";
+    private string gpsStatusText = "";
 
     [ObservableProperty]
     private bool isSyncing = false;
+
+    // Localized labels
+    public string LblSettingsTitle => _localizationService.GetString("SettingsTitle");
+    public string LblSettingsSubtitle => _localizationService.GetString("SettingsSubtitle");
+    public string LblNarration => _localizationService.GetString("Narration");
+    public string LblNarrationLanguage => _localizationService.GetString("NarrationLanguage");
+    public string LblNarrationLanguageHint => _localizationService.GetString("NarrationLanguageHint");
+    public string LblVoiceGender => _localizationService.GetString("VoiceGender");
+    public string LblVoiceGenderHint => _localizationService.GetString("VoiceGenderHint");
+    public string LblLocation => _localizationService.GetString("Location");
+    public string LblGpsStatus => _localizationService.GetString("GpsStatus");
+    public string LblInfo => _localizationService.GetString("Info");
+    public string LblVersion => _localizationService.GetString("Version");
+    public string LblContactSupport => _localizationService.GetString("ContactSupport");
+    public string LblSyncData => _localizationService.GetString("SyncData");
 
     public SettingsPageViewModel(
         IPOIService poiService,
@@ -37,9 +52,36 @@ public partial class SettingsPageViewModel : ObservableObject
         _localizationService = localizationService;
         _voicePreference = voicePreference;
 
+        _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
+
         SelectedLanguage = LanguageCodeToDisplay(_localizationService.CurrentLanguage);
-        SelectedVoiceGender = _voicePreference.VoiceGender == VoiceGender.Male ? "Nam" : "Nữ";
+        SelectedVoiceGender = _voicePreference.VoiceGender == VoiceGender.Male
+            ? _localizationService.GetString("Male")
+            : _localizationService.GetString("Female");
         UpdateGpsStatus();
+    }
+
+    private void RefreshTranslations()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            OnPropertyChanged(nameof(LblSettingsTitle));
+            OnPropertyChanged(nameof(LblSettingsSubtitle));
+            OnPropertyChanged(nameof(LblNarration));
+            OnPropertyChanged(nameof(LblNarrationLanguage));
+            OnPropertyChanged(nameof(LblNarrationLanguageHint));
+            OnPropertyChanged(nameof(LblVoiceGender));
+            OnPropertyChanged(nameof(LblVoiceGenderHint));
+            OnPropertyChanged(nameof(LblLocation));
+            OnPropertyChanged(nameof(LblGpsStatus));
+            OnPropertyChanged(nameof(LblInfo));
+            OnPropertyChanged(nameof(LblVersion));
+            OnPropertyChanged(nameof(LblContactSupport));
+            OnPropertyChanged(nameof(LblSyncData));
+            // Refresh voice gender picker
+            OnPropertyChanged(nameof(AvailableVoiceGenders));
+            UpdateGpsStatus();
+        });
     }
 
     partial void OnSelectedLanguageChanged(string value)
@@ -49,7 +91,8 @@ public partial class SettingsPageViewModel : ObservableObject
 
     partial void OnSelectedVoiceGenderChanged(string value)
     {
-        var gender = value == "Nam" ? VoiceGender.Male : VoiceGender.Female;
+        var maleText = _localizationService.GetString("Male");
+        var gender = value == maleText ? VoiceGender.Male : VoiceGender.Female;
         _voicePreference.SaveVoiceGender(gender);
     }
 
@@ -65,7 +108,11 @@ public partial class SettingsPageViewModel : ObservableObject
     {
         "Tiếng Việt", "English", "한국어", "中文", "日本語", "ภาษาไทย", "Français"
     };
-    public List<string> AvailableVoiceGenders { get; } = new() { "Nam", "Nữ" };
+    public List<string> AvailableVoiceGenders => new()
+    {
+        _localizationService.GetString("Male"),
+        _localizationService.GetString("Female")
+    };
 
     private static readonly Dictionary<string, string> DisplayToCode = new()
     {

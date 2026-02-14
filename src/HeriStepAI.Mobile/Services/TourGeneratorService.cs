@@ -12,6 +12,13 @@ public interface ITourGeneratorService
 /// </summary>
 public class TourGeneratorService : ITourGeneratorService
 {
+    private readonly ILocalizationService _loc;
+
+    public TourGeneratorService(ILocalizationService localizationService)
+    {
+        _loc = localizationService;
+    }
+
     public List<Tour> GenerateSmartTours(List<POI> pois)
     {
         var tours = new List<Tour>();
@@ -67,8 +74,8 @@ public class TourGeneratorService : ITourGeneratorService
             tours.Add(new Tour
             {
                 Id = 100,
-                Name = "⭐ Quán ăn được yêu thích nhất",
-                Description = "Những địa điểm ẩm thực được đánh giá cao nhất bởi du khách",
+                Name = $"⭐ {_loc.GetString("TourTopRated")}",
+                Description = _loc.GetString("TourTopRatedDesc"),
                 ImageUrl = topRatedPOIs.FirstOrDefault()?.ImageUrl,
                 POIs = topRatedPOIs,
                 POICount = topRatedPOIs.Count,
@@ -95,8 +102,8 @@ public class TourGeneratorService : ITourGeneratorService
             tours.Add(new Tour
             {
                 Id = 101,
-                Name = "⚡ Ăn nhanh - Tiết kiệm thời gian",
-                Description = "Những quán ăn phục vụ nhanh, phù hợp cho lịch trình gấp",
+                Name = $"⚡ {_loc.GetString("TourQuickEat")}",
+                Description = _loc.GetString("TourQuickEatDesc"),
                 ImageUrl = quickBitesPOIs.FirstOrDefault()?.ImageUrl,
                 POIs = quickBitesPOIs,
                 POICount = quickBitesPOIs.Count,
@@ -130,8 +137,8 @@ public class TourGeneratorService : ITourGeneratorService
             budgetTours.Add(new Tour
             {
                 Id = 200,
-                Name = "💰 Ăn ngon - Giá rẻ",
-                Description = "Các quán ăn bình dân, giá dưới 50,000đ",
+                Name = $"💰 {_loc.GetString("TourBudget")}",
+                Description = _loc.GetString("TourBudgetDesc"),
                 ImageUrl = budgetPOIs.FirstOrDefault()?.ImageUrl,
                 POIs = budgetPOIs,
                 POICount = budgetPOIs.Count,

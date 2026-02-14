@@ -21,7 +21,7 @@ public partial class MainPageViewModel : ObservableObject
 
     // Location state
     [ObservableProperty]
-    private string currentLocationText = "Đang lấy vị trí...";
+    private string currentLocationText = "";
 
     [ObservableProperty]
     private POI? currentPOI;
@@ -95,6 +95,8 @@ public partial class MainPageViewModel : ObservableObject
             OnPropertyChanged(nameof(LblChooseTour));
             OnPropertyChanged(nameof(LblCreateNewTour));
             OnPropertyChanged(nameof(LblRecentTours));
+            OnPropertyChanged(nameof(LblSettings));
+            OnPropertyChanged(nameof(LblRefresh));
             OnPropertyChanged(nameof(LblLanguageSwitch));
         });
     }
@@ -111,6 +113,8 @@ public partial class MainPageViewModel : ObservableObject
     public string LblChooseTour => _localizationService.GetString("ChooseTour");
     public string LblCreateNewTour => _localizationService.GetString("CreateNewTour");
     public string LblRecentTours => _localizationService.GetString("RecentTours");
+    public string LblSettings => _localizationService.GetString("Settings");
+    public string LblRefresh => _localizationService.GetString("Refresh");
     private static readonly string[] _langCycle = { "vi", "en", "ko", "zh", "ja", "th", "fr" };
     private static readonly Dictionary<string, string> _langLabels = new()
     {
@@ -148,7 +152,7 @@ public partial class MainPageViewModel : ObservableObject
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error in InitializeAsync: {ex.Message}");
-            CurrentLocationText = $"Lỗi: {ex.Message}";
+            CurrentLocationText = $"{_localizationService.GetString("Error")}: {ex.Message}";
             ShowLocationStatus = true;
         }
         finally

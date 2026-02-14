@@ -14,12 +14,37 @@ public partial class POIDetailViewModel : ObservableObject
     [ObservableProperty]
     private POI selectedPoi = new();
 
+    // Localized labels
+    public string LblAddress => _localizationService.GetString("Address");
+    public string LblFoodType => _localizationService.GetString("FoodType");
+    public string LblPrice => _localizationService.GetString("Price");
+    public string LblVisitTime => _localizationService.GetString("VisitTime");
+    public string LblDescription => _localizationService.GetString("Description");
+    public string LblListenNarration => $"🔊 {_localizationService.GetString("ListenNarration")}";
+    public string LblGetDirections => $"🗺️ {_localizationService.GetString("GetDirections")}";
+
     public POIDetailViewModel(
         INarrationService narrationService,
         ILocalizationService localizationService)
     {
         _narrationService = narrationService;
         _localizationService = localizationService;
+
+        _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
+    }
+
+    private void RefreshTranslations()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            OnPropertyChanged(nameof(LblAddress));
+            OnPropertyChanged(nameof(LblFoodType));
+            OnPropertyChanged(nameof(LblPrice));
+            OnPropertyChanged(nameof(LblVisitTime));
+            OnPropertyChanged(nameof(LblDescription));
+            OnPropertyChanged(nameof(LblListenNarration));
+            OnPropertyChanged(nameof(LblGetDirections));
+        });
     }
 
     [RelayCommand]
@@ -48,7 +73,7 @@ public partial class POIDetailViewModel : ObservableObject
             System.Diagnostics.Debug.WriteLine($"Error opening map: {ex.Message}");
             await Shell.Current.DisplayAlert(
                 _localizationService.GetString("Error"),
-                "Không thể mở bản đồ. Vui lòng thử lại.",
+                _localizationService.GetString("CannotOpenMap"),
                 "OK");
         }
     }

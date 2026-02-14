@@ -12,6 +12,7 @@ public partial class POIListViewModel : ObservableObject
     private readonly IPOIService _poiService;
     private readonly INarrationService _narrationService;
     private readonly ILocationService _locationService;
+    private readonly ILocalizationService _localizationService;
     private List<POI> _allPOIs = new();
     private Location? _currentLocation;
 
@@ -33,17 +34,44 @@ public partial class POIListViewModel : ObservableObject
     [ObservableProperty]
     private string selectedLanguage = "vi";
 
+    // Localized labels
+    public string LblSearchPlaces => _localizationService.GetString("SearchPlaces");
+    public string LblCatAll => _localizationService.GetString("CatAll");
+    public string LblCatSightseeing => _localizationService.GetString("CatSightseeing");
+    public string LblCatFood => _localizationService.GetString("CatFood");
+    public string LblCatAccommodation => _localizationService.GetString("CatAccommodation");
+    public string LblNoPlacesFound => _localizationService.GetString("NoPlacesFound");
+    public string LblTryDifferentSearch => _localizationService.GetString("TryDifferentSearch");
+
     public POIListViewModel(
         IPOIService poiService,
         INarrationService narrationService,
-        ILocationService locationService)
+        ILocationService locationService,
+        ILocalizationService localizationService)
     {
         _poiService = poiService;
         _narrationService = narrationService;
         _locationService = locationService;
+        _localizationService = localizationService;
+
+        _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
 
         // Load data on initialization
         Task.Run(async () => await LoadDataAsync());
+    }
+
+    private void RefreshTranslations()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            OnPropertyChanged(nameof(LblSearchPlaces));
+            OnPropertyChanged(nameof(LblCatAll));
+            OnPropertyChanged(nameof(LblCatSightseeing));
+            OnPropertyChanged(nameof(LblCatFood));
+            OnPropertyChanged(nameof(LblCatAccommodation));
+            OnPropertyChanged(nameof(LblNoPlacesFound));
+            OnPropertyChanged(nameof(LblTryDifferentSearch));
+        });
     }
 
     private async Task LoadDataAsync()

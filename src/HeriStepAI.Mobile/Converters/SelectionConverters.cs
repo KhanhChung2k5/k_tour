@@ -150,13 +150,22 @@ public class BoolToColorConverter : IValueConverter
 }
 
 /// <summary>
-/// Converts bool to status text (Bật/Tắt)
+/// Converts bool to localized status text (On/Off)
 /// </summary>
 public class BoolToStatusConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        return value is bool b && b ? "Bật" : "Tắt";
+        var isOn = value is bool b && b;
+        try
+        {
+            var loc = IPlatformApplication.Current!.Services.GetRequiredService<Services.ILocalizationService>();
+            return isOn ? loc.GetString("On") : loc.GetString("Off");
+        }
+        catch
+        {
+            return isOn ? "ON" : "OFF";
+        }
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

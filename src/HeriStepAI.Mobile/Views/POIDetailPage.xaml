@@ -77,7 +77,7 @@
                                FontSize="16"
                                VerticalOptions="Start" />
                         <VerticalStackLayout Grid.Column="1" Spacing="2">
-                            <Label Text="Địa chỉ"
+                            <Label Text="{Binding LblAddress}"
                                    Style="{StaticResource TitleLabel}"
                                    FontSize="13" />
                             <Label Text="{Binding SelectedPoi.Address}"
@@ -93,7 +93,7 @@
                     <Frame Style="{StaticResource CardFrame}" Padding="12">
                         <VerticalStackLayout Spacing="2">
                             <Label Text="🍽️" FontSize="18" HorizontalOptions="Center" />
-                            <Label Text="Loại món"
+                            <Label Text="{Binding LblFoodType}"
                                    Style="{StaticResource CaptionLabel}"
                                    FontSize="10"
                                    HorizontalOptions="Center" />
@@ -109,7 +109,7 @@
                     <Frame Grid.Column="1" Style="{StaticResource CardFrame}" Padding="12">
                         <VerticalStackLayout Spacing="2">
                             <Label Text="💰" FontSize="18" HorizontalOptions="Center" />
-                            <Label Text="Giá"
+                            <Label Text="{Binding LblPrice}"
                                    Style="{StaticResource CaptionLabel}"
                                    FontSize="10"
                                    HorizontalOptions="Center" />
@@ -131,10 +131,10 @@
                                FontSize="16"
                                VerticalOptions="Center" />
                         <VerticalStackLayout Grid.Column="1" Spacing="2">
-                            <Label Text="Thời gian tham quan"
+                            <Label Text="{Binding LblVisitTime}"
                                    Style="{StaticResource TitleLabel}"
                                    FontSize="13" />
-                            <Label Text="{Binding SelectedPoi.EstimatedMinutes, StringFormat='{0} phút'}"
+                            <Label Text="{Binding SelectedPoi.EstimatedTimeText}"
                                    Style="{StaticResource BodyLabel}"
                                    FontSize="12" />
                         </VerticalStackLayout>
@@ -144,7 +144,7 @@
                 <!-- Description -->
                 <Frame Style="{StaticResource CardFrame}" Padding="12">
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Thông tin"
+                        <Label Text="{Binding LblDescription}"
                                Style="{StaticResource TitleLabel}"
                                FontSize="14" />
                         <Label Text="{Binding SelectedPoi.Description}"
@@ -165,7 +165,7 @@
                HasShadow="True">
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                 <Button Grid.Column="0"
-                        Text="🔊 Nghe thuyết minh"
+                        Text="{Binding LblListenNarration}"
                         Command="{Binding PlayNarrationCommand}"
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="{StaticResource White}"
@@ -174,7 +174,7 @@
                         HeightRequest="44"
                         Padding="4,0" />
                 <Button Grid.Column="1"
-                        Text="🗺️ Chỉ đường"
+                        Text="{Binding LblGetDirections}"
                         Command="{Binding NavigateCommand}"
                         BackgroundColor="{StaticResource White}"
                         TextColor="{StaticResource Primary}"

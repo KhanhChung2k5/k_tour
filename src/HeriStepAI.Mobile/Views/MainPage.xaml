@@ -117,7 +117,7 @@
                                 <Label Text="⚙️"
                                        FontSize="16"
                                        HorizontalOptions="Center" />
-                                <Label Text="Cài đặt"
+                                <Label Text="{Binding LblSettings}"
                                        TextColor="{StaticResource TextSecondary}"
                                        FontSize="9"
                                        HorizontalOptions="Center"
@@ -138,7 +138,7 @@
                                 <Label Text="🔄"
                                        FontSize="16"
                                        HorizontalOptions="Center" />
-                                <Label Text="Làm mới"
+                                <Label Text="{Binding LblRefresh}"
                                        TextColor="{StaticResource TextSecondary}"
                                        FontSize="9"
                                        HorizontalOptions="Center"
@@ -253,13 +253,13 @@
                                             <Label Text="⏱"
                                                    TextColor="{StaticResource TextMuted}"
                                                    FontSize="10" />
-                                            <Label Text="{Binding EstimatedMinutes, StringFormat='{0} phút'}"
+                                            <Label Text="{Binding EstimatedTimeText}"
                                                    Style="{StaticResource CaptionLabel}"
                                                    FontSize="11" />
                                             <Label Text="📍"
                                                    TextColor="{StaticResource TextMuted}"
                                                    FontSize="10" />
-                                            <Label Text="{Binding POICount, StringFormat='{0} điểm'}"
+                                            <Label Text="{Binding POICountText}"
                                                    Style="{StaticResource CaptionLabel}"
                                                    FontSize="11" />
                                         </HorizontalStackLayout>

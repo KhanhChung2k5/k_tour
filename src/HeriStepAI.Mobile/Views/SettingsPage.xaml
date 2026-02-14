@@ -9,18 +9,18 @@
 
     <ScrollView>
         <VerticalStackLayout Padding="0" Spacing="0">
-            
+
             <!-- Header -->
             <Frame BackgroundColor="{StaticResource Primary}"
                    CornerRadius="0"
                    x:Name="SettingsHeader"
                    HasShadow="False">
                 <VerticalStackLayout Spacing="2">
-                    <Label Text="Cài đặt"
+                    <Label Text="{Binding LblSettingsTitle}"
                            TextColor="{StaticResource White}"
                            FontSize="20"
                            FontAttributes="Bold" />
-                    <Label Text="Tùy chỉnh ứng dụng của bạn"
+                    <Label Text="{Binding LblSettingsSubtitle}"
                            TextColor="{StaticResource White}"
                            FontSize="12"
                            Opacity="0.9" />
@@ -28,9 +28,9 @@
             </Frame>
 
             <VerticalStackLayout Padding="14,14" Spacing="12">
-                
+
                 <!-- Language Section -->
-                <Label Text="Thuyết minh"
+                <Label Text="{Binding LblNarration}"
                        Style="{StaticResource SectionHeader}" />
 
                 <Frame Style="{StaticResource CardFrame}" Padding="12">
@@ -48,10 +48,10 @@
                                        VerticalOptions="Center" />
                             </Frame>
                             <VerticalStackLayout Grid.Column="1" Margin="10,0" VerticalOptions="Center">
-                                <Label Text="Ngôn ngữ thuyết minh"
+                                <Label Text="{Binding LblNarrationLanguage}"
                                        FontSize="13"
                                        FontAttributes="Bold" />
-                                <Label Text="Chọn ngôn ngữ cho audio"
+                                <Label Text="{Binding LblNarrationLanguageHint}"
                                        Style="{StaticResource CaptionLabel}"
                                        FontSize="11" />
                             </VerticalStackLayout>
@@ -84,10 +84,10 @@
                                    VerticalOptions="Center" />
                         </Frame>
                         <VerticalStackLayout Grid.Column="1" Margin="10,0" VerticalOptions="Center">
-                            <Label Text="Giọng đọc"
+                            <Label Text="{Binding LblVoiceGender}"
                                    FontSize="13"
                                    FontAttributes="Bold" />
-                            <Label Text="Chọn giọng Nam hoặc Nữ"
+                            <Label Text="{Binding LblVoiceGenderHint}"
                                    Style="{StaticResource CaptionLabel}"
                                    FontSize="11" />
                         </VerticalStackLayout>
@@ -100,7 +100,7 @@
                 </Frame>
 
                 <!-- GPS Section -->
-                <Label Text="Vị trí"
+                <Label Text="{Binding LblLocation}"
                        Style="{StaticResource SectionHeader}" />
 
                 <Frame Style="{StaticResource CardFrame}" Padding="12">
@@ -117,7 +117,7 @@
                                    VerticalOptions="Center" />
                         </Frame>
                         <VerticalStackLayout Grid.Column="1" Margin="10,0" VerticalOptions="Center">
-                            <Label Text="Trạng thái GPS"
+                            <Label Text="{Binding LblGpsStatus}"
                                    FontSize="13"
                                    FontAttributes="Bold" />
                             <Label Text="{Binding GpsStatusText}"
@@ -136,9 +136,9 @@
                         </Frame>
                     </Grid>
                 </Frame>
-                
+
                 <!-- About Section -->
-                <Label Text="Thông tin"
+                <Label Text="{Binding LblInfo}"
                        Style="{StaticResource SectionHeader}" />
 
                 <Frame Style="{StaticResource CardFrame}" Padding="12">
@@ -156,7 +156,7 @@
                                        VerticalOptions="Center" />
                             </Frame>
                             <VerticalStackLayout Grid.Column="1" Margin="10,0" VerticalOptions="Center">
-                                <Label Text="Phiên bản"
+                                <Label Text="{Binding LblVersion}"
                                        FontSize="13"
                                        FontAttributes="Bold" />
                                 <Label Text="HeriStepAI Mobile"
@@ -187,7 +187,7 @@
                                        VerticalOptions="Center" />
                             </Frame>
                             <VerticalStackLayout Grid.Column="1" Margin="10,0" VerticalOptions="Center">
-                                <Label Text="Liên hệ hỗ trợ"
+                                <Label Text="{Binding LblContactSupport}"
                                        FontSize="13"
                                        FontAttributes="Bold" />
                                 <Label Text="support@heristepai.com"
@@ -199,7 +199,7 @@
                 </Frame>
 
                 <!-- Sync Button -->
-                <Button Text="Đồng bộ dữ liệu"
+                <Button Text="{Binding LblSyncData}"
                         Command="{Binding SyncDataCommand}"
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="{StaticResource White}"
@@ -208,7 +208,7 @@
                         CornerRadius="24"
                         HeightRequest="46"
                         Margin="0,12,0,0" />
-                
+
             </VerticalStackLayout>
         </VerticalStackLayout>
     </ScrollView>

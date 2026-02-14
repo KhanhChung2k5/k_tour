@@ -56,13 +56,13 @@
                                 Direction="Row">
                         <HorizontalStackLayout Spacing="3" Margin="0,0,12,2">
                             <Label Text="📍" FontSize="11" />
-                            <Label Text="{Binding Tour.POICount, StringFormat='{0} quán'}"
+                            <Label Text="{Binding Tour.ShopCountText}"
                                    TextColor="{StaticResource White}"
                                    FontSize="11" />
                         </HorizontalStackLayout>
                         <HorizontalStackLayout Spacing="3" Margin="0,0,12,2">
                             <Label Text="⏱" FontSize="11" />
-                            <Label Text="{Binding Tour.EstimatedMinutes, StringFormat='{0} phút'}"
+                            <Label Text="{Binding Tour.EstimatedTimeText}"
                                    TextColor="{StaticResource White}"
                                    FontSize="11" />
                         </HorizontalStackLayout>
@@ -81,7 +81,7 @@
         <!-- POI List -->
         <ScrollView Grid.Row="1">
             <VerticalStackLayout x:Name="ContentStack" Spacing="8" Padding="14,10">
-                <Label Text="Danh sách quán ăn"
+                <Label Text="{Binding LblPOIList}"
                        Style="{StaticResource SectionHeader}" />
 
                 <CollectionView ItemsSource="{Binding Tour.POIs}"
@@ -151,7 +151,7 @@
                CornerRadius="0"
                Padding="14,10,14,14"
                HasShadow="True">
-            <Button Text="🗺️ Bắt đầu Tour"
+            <Button Text="{Binding LblStartTour}"
                     Command="{Binding StartTourCommand}"
                     BackgroundColor="{StaticResource Primary}"
                     TextColor="{StaticResource White}"

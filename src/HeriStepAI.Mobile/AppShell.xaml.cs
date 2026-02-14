@@ -1,3 +1,4 @@
+using HeriStepAI.Mobile.Services;
 using HeriStepAI.Mobile.Views;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -5,9 +6,20 @@ namespace HeriStepAI.Mobile;
 
 public partial class AppShell : Shell
 {
+    private readonly ILocalizationService _localizationService;
+
     public AppShell(IServiceProvider serviceProvider)
     {
         InitializeComponent();
+
+        _localizationService = serviceProvider.GetRequiredService<ILocalizationService>();
+
+        // Set initial tab titles
+        UpdateTabTitles();
+
+        // Subscribe to language changes
+        _localizationService.LanguageChanged += (_, _) =>
+            MainThread.BeginInvokeOnMainThread(UpdateTabTitles);
 
         // Tạo trang qua DI - bắt lỗi từng trang để tránh crash
         MainTab.Content = CreatePageSafe(serviceProvider, "MainPage", () => serviceProvider.GetRequiredService<MainPage>());
@@ -18,6 +30,14 @@ public partial class AppShell : Shell
         // Register navigation routes
         Routing.RegisterRoute("TourDetailPage", typeof(TourDetailPage));
         Routing.RegisterRoute("POIDetailPage", typeof(POIDetailPage));
+    }
+
+    private void UpdateTabTitles()
+    {
+        MainTab.Title = _localizationService.GetString("Home");
+        MapTab.Title = _localizationService.GetString("Map");
+        POIListTab.Title = _localizationService.GetString("Places");
+        SettingsTab.Title = _localizationService.GetString("Settings");
     }
 
     static ContentPage CreatePageSafe(IServiceProvider sp, string name, Func<ContentPage> create)

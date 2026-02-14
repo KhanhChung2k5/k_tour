@@ -48,7 +48,7 @@
                                VerticalOptions="Center"
                                Margin="0,0,6,0" />
                         <Entry Grid.Column="1"
-                               Placeholder="Tìm kiếm..."
+                               Placeholder="{Binding LblSearch}"
                                Text="{Binding SearchText}"
                                BackgroundColor="Transparent"
                                FontSize="13"
@@ -220,7 +220,7 @@
                         </HorizontalStackLayout>
                         <HorizontalStackLayout Spacing="3">
                             <Label Text="&#x23F1;" FontSize="11" TextColor="{StaticResource Primary}" />
-                            <Label Text="{Binding SelectedPOI.EstimatedMinutes, StringFormat='{0} phút'}"
+                            <Label Text="{Binding SelectedPOI.EstimatedTimeText}"
                                    FontSize="11"
                                    TextColor="{StaticResource TextSecondary}" />
                         </HorizontalStackLayout>
@@ -235,7 +235,7 @@
                     <!-- Action Buttons -->
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                         <Button Grid.Column="0"
-                                Text="&#x1F50A; Nghe thuyết minh"
+                                Text="{Binding LblListenNarration}"
                                 Command="{Binding PlayNarrationCommand}"
                                 BackgroundColor="{StaticResource Primary}"
                                 TextColor="{StaticResource White}"
@@ -244,7 +244,7 @@
                                 HeightRequest="44"
                                 Padding="4,0" />
                         <Button Grid.Column="1"
-                                Text="&#x1F5FA;&#xFE0F; Chỉ đường"
+                                Text="{Binding LblGetDirections}"
                                 Command="{Binding NavigateCommand}"
                                 BackgroundColor="{StaticResource White}"
                                 TextColor="{StaticResource Primary}"
@@ -279,7 +279,7 @@
                                  VerticalOptions="Center" />
                     </ContentView>
 
-                    <Label Text="Địa điểm gần bạn"
+                    <Label Text="{Binding LblNearbyPlaces}"
                            FontSize="13"
                            FontAttributes="Bold"
                            Margin="0" />

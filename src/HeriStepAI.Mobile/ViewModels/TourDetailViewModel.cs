@@ -9,9 +9,14 @@ namespace HeriStepAI.Mobile.ViewModels;
 public partial class TourDetailViewModel : ObservableObject
 {
     private readonly ITourSelectionService _tourSelectionService;
+    private readonly ILocalizationService _localizationService;
 
     [ObservableProperty]
     private Tour tour = new();
+
+    // Localized labels
+    public string LblPOIList => _localizationService.GetString("POIList");
+    public string LblStartTour => $"🗺️ {_localizationService.GetString("StartTour")}";
 
     public string TotalPriceRange
     {
@@ -30,9 +35,23 @@ public partial class TourDetailViewModel : ObservableObject
         }
     }
 
-    public TourDetailViewModel(ITourSelectionService tourSelectionService)
+    public TourDetailViewModel(
+        ITourSelectionService tourSelectionService,
+        ILocalizationService localizationService)
     {
         _tourSelectionService = tourSelectionService;
+        _localizationService = localizationService;
+
+        _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
+    }
+
+    private void RefreshTranslations()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            OnPropertyChanged(nameof(LblPOIList));
+            OnPropertyChanged(nameof(LblStartTour));
+        });
     }
 
     partial void OnTourChanged(Tour value)
