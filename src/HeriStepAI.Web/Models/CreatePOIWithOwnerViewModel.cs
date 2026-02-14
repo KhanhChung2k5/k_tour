@@ -36,6 +36,11 @@ public class CreatePOIWithOwnerViewModel
     // Content fields
     public string? TextContent_vi { get; set; }
     public string? TextContent_en { get; set; }
+    public string? TextContent_ko { get; set; }
+    public string? TextContent_zh { get; set; }
+    public string? TextContent_ja { get; set; }
+    public string? TextContent_th { get; set; }
+    public string? TextContent_fr { get; set; }
 
     // Owner Account Information
     [Required(ErrorMessage = "Tên đăng nhập chủ quán là bắt buộc")]

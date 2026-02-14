@@ -72,18 +72,36 @@
                     <h6 class="mb-0 fw-bold"><i class="bi bi-translate me-1"></i> Nội dung thuyết minh</h6>
                 </div>
                 <div class="card-body p-4">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold small">
-                                <img src="https://flagcdn.com/w20/vn.png" alt="VI" class="me-1" /> Tiếng Việt
-                            </label>
-                            <textarea class="form-control" name="TextContent_vi" rows="5">@Model.TextContent_vi</textarea>
+                    <ul class="nav nav-tabs" id="langTabs" role="tablist">
+                        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-vi">🇻🇳 Tiếng Việt</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-en">🇬🇧 English</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-ko">🇰🇷 한국어</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-zh">🇨🇳 中文</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-ja">🇯🇵 日本語</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-th">🇹🇭 ภาษาไทย</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-fr">🇫🇷 Français</a></li>
+                    </ul>
+                    <div class="tab-content pt-3">
+                        <div class="tab-pane fade show active" id="tab-vi">
+                            <textarea class="form-control" name="TextContent_vi" rows="5" placeholder="Nội dung thuyết minh tiếng Việt...">@Model.TextContent_vi</textarea>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold small">
-                                <img src="https://flagcdn.com/w20/us.png" alt="EN" class="me-1" /> English
-                            </label>
-                            <textarea class="form-control" name="TextContent_en" rows="5">@Model.TextContent_en</textarea>
+                        <div class="tab-pane fade" id="tab-en">
+                            <textarea class="form-control" name="TextContent_en" rows="5" placeholder="English narration content...">@Model.TextContent_en</textarea>
+                        </div>
+                        <div class="tab-pane fade" id="tab-ko">
+                            <textarea class="form-control" name="TextContent_ko" rows="5" placeholder="한국어 나레이션 내용...">@Model.TextContent_ko</textarea>
+                        </div>
+                        <div class="tab-pane fade" id="tab-zh">
+                            <textarea class="form-control" name="TextContent_zh" rows="5" placeholder="中文解说内容...">@Model.TextContent_zh</textarea>
+                        </div>
+                        <div class="tab-pane fade" id="tab-ja">
+                            <textarea class="form-control" name="TextContent_ja" rows="5" placeholder="日本語ナレーション内容...">@Model.TextContent_ja</textarea>
+                        </div>
+                        <div class="tab-pane fade" id="tab-th">
+                            <textarea class="form-control" name="TextContent_th" rows="5" placeholder="เนื้อหาบรรยายภาษาไทย...">@Model.TextContent_th</textarea>
+                        </div>
+                        <div class="tab-pane fade" id="tab-fr">
+                            <textarea class="form-control" name="TextContent_fr" rows="5" placeholder="Contenu de narration en français...">@Model.TextContent_fr</textarea>
                         </div>
                     </div>
                 </div>

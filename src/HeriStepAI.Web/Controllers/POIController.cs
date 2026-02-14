@@ -133,24 +133,28 @@ public class POIController : Controller
             // Step 3: Build Contents list
             var contents = new List<POIContentViewModel>();
 
-            if (!string.IsNullOrWhiteSpace(model.TextContent_vi))
+            var langFields = new[]
             {
-                contents.Add(new POIContentViewModel
-                {
-                    Language = "vi",
-                    TextContent = model.TextContent_vi,
-                    ContentType = 1 // TTS
-                });
-            }
+                ("vi", model.TextContent_vi),
+                ("en", model.TextContent_en),
+                ("ko", model.TextContent_ko),
+                ("zh", model.TextContent_zh),
+                ("ja", model.TextContent_ja),
+                ("th", model.TextContent_th),
+                ("fr", model.TextContent_fr)
+            };
 
-            if (!string.IsNullOrWhiteSpace(model.TextContent_en))
+            foreach (var (lang, text) in langFields)
             {
-                contents.Add(new POIContentViewModel
+                if (!string.IsNullOrWhiteSpace(text))
                 {
-                    Language = "en",
-                    TextContent = model.TextContent_en,
-                    ContentType = 1 // TTS
-                });
+                    contents.Add(new POIContentViewModel
+                    {
+                        Language = lang,
+                        TextContent = text,
+                        ContentType = 1 // TTS
+                    });
+                }
             }
 
             // Step 4: Create POI with OwnerId
@@ -218,11 +222,13 @@ public class POIController : Controller
             // Extract Contents to form fields
             if (poi != null && poi.Contents != null)
             {
-                var viContent = poi.Contents.FirstOrDefault(c => c.Language == "vi");
-                var enContent = poi.Contents.FirstOrDefault(c => c.Language == "en");
-
-                poi.TextContent_vi = viContent?.TextContent;
-                poi.TextContent_en = enContent?.TextContent;
+                poi.TextContent_vi = poi.Contents.FirstOrDefault(c => c.Language == "vi")?.TextContent;
+                poi.TextContent_en = poi.Contents.FirstOrDefault(c => c.Language == "en")?.TextContent;
+                poi.TextContent_ko = poi.Contents.FirstOrDefault(c => c.Language == "ko")?.TextContent;
+                poi.TextContent_zh = poi.Contents.FirstOrDefault(c => c.Language == "zh")?.TextContent;
+                poi.TextContent_ja = poi.Contents.FirstOrDefault(c => c.Language == "ja")?.TextContent;
+                poi.TextContent_th = poi.Contents.FirstOrDefault(c => c.Language == "th")?.TextContent;
+                poi.TextContent_fr = poi.Contents.FirstOrDefault(c => c.Language == "fr")?.TextContent;
             }
 
             return View(poi);
@@ -256,24 +262,28 @@ public class POIController : Controller
         // Build Contents list from form inputs
         model.Contents = new List<POIContentViewModel>();
 
-        if (!string.IsNullOrWhiteSpace(model.TextContent_vi))
+        var langFields = new[]
         {
-            model.Contents.Add(new POIContentViewModel
-            {
-                Language = "vi",
-                TextContent = model.TextContent_vi,
-                ContentType = 1 // TTS
-            });
-        }
+            ("vi", model.TextContent_vi),
+            ("en", model.TextContent_en),
+            ("ko", model.TextContent_ko),
+            ("zh", model.TextContent_zh),
+            ("ja", model.TextContent_ja),
+            ("th", model.TextContent_th),
+            ("fr", model.TextContent_fr)
+        };
 
-        if (!string.IsNullOrWhiteSpace(model.TextContent_en))
+        foreach (var (lang, text) in langFields)
         {
-            model.Contents.Add(new POIContentViewModel
+            if (!string.IsNullOrWhiteSpace(text))
             {
-                Language = "en",
-                TextContent = model.TextContent_en,
-                ContentType = 1 // TTS
-            });
+                model.Contents.Add(new POIContentViewModel
+                {
+                    Language = lang,
+                    TextContent = text,
+                    ContentType = 1 // TTS
+                });
+            }
         }
 
         var client = CreateAuthenticatedClient();
