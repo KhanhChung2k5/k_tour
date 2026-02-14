@@ -262,12 +262,14 @@
                                             <Label Text="{Binding POICount, StringFormat='{0} điểm'}"
                                                    Style="{StaticResource CaptionLabel}"
                                                    FontSize="11" />
-                                            <Label Text="{Binding PriceRangeText}"
-                                                   Style="{StaticResource CaptionLabel}"
-                                                   FontSize="11"
-                                                   TextColor="{StaticResource Primary}"
-                                                   IsVisible="{Binding PriceRangeText, Converter={StaticResource IsNotEmptyConverter}}" />
                                         </HorizontalStackLayout>
+                                        <Label Text="{Binding PriceRangeText}"
+                                               FontSize="11"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource Primary}"
+                                               LineBreakMode="TailTruncation"
+                                               MaxLines="1"
+                                               IsVisible="{Binding PriceRangeText, Converter={StaticResource IsNotEmptyConverter}}" />
                                     </VerticalStackLayout>
                                 </Grid>
                             </Frame>

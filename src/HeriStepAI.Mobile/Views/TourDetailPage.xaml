@@ -17,7 +17,7 @@
             <BoxView Color="{StaticResource Black}" Opacity="0.4" />
 
             <!-- Header Content -->
-            <Grid RowDefinitions="Auto,*,Auto" x:Name="HeaderContent">
+            <Grid RowDefinitions="Auto,*,Auto" x:Name="HeaderContent" Padding="14,10,14,12">
                 <!-- Back Button -->
                 <Frame Grid.Row="0"
                        BackgroundColor="{StaticResource White}"
@@ -50,34 +50,37 @@
                            LineBreakMode="TailTruncation" />
 
                     <!-- Tour Stats -->
-                    <HorizontalStackLayout Spacing="12" Margin="0,4,0,0">
-                        <HorizontalStackLayout Spacing="3">
+                    <FlexLayout Wrap="Wrap"
+                                AlignItems="Center"
+                                Margin="0,4,0,0"
+                                Direction="Row">
+                        <HorizontalStackLayout Spacing="3" Margin="0,0,12,2">
                             <Label Text="📍" FontSize="11" />
                             <Label Text="{Binding Tour.POICount, StringFormat='{0} quán'}"
                                    TextColor="{StaticResource White}"
                                    FontSize="11" />
                         </HorizontalStackLayout>
-                        <HorizontalStackLayout Spacing="3">
+                        <HorizontalStackLayout Spacing="3" Margin="0,0,12,2">
                             <Label Text="⏱" FontSize="11" />
                             <Label Text="{Binding Tour.EstimatedMinutes, StringFormat='{0} phút'}"
                                    TextColor="{StaticResource White}"
                                    FontSize="11" />
                         </HorizontalStackLayout>
-                        <HorizontalStackLayout Spacing="3">
+                        <HorizontalStackLayout Spacing="3" Margin="0,0,0,2">
                             <Label Text="💰" FontSize="11" />
                             <Label Text="{Binding TotalPriceRange}"
                                    TextColor="{StaticResource White}"
                                    FontSize="11"
                                    FontAttributes="Bold" />
                         </HorizontalStackLayout>
-                    </HorizontalStackLayout>
+                    </FlexLayout>
                 </VerticalStackLayout>
             </Grid>
         </Grid>
 
         <!-- POI List -->
         <ScrollView Grid.Row="1">
-            <VerticalStackLayout x:Name="ContentStack" Spacing="8">
+            <VerticalStackLayout x:Name="ContentStack" Spacing="8" Padding="14,10">
                 <Label Text="Danh sách quán ăn"
                        Style="{StaticResource SectionHeader}" />
 

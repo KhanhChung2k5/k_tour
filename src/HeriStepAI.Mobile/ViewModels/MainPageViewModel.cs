@@ -111,7 +111,13 @@ public partial class MainPageViewModel : ObservableObject
     public string LblChooseTour => _localizationService.GetString("ChooseTour");
     public string LblCreateNewTour => _localizationService.GetString("CreateNewTour");
     public string LblRecentTours => _localizationService.GetString("RecentTours");
-    public string LblLanguageSwitch => _localizationService.IsVietnamese ? "EN" : "VI";
+    private static readonly string[] _langCycle = { "vi", "en", "ko", "zh", "ja", "th", "fr" };
+    private static readonly Dictionary<string, string> _langLabels = new()
+    {
+        ["vi"] = "VI", ["en"] = "EN", ["ko"] = "KO", ["zh"] = "ZH",
+        ["ja"] = "JA", ["th"] = "TH", ["fr"] = "FR",
+    };
+    public string LblLanguageSwitch => _langLabels.GetValueOrDefault(_localizationService.CurrentLanguage, "VI");
 
     private async Task InitializeAsync()
     {
@@ -228,7 +234,10 @@ public partial class MainPageViewModel : ObservableObject
     [RelayCommand]
     private void SwitchLanguage()
     {
-        _localizationService.SetLanguage(_localizationService.IsVietnamese ? "en" : "vi");
+        var current = _localizationService.CurrentLanguage;
+        var idx = Array.IndexOf(_langCycle, current);
+        var next = _langCycle[(idx + 1) % _langCycle.Length];
+        _localizationService.SetLanguage(next);
     }
 
     [RelayCommand]

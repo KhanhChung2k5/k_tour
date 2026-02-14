@@ -1,6 +1,7 @@
 using HeriStepAI.Mobile.Models;
 using HeriStepAI.Mobile.ViewModels;
 using HeriStepAI.Mobile.Helpers;
+using System.Globalization;
 using System.Text;
 
 namespace HeriStepAI.Mobile.Views;
@@ -12,6 +13,8 @@ public partial class MapPage : ContentPage
     public MapPage() : this(GetViewModel()) { }
 
     private bool _mapLoaded;
+    private bool _isBottomSheetExpanded = true;
+    private double _bottomSheetPanStartY;
 
     public MapPage(MapPageViewModel viewModel)
     {
@@ -38,6 +41,9 @@ public partial class MapPage : ContentPage
 
             // Subscribe to geofence triggers for map highlighting
             _viewModel.GeofenceTriggered += OnGeofenceTriggered;
+
+            // Auto-expand bottom sheet when a POI is selected
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         }
         catch (Exception ex)
         {
@@ -70,8 +76,16 @@ public partial class MapPage : ContentPage
                 // Enable remote debugging for troubleshooting
                 Android.Webkit.WebView.SetWebContentsDebuggingEnabled(true);
 
-                // Set custom WebViewClient to prevent external navigation
-                androidWebView.SetWebViewClient(new MapWebViewClient());
+                // Set custom WebViewClient to prevent external navigation and handle poi:// scheme
+                androidWebView.SetWebViewClient(new MapWebViewClient(poiId =>
+                {
+                    if (int.TryParse(poiId, out var id))
+                    {
+                        var poi = _viewModel.POIs.FirstOrDefault(p => p.Id == id);
+                        if (poi != null)
+                            _viewModel.POISelectedCommand.ExecuteAsync(poi);
+                    }
+                }));
 
                 // Set custom WebChromeClient to capture JavaScript console messages
                 androidWebView.SetWebChromeClient(new MapWebChromeClient());
@@ -115,13 +129,25 @@ public partial class MapPage : ContentPage
     /// </summary>
     private class MapWebViewClient : Android.Webkit.WebViewClient
     {
+        private readonly Action<string>? _onPoiSelected;
+
+        public MapWebViewClient(Action<string>? onPoiSelected = null)
+        {
+            _onPoiSelected = onPoiSelected;
+        }
+
         public override bool ShouldOverrideUrlLoading(Android.Webkit.WebView? view, Android.Webkit.IWebResourceRequest? request)
         {
             if (request == null) return false;
             var url = request.Url?.ToString() ?? "";
 
             if (url.StartsWith("poi://"))
-                return false;
+            {
+                var poiId = url.Replace("poi://", "");
+                System.Diagnostics.Debug.WriteLine($"[MapWebViewClient] POI selected: {poiId}");
+                MainThread.BeginInvokeOnMainThread(() => _onPoiSelected?.Invoke(poiId));
+                return true; // Intercept - don't let WebView navigate to poi://
+            }
 
             // Chỉ chặn khi là main-frame (user click link) - CHO PHÉP script, CSS, tile load
             if (request.IsForMainFrame && (url.StartsWith("http://") || url.StartsWith("https://")))
@@ -171,7 +197,7 @@ public partial class MapPage : ContentPage
         {
             try
             {
-                var js = $"if(typeof currentMarker !== 'undefined') {{ currentMarker.setLatLng([{location.Latitude}, {location.Longitude}]); map.panTo([{location.Latitude}, {location.Longitude}], {{animate: true, duration: 0.5}}); }}";
+                var js = $"if(typeof currentMarker !== 'undefined') {{ currentMarker.setLatLng([{C(location.Latitude)}, {C(location.Longitude)}]); map.panTo([{C(location.Latitude)}, {C(location.Longitude)}], {{animate: true, duration: 0.5}}); }}";
                 await MapWebView.EvaluateJavaScriptAsync(js);
             }
             catch (Exception ex)
@@ -196,8 +222,8 @@ public partial class MapPage : ContentPage
                     if(typeof marker{poi.Id} !== 'undefined') {{
                         marker{poi.Id}.openPopup();
                         if(typeof geoCircle !== 'undefined') {{ map.removeLayer(geoCircle); }}
-                        geoCircle = L.circle([{poi.Latitude}, {poi.Longitude}], {{
-                            radius: {poi.Radius},
+                        geoCircle = L.circle([{C(poi.Latitude)}, {C(poi.Longitude)}], {{
+                            radius: {C(poi.Radius)},
                             color: '#4CAF50',
                             fillColor: '#4CAF50',
                             fillOpacity: 0.15,
@@ -211,6 +237,54 @@ public partial class MapPage : ContentPage
                 System.Diagnostics.Debug.WriteLine($"Error highlighting POI: {ex.Message}");
             }
         });
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MapPageViewModel.HasSelectedPOI) && _viewModel.HasSelectedPOI)
+            ExpandBottomSheet();
+    }
+
+    private void OnBottomSheetPanUpdated(object? sender, PanUpdatedEventArgs e)
+    {
+        switch (e.StatusType)
+        {
+            case GestureStatus.Started:
+                _bottomSheetPanStartY = BottomSheet.TranslationY;
+                break;
+            case GestureStatus.Running:
+                var newY = _bottomSheetPanStartY + e.TotalY;
+                BottomSheet.TranslationY = Math.Max(0, newY);
+                break;
+            case GestureStatus.Completed:
+            case GestureStatus.Canceled:
+                if (BottomSheet.TranslationY > BottomSheet.Height * 0.3)
+                    CollapseBottomSheet();
+                else
+                    ExpandBottomSheet();
+                break;
+        }
+    }
+
+    private void OnHandleBarTapped(object? sender, TappedEventArgs e)
+    {
+        if (_isBottomSheetExpanded)
+            CollapseBottomSheet();
+        else
+            ExpandBottomSheet();
+    }
+
+    private async void CollapseBottomSheet()
+    {
+        _isBottomSheetExpanded = false;
+        var target = BottomSheet.Height - 30;
+        await BottomSheet.TranslateTo(0, target, 250, Easing.CubicOut);
+    }
+
+    private async void ExpandBottomSheet()
+    {
+        _isBottomSheetExpanded = true;
+        await BottomSheet.TranslateTo(0, 0, 250, Easing.CubicOut);
     }
 
     private async void LoadMapAsync()
@@ -332,8 +406,9 @@ public partial class MapPage : ContentPage
                 box-shadow: 0 0 15px rgba(33, 150, 243, 0.7);
             }
             .popup-content {
-                padding: 12px;
-                min-width: 220px;
+                padding: 10px;
+                min-width: 160px;
+                max-width: 220px;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
             .popup-title {
@@ -351,10 +426,15 @@ public partial class MapPage : ContentPage
                 gap: 4px;
             }
             .popup-desc {
-                font-size: 13px;
+                font-size: 12px;
                 color: #424242;
-                margin-bottom: 10px;
-                line-height: 1.4;
+                margin-bottom: 8px;
+                line-height: 1.3;
+                max-height: 52px;
+                overflow: hidden;
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
             }
             .popup-meta {
                 display: flex;
@@ -382,11 +462,27 @@ public partial class MapPage : ContentPage
                 transform: scale(0.98);
             }
             .leaflet-popup-content-wrapper {
-                border-radius: 16px;
+                border-radius: 12px;
                 box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            }
+            .leaflet-popup-content {
+                margin: 8px !important;
             }
             .leaflet-popup-tip {
                 background: white;
+            }
+            .leaflet-popup-close-button {
+                width: 28px !important;
+                height: 28px !important;
+                font-size: 22px !important;
+                line-height: 26px !important;
+                right: 6px !important;
+                top: 6px !important;
+                color: #666 !important;
+                background: rgba(255,255,255,0.9) !important;
+                border-radius: 50% !important;
+                text-align: center !important;
+                z-index: 100;
             }
         ");
         sb.AppendLine(@"
@@ -439,8 +535,8 @@ public partial class MapPage : ContentPage
         // Initialize Leaflet map - OSM chính, CartoDB dự phòng
         sb.AppendLine("  console.log('[Map] Starting map initialization...');");
         sb.AppendLine("  console.log('[Map] Leaflet version: ' + (typeof L !== 'undefined' ? L.version : 'NOT LOADED'));");
-        sb.AppendLine($"  console.log('[Map] Center: [{centerLat}, {centerLng}]');");
-        sb.AppendLine($"  var map = L.map('map', {{ zoomControl: false }}).setView([{centerLat}, {centerLng}], 15);");
+        sb.AppendLine($"  console.log('[Map] Center: [{C(centerLat)}, {C(centerLng)}]');");
+        sb.AppendLine($"  var map = L.map('map', {{ zoomControl: false }}).setView([{C(centerLat)}, {C(centerLng)}], 15);");
         sb.AppendLine("  console.log('[Map] ✅ Map object created');");
         sb.AppendLine("  var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM', maxZoom: 19 });");
         sb.AppendLine("  var carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', { attribution: '© CartoDB', maxZoom: 19 });");
@@ -465,7 +561,7 @@ public partial class MapPage : ContentPage
             sb.AppendLine("    iconSize: [20, 20],");
             sb.AppendLine("    iconAnchor: [10, 10]");
             sb.AppendLine("  });");
-            sb.AppendLine($"  var currentMarker = L.marker([{currentLocation.Latitude}, {currentLocation.Longitude}], {{ icon: currentLocationIcon }}).addTo(map);");
+            sb.AppendLine($"  var currentMarker = L.marker([{C(currentLocation.Latitude)}, {C(currentLocation.Longitude)}], {{ icon: currentLocationIcon }}).addTo(map);");
             sb.AppendLine("  currentMarker.bindPopup('<div class=\"popup-content\"><div class=\"popup-title\">📍 Vị trí của bạn</div></div>');");
             sb.AppendLine("  console.log('[Map] ✅ Current location marker added');");
         }
@@ -478,7 +574,7 @@ public partial class MapPage : ContentPage
             sb.AppendLine("    iconSize: [20, 20],");
             sb.AppendLine("    iconAnchor: [10, 10]");
             sb.AppendLine("  });");
-            sb.AppendLine($"  var currentMarker = L.marker([{centerLat}, {centerLng}], {{ icon: currentLocationIcon }}).addTo(map);");
+            sb.AppendLine($"  var currentMarker = L.marker([{C(centerLat)}, {C(centerLng)}], {{ icon: currentLocationIcon }}).addTo(map);");
             sb.AppendLine("  console.log('[Map] ✅ Default location marker added');");
         }
 
@@ -492,10 +588,10 @@ public partial class MapPage : ContentPage
         sb.AppendLine($"  console.log('[Map] Adding {pois.Count} POI markers...');");
         foreach (var poi in pois)
         {
-            // Skip POIs with invalid coordinates
+            // Skip POIs with invalid coordinates (0 indicates unset location)
             if (poi.Latitude == 0 || poi.Longitude == 0)
             {
-                System.Diagnostics.Debug.WriteLine($"[MapPage] ⚠️ Skipping POI #{poi.Id} '{poi.Name}' - invalid coordinates ({poi.Latitude}, {poi.Longitude})");
+                System.Diagnostics.Debug.WriteLine($"[MapPage] ⚠️ Skipping POI #{poi.Id} '{poi.Name}' - invalid coordinates (Lat: {poi.Latitude}, Lng: {poi.Longitude})");
                 continue;
             }
 
@@ -517,13 +613,13 @@ public partial class MapPage : ContentPage
             sb.AppendLine($"    html: '<div class=\"poi-marker-inner\">📍</div>'");
             sb.AppendLine("  });");
 
-            sb.AppendLine($"  var marker{poi.Id} = L.marker([{poi.Latitude}, {poi.Longitude}], {{ icon: poiIcon{poi.Id} }}).addTo(map);");
+            sb.AppendLine($"  var marker{poi.Id} = L.marker([{C(poi.Latitude)}, {C(poi.Longitude)}], {{ icon: poiIcon{poi.Id} }}).addTo(map);");
 
             // Add a subtle geofence radius circle for each POI
             if (poi.Radius > 0)
             {
-                sb.AppendLine($"  L.circle([{poi.Latitude}, {poi.Longitude}], {{");
-                sb.AppendLine($"    radius: {poi.Radius},");
+                sb.AppendLine($"  L.circle([{C(poi.Latitude)}, {C(poi.Longitude)}], {{");
+                sb.AppendLine($"    radius: {C(poi.Radius)},");
                 sb.AppendLine("    color: '#E07B4C',");
                 sb.AppendLine("    fillColor: '#E07B4C',");
                 sb.AppendLine("    fillOpacity: 0.05,");
@@ -547,7 +643,7 @@ public partial class MapPage : ContentPage
                 </div>
             ".Replace("\n", "").Replace("\r", "");
 
-            sb.AppendLine($"  marker{poi.Id}.bindPopup('{popupHtml}');");
+            sb.AppendLine($"  marker{poi.Id}.bindPopup('{popupHtml}', {{maxWidth: 240, autoPanPadding: [20, 20]}});");
         }
         sb.AppendLine("  console.log('[Map] ✅ All POI markers added');");
 
@@ -583,6 +679,9 @@ public partial class MapPage : ContentPage
 
         return sb.ToString();
     }
+
+    /// <summary>Format a double for JavaScript (always uses '.' as decimal separator)</summary>
+    private static string C(double value) => value.ToString(CultureInfo.InvariantCulture);
 
     private static string EscapeJs(string text)
     {

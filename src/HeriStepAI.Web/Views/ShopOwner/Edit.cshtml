@@ -236,8 +236,8 @@
                         var idx = 0;
                         @foreach (var content in contents)
                         {
-                            var langName = content.Language switch { "vi" => "Tiếng Việt", "en" => "English", "zh" => "中文", "ja" => "日本語", "ko" => "한국어", _ => content.Language };
-                            var langFlag = content.Language switch { "vi" => "🇻🇳", "en" => "🇬🇧", "zh" => "🇨🇳", "ja" => "🇯🇵", "ko" => "🇰🇷", _ => "🌐" };
+                            var langName = content.Language switch { "vi" => "Tiếng Việt", "en" => "English", "zh" => "中文", "ja" => "日本語", "ko" => "한국어", "th" => "ภาษาไทย", "fr" => "Français", _ => content.Language };
+                            var langFlag = content.Language switch { "vi" => "🇻🇳", "en" => "🇬🇧", "zh" => "🇨🇳", "ja" => "🇯🇵", "ko" => "🇰🇷", "th" => "🇹🇭", "fr" => "🇫🇷", _ => "🌐" };
                             <div class="content-card p-3 mb-3" data-index="@idx">
                                 <input type="hidden" name="Contents[@idx].Id" value="@content.Id" />
                                 <div class="d-flex align-items-start gap-3">
@@ -251,9 +251,11 @@
                                                 <select name="Contents[@idx].Language" class="form-select form-select-sm">
                                                     <option value="vi" selected="@(content.Language == "vi" ? "selected" : null)">🇻🇳 Tiếng Việt</option>
                                                     <option value="en" selected="@(content.Language == "en" ? "selected" : null)">🇬🇧 English</option>
+                                                    <option value="ko" selected="@(content.Language == "ko" ? "selected" : null)">🇰🇷 한국어</option>
                                                     <option value="zh" selected="@(content.Language == "zh" ? "selected" : null)">🇨🇳 中文</option>
                                                     <option value="ja" selected="@(content.Language == "ja" ? "selected" : null)">🇯🇵 日本語</option>
-                                                    <option value="ko" selected="@(content.Language == "ko" ? "selected" : null)">🇰🇷 한국어</option>
+                                                    <option value="th" selected="@(content.Language == "th" ? "selected" : null)">🇹🇭 ภาษาไทย</option>
+                                                    <option value="fr" selected="@(content.Language == "fr" ? "selected" : null)">🇫🇷 Français</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-3">
@@ -352,9 +354,11 @@
                                     <select name="Contents[${idx}].Language" class="form-select form-select-sm">
                                         <option value="vi">🇻🇳 Tiếng Việt</option>
                                         <option value="en">🇬🇧 English</option>
+                                        <option value="ko">🇰🇷 한국어</option>
                                         <option value="zh">🇨🇳 中文</option>
                                         <option value="ja">🇯🇵 日本語</option>
-                                        <option value="ko">🇰🇷 한국어</option>
+                                        <option value="th">🇹🇭 ภาษาไทย</option>
+                                        <option value="fr">🇫🇷 Français</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">

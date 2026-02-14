@@ -154,55 +154,49 @@ public class NarrationService : INarrationService
             await SpeakTextAsync(textToSpeak, language, ct);
     }
 
+    /// <summary>
+    /// Map language code to TTS locale prefix.
+    /// "zh" maps to "zh" (Android supports zh-CN, zh-TW etc.)
+    /// </summary>
+    private static string GetTtsLanguagePrefix(string language) => language switch
+    {
+        "ko" => "ko",
+        "zh" => "zh",
+        "ja" => "ja",
+        "th" => "th",
+        "fr" => "fr",
+        "en" => "en",
+        _ => "vi",
+    };
+
     private async Task SpeakTextAsync(string text, string language, CancellationToken ct)
     {
         try
         {
             var locales = await TextToSpeech.Default.GetLocalesAsync();
+            var langPrefix = GetTtsLanguagePrefix(language);
+
+            var langLocales = locales.Where(l =>
+                l.Language.StartsWith(langPrefix, StringComparison.OrdinalIgnoreCase)).ToList();
+
             Locale? locale = null;
 
-            if (language == "vi")
+            if (_voicePreference.VoiceGender == VoiceGender.Male)
             {
-                var viLocales = locales.Where(l =>
-                    l.Language.StartsWith("vi", StringComparison.OrdinalIgnoreCase)).ToList();
-
-                if (_voicePreference.VoiceGender == VoiceGender.Male)
-                {
-                    locale = viLocales.FirstOrDefault(l =>
-                        l.Name.Contains("Male", StringComparison.OrdinalIgnoreCase) ||
-                        l.Name.Contains("Nam", StringComparison.OrdinalIgnoreCase) ||
-                        l.Id.Contains("male", StringComparison.OrdinalIgnoreCase));
-                }
-                else
-                {
-                    locale = viLocales.FirstOrDefault(l =>
-                        l.Name.Contains("Female", StringComparison.OrdinalIgnoreCase) ||
-                        l.Name.Contains("Nữ", StringComparison.OrdinalIgnoreCase) ||
-                        l.Id.Contains("female", StringComparison.OrdinalIgnoreCase));
-                }
-
-                locale ??= viLocales.FirstOrDefault();
+                locale = langLocales.FirstOrDefault(l =>
+                    l.Name.Contains("Male", StringComparison.OrdinalIgnoreCase) ||
+                    l.Name.Contains("Nam", StringComparison.OrdinalIgnoreCase) ||
+                    l.Id.Contains("male", StringComparison.OrdinalIgnoreCase));
             }
             else
             {
-                var enLocales = locales.Where(l =>
-                    l.Language.StartsWith("en", StringComparison.OrdinalIgnoreCase)).ToList();
-
-                if (_voicePreference.VoiceGender == VoiceGender.Male)
-                {
-                    locale = enLocales.FirstOrDefault(l =>
-                        l.Name.Contains("Male", StringComparison.OrdinalIgnoreCase) ||
-                        l.Id.Contains("male", StringComparison.OrdinalIgnoreCase));
-                }
-                else
-                {
-                    locale = enLocales.FirstOrDefault(l =>
-                        l.Name.Contains("Female", StringComparison.OrdinalIgnoreCase) ||
-                        l.Id.Contains("female", StringComparison.OrdinalIgnoreCase));
-                }
-
-                locale ??= enLocales.FirstOrDefault();
+                locale = langLocales.FirstOrDefault(l =>
+                    l.Name.Contains("Female", StringComparison.OrdinalIgnoreCase) ||
+                    l.Name.Contains("Nữ", StringComparison.OrdinalIgnoreCase) ||
+                    l.Id.Contains("female", StringComparison.OrdinalIgnoreCase));
             }
+
+            locale ??= langLocales.FirstOrDefault();
 
             if (locale != null)
             {

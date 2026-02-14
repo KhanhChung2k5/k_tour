@@ -37,7 +37,7 @@ public partial class SettingsPageViewModel : ObservableObject
         _localizationService = localizationService;
         _voicePreference = voicePreference;
 
-        SelectedLanguage = _localizationService.IsVietnamese ? "Tiếng Việt" : "English";
+        SelectedLanguage = LanguageCodeToDisplay(_localizationService.CurrentLanguage);
         SelectedVoiceGender = _voicePreference.VoiceGender == VoiceGender.Male ? "Nam" : "Nữ";
         UpdateGpsStatus();
     }
@@ -61,10 +61,35 @@ public partial class SettingsPageViewModel : ObservableObject
             : _localizationService.GetString("LocationOff");
     }
 
-    public List<string> AvailableLanguages { get; } = new() { "Tiếng Việt", "English" };
+    public List<string> AvailableLanguages { get; } = new()
+    {
+        "Tiếng Việt", "English", "한국어", "中文", "日本語", "ภาษาไทย", "Français"
+    };
     public List<string> AvailableVoiceGenders { get; } = new() { "Nam", "Nữ" };
 
-    public string GetLanguageCode() => SelectedLanguage == "English" ? "en" : "vi";
+    private static readonly Dictionary<string, string> DisplayToCode = new()
+    {
+        ["Tiếng Việt"] = "vi",
+        ["English"] = "en",
+        ["한국어"] = "ko",
+        ["中文"] = "zh",
+        ["日本語"] = "ja",
+        ["ภาษาไทย"] = "th",
+        ["Français"] = "fr",
+    };
+
+    public string GetLanguageCode() => DisplayToCode.GetValueOrDefault(SelectedLanguage, "vi");
+
+    private static string LanguageCodeToDisplay(string code) => code switch
+    {
+        "en" => "English",
+        "ko" => "한국어",
+        "zh" => "中文",
+        "ja" => "日本語",
+        "th" => "ภาษาไทย",
+        "fr" => "Français",
+        _ => "Tiếng Việt",
+    };
 
     [RelayCommand]
     private async Task SyncData()

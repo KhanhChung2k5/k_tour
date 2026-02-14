@@ -10,12 +10,15 @@ public class LocalizationService : ILocalizationService
 
     public event EventHandler? LanguageChanged;
 
+    private static readonly HashSet<string> SupportedLanguages = new()
+        { "vi", "en", "ko", "zh", "ja", "th", "fr" };
+
     public LocalizationService()
     {
         try
         {
             var saved = Preferences.Get(PreferenceKey, "vi");
-            if (saved == "vi" || saved == "en")
+            if (SupportedLanguages.Contains(saved))
                 _currentLanguage = saved;
         }
         catch { }
@@ -23,7 +26,7 @@ public class LocalizationService : ILocalizationService
 
     public void SetLanguage(string languageCode)
     {
-        var lang = languageCode == "en" ? "en" : "vi";
+        var lang = SupportedLanguages.Contains(languageCode) ? languageCode : "vi";
         if (_currentLanguage == lang) return;
         _currentLanguage = lang;
         try { Preferences.Set(PreferenceKey, lang); } catch { }
