@@ -4,244 +4,180 @@
     ViewData["Title"] = "Quản lý POI";
 }
 
-<!-- Page Header -->
-<div class="d-flex justify-content-between align-items-start mb-4">
+<div class="page-header">
     <div>
-        <h1 class="page-title">
-            <i class="bi bi-shop me-2" style="color:var(--primary);"></i>Quản lý POI
-        </h1>
-        <p class="page-subtitle">Danh sách cửa hàng & địa điểm du lịch</p>
+        <h1 class="page-title-text">Quản lý POI</h1>
+        <p class="page-subtitle-text">Danh sách cửa hàng &amp; địa điểm du lịch</p>
     </div>
-    <a href="@Url.Action("Create")" class="btn btn-primary" style="border-radius:12px;padding:10px 20px;">
-        <i class="bi bi-plus-circle me-2"></i>Thêm POI mới
+    <a href="@Url.Action("Create")" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Thêm POI mới
     </a>
 </div>
 
-<!-- Alerts -->
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+        <i class="bi bi-check-circle-fill"></i>
+        <span>@TempData["Success"]</span>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 @if (TempData["Error"] != null)
 {
     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span>@TempData["Error"]</span>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 
-<!-- POI Table Card -->
-<div class="card" style="overflow:hidden;border-radius:16px;">
-    <!-- Card Header -->
-    <div class="card-header bg-white border-bottom" style="padding:20px 24px;">
-        <div class="d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold" style="font-size:1rem;color:#111827;">
-                <i class="bi bi-list-ul me-2" style="color:var(--primary);"></i>Danh sách POI
-            </h6>
-            <div class="d-flex align-items-center gap-3">
-                <div class="d-flex align-items-center gap-2" style="font-size:0.875rem;color:#6b7280;">
-                    <span class="d-flex align-items-center gap-1">
-                        <span style="width:8px;height:8px;border-radius:50%;background:#10b981;"></span>
-                        <span>@Model.Count(p => p.IsActive) hoạt động</span>
-                    </span>
-                    <span class="d-flex align-items-center gap-1">
-                        <span style="width:8px;height:8px;border-radius:50%;background:#9ca3af;"></span>
-                        <span>@Model.Count(p => !p.IsActive) tạm dừng</span>
-                    </span>
-                </div>
-                <span class="badge rounded-pill" style="background:#667eea;color:#fff;padding:6px 14px;font-weight:600;">
-                    @Model.Count
+<div class="table-card">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between" style="padding:16px 20px;border-bottom:1px solid #e2e8f0;">
+        <span style="font-size:0.938rem;font-weight:600;color:#1e293b;">
+            <i class="bi bi-list-ul me-2" style="color:#4f46e5;"></i>Danh sách POI
+        </span>
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3" style="font-size:0.813rem;color:#64748b;">
+                <span class="d-flex align-items-center gap-1">
+                    <span class="dot-active"></span>@Model.Count(p => p.IsActive) hoạt động
+                </span>
+                <span class="d-flex align-items-center gap-1">
+                    <span class="dot-inactive"></span>@Model.Count(p => !p.IsActive) tạm dừng
                 </span>
             </div>
+            <span class="badge" style="background:#4f46e5;color:#fff;padding:4px 12px;border-radius:20px;">
+                @Model.Count tổng
+            </span>
         </div>
     </div>
 
     @if (Model.Any())
     {
-        <!-- Table -->
         <div class="table-responsive">
-            <table class="table mb-0">
+            <table class="table">
                 <thead>
                     <tr>
-                        <th class="ps-4" style="width:60px;">ID</th>
-                        <th style="min-width:320px;">Địa điểm</th>
+                        <th style="width:60px;padding-left:20px;">ID</th>
+                        <th style="min-width:300px;">Địa điểm</th>
                         <th class="text-center" style="width:120px;">Loại</th>
                         <th class="text-center" style="width:120px;">Món ăn</th>
-                        <th class="text-center" style="width:140px;">Giá</th>
-                        <th class="text-center" style="width:100px;">Trạng thái</th>
-                        <th class="text-end pe-4" style="width:180px;">Thao tác</th>
+                        <th class="text-center" style="width:140px;">Giá (đ)</th>
+                        <th class="text-center" style="width:110px;">Trạng thái</th>
+                        <th class="text-end" style="width:130px;padding-right:20px;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var poi in Model)
                     {
                         <tr>
-                            <td class="ps-4">
-                                <span class="text-muted fw-medium" style="font-family:monospace;font-size:0.875rem;">#@poi.Id</span>
+                            <td style="padding-left:20px;">
+                                <code style="font-size:0.813rem;color:#94a3b8;background:#f8fafc;padding:2px 6px;border-radius:4px;">#@poi.Id</code>
                             </td>
                             <td>
                                 <div class="d-flex align-items-center gap-3">
                                     @if (!string.IsNullOrEmpty(poi.ImageUrl))
                                     {
-                                        <div style="width:40px;height:40px;border-radius:12px;overflow:hidden;flex-shrink:0;">
-                                            <img src="@poi.ImageUrl" alt="@poi.Name"
-                                                 style="width:100%;height:100%;object-fit:cover;" />
-                                        </div>
+                                        <img src="@poi.ImageUrl" alt="@poi.Name"
+                                             style="width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #e2e8f0;" />
                                     }
                                     else
                                     {
-                                        <div class="d-flex align-items-center justify-content-center flex-shrink-0"
-                                             style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg, rgba(102,126,234,0.1), rgba(102,126,234,0.05));">
-                                            <span style="font-size:1rem;font-weight:700;color:var(--primary);">
-                                                @poi.Name.Substring(0, 1).ToUpper()
-                                            </span>
-                                        </div>
+                                        <div class="poi-avatar">@poi.Name.Substring(0, 1).ToUpper()</div>
                                     }
-                                    <div class="min-w-0">
-                                        <div class="fw-semibold text-truncate" style="max-width:260px;font-size:0.938rem;color:#111827;">
+                                    <div style="min-width:0;">
+                                        <div style="font-weight:600;font-size:0.875rem;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;">
                                             @poi.Name
                                         </div>
-                                        <div class="text-muted text-truncate d-flex align-items-center gap-1"
-                                             style="max-width:260px;font-size:0.813rem;">
-                                            <i class="bi bi-geo-alt" style="font-size:0.75rem;"></i>
-                                            @(poi.Address ?? "N/A")
+                                        <div style="font-size:0.75rem;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;">
+                                            <i class="bi bi-geo-alt"></i> @(poi.Address ?? "Chưa có địa chỉ")
                                         </div>
                                     </div>
                                 </div>
                             </td>
                             <td class="text-center">
-                                <span class="badge"
-                                      style="background:rgba(102,126,234,0.1);color:#667eea;border:1px solid rgba(102,126,234,0.3);border-radius:8px;font-size:0.75rem;font-weight:500;padding:4px 10px;">
-                                    @poi.CategoryName
-                                </span>
+                                <span class="badge-soft-primary">@poi.CategoryName</span>
                             </td>
                             <td class="text-center">
-                                @if (poi.Category == 2)
+                                @if (poi.Category == 2 && !string.IsNullOrEmpty(poi.FoodTypeName))
                                 {
-                                    var foodColors = new Dictionary<int, string>
-                                    {
-                                        { 1, "background:rgba(59,130,246,0.1);color:#3b82f6;" },    // Hải sản - Blue
-                                        { 2, "background:rgba(16,185,129,0.1);color:#10b981;" },   // Món chay - Green
-                                        { 3, "background:rgba(245,158,11,0.1);color:#f59e0b;" },   // Đặc sản - Amber
-                                        { 4, "background:rgba(245,158,11,0.1);color:#f59e0b;" },   // Đường phố - Amber
-                                        { 5, "background:rgba(239,68,68,0.1);color:#ef4444;" },    // Nướng - Red
-                                        { 6, "background:rgba(59,130,246,0.1);color:#3b82f6;" }    // Bún/Phở/Mì - Blue
-                                    };
-                                    var style = foodColors.ContainsKey(poi.FoodType) ? foodColors[poi.FoodType] : "background:rgba(107,114,128,0.1);color:#6b7280;";
-                                    <span class="badge" style="@style;border-radius:8px;font-size:0.75rem;font-weight:500;padding:4px 10px;">
-                                        @poi.FoodTypeName
-                                    </span>
+                                    <span class="badge-soft-info">@poi.FoodTypeName</span>
                                 }
                                 else
                                 {
-                                    <span class="text-muted" style="font-size:0.875rem;">—</span>
+                                    <span style="color:#cbd5e1;font-size:0.875rem;">—</span>
                                 }
                             </td>
                             <td class="text-center">
                                 @if (poi.PriceMin > 0 || poi.PriceMax > 0)
                                 {
-                                    <span class="fw-semibold" style="color:#10b981;font-size:0.875rem;">
-                                        @poi.PriceMin.ToString("N0")—@poi.PriceMax.ToString("N0")đ
+                                    <span style="font-size:0.813rem;font-weight:600;color:#10b981;">
+                                        @poi.PriceMin.ToString("N0")–@poi.PriceMax.ToString("N0")
                                     </span>
                                 }
                                 else
                                 {
-                                    <span class="text-muted" style="font-size:0.875rem;">—</span>
+                                    <span style="color:#cbd5e1;font-size:0.875rem;">—</span>
                                 }
                             </td>
                             <td class="text-center">
                                 @if (poi.IsActive)
                                 {
-                                    <span class="badge d-inline-flex align-items-center gap-1"
-                                          style="background:rgba(16,185,129,0.1);color:#10b981;border-radius:8px;font-size:0.75rem;font-weight:500;padding:5px 12px;">
-                                        <span style="width:6px;height:6px;border-radius:50%;background:#10b981;"></span>
-                                        Hoạt động
+                                    <span class="status-pill status-active">
+                                        <span class="dot-active"></span>Hoạt động
                                     </span>
                                 }
                                 else
                                 {
-                                    <span class="badge d-inline-flex align-items-center gap-1"
-                                          style="background:rgba(156,163,175,0.1);color:#6b7280;border-radius:8px;font-size:0.75rem;font-weight:500;padding:5px 12px;">
-                                        <span style="width:6px;height:6px;border-radius:50%;background:#9ca3af;"></span>
-                                        Tạm dừng
+                                    <span class="status-pill status-inactive">
+                                        <span class="dot-inactive"></span>Tạm dừng
                                     </span>
                                 }
                             </td>
-                            <td class="text-end pe-4">
+                            <td class="text-end" style="padding-right:20px;">
                                 <div class="d-inline-flex gap-1">
                                     <a href="@Url.Action("Details", new { id = poi.Id })"
-                                       class="btn btn-sm"
-                                       style="border:none;background:transparent;color:#6b7280;padding:6px 8px;border-radius:8px;"
-                                       onmouseover="this.style.background='#f3f4f6';this.style.color='var(--primary)';"
-                                       onmouseout="this.style.background='transparent';this.style.color='#6b7280';"
-                                       title="Chi tiết">
-                                        <i class="bi bi-eye" style="font-size:1rem;"></i>
+                                       class="tbl-btn" title="Chi tiết">
+                                        <i class="bi bi-eye"></i>
                                     </a>
                                     <a href="@Url.Action("Edit", new { id = poi.Id })"
-                                       class="btn btn-sm"
-                                       style="border:none;background:transparent;color:#6b7280;padding:6px 8px;border-radius:8px;"
-                                       onmouseover="this.style.background='#f3f4f6';this.style.color='#3b82f6';"
-                                       onmouseout="this.style.background='transparent';this.style.color='#6b7280';"
-                                       title="Sửa">
-                                        <i class="bi bi-pencil-square" style="font-size:1rem;"></i>
+                                       class="tbl-btn tbl-btn-edit" title="Sửa">
+                                        <i class="bi bi-pencil"></i>
                                     </a>
                                     <form method="post" action="@Url.Action("ToggleActive", new { id = poi.Id })" class="d-inline">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit"
-                                                class="btn btn-sm"
-                                                style="border:none;background:transparent;color:#6b7280;padding:6px 8px;border-radius:8px;"
-                                                onmouseover="this.style.background='#f3f4f6';this.style.color='@(poi.IsActive ? "#f59e0b" : "#10b981")';"
-                                                onmouseout="this.style.background='transparent';this.style.color='#6b7280';"
+                                        <button type="submit" class="tbl-btn @(poi.IsActive ? "tbl-btn-pause" : "tbl-btn-play")"
                                                 title="@(poi.IsActive ? "Tạm dừng" : "Kích hoạt")">
-                                            <i class="bi bi-@(poi.IsActive ? "pause" : "play")-circle" style="font-size:1rem;"></i>
+                                            <i class="bi bi-@(poi.IsActive ? "pause" : "play")-circle"></i>
                                         </button>
                                     </form>
-                                    <button type="button"
-                                            class="btn btn-sm"
-                                            style="border:none;background:transparent;color:#6b7280;padding:6px 8px;border-radius:8px;"
-                                            onmouseover="this.style.background='#f3f4f6';this.style.color='#ef4444';"
-                                            onmouseout="this.style.background='transparent';this.style.color='#6b7280';"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#deleteModal@(poi.Id)"
-                                            title="Xóa">
-                                        <i class="bi bi-trash" style="font-size:1rem;"></i>
+                                    <button type="button" class="tbl-btn tbl-btn-delete"
+                                            data-bs-toggle="modal" data-bs-target="#del@(poi.Id)" title="Xóa">
+                                        <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
 
                                 <!-- Delete Modal -->
-                                <div class="modal fade" id="deleteModal@(poi.Id)" tabindex="-1">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content" style="border-radius:16px;border:none;">
-                                            <div class="modal-header border-0 pb-2">
-                                                <h6 class="modal-title fw-bold d-flex align-items-center gap-2">
-                                                    <span style="width:40px;height:40px;border-radius:10px;background:rgba(239,68,68,0.1);color:#ef4444;display:flex;align-items:center;justify-content:center;">
-                                                        <i class="bi bi-exclamation-triangle"></i>
-                                                    </span>
-                                                    Xác nhận xóa
-                                                </h6>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body" style="padding:0 24px 24px;">
-                                                <p class="mb-2">Bạn có chắc chắn muốn xóa <strong>@poi.Name</strong>?</p>
-                                                <p class="text-danger mb-0" style="font-size:0.875rem;">
-                                                    <i class="bi bi-info-circle me-1"></i>Hành động này không thể hoàn tác!
+                                <div class="modal fade" id="del@(poi.Id)" tabindex="-1">
+                                    <div class="modal-dialog modal-dialog-centered modal-sm">
+                                        <div class="modal-content" style="border-radius:14px;border:1px solid #e2e8f0;">
+                                            <div class="modal-body p-4 text-center">
+                                                <div style="width:48px;height:48px;border-radius:12px;background:#fef2f2;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                                                    <i class="bi bi-trash" style="color:#ef4444;font-size:1.25rem;"></i>
+                                                </div>
+                                                <h6 style="font-weight:700;margin-bottom:6px;">Xóa POI?</h6>
+                                                <p style="font-size:0.813rem;color:#64748b;margin-bottom:20px;">
+                                                    Xóa <strong>@poi.Name</strong>? Hành động này không thể hoàn tác.
                                                 </p>
-                                            </div>
-                                            <div class="modal-footer border-0 pt-0">
-                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal"
-                                                        style="border-radius:10px;padding:8px 16px;">
-                                                    Hủy
-                                                </button>
-                                                <form method="post" action="@Url.Action("Delete", new { id = poi.Id })" class="d-inline">
-                                                    @Html.AntiForgeryToken()
-                                                    <button type="submit" class="btn"
-                                                            style="background:#ef4444;color:#fff;border:none;border-radius:10px;padding:8px 16px;">
-                                                        <i class="bi bi-trash me-1"></i>Xóa POI
-                                                    </button>
-                                                </form>
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" class="btn btn-sm flex-fill" data-bs-dismiss="modal"
+                                                            style="background:#f1f5f9;color:#475569;border:none;">Hủy</button>
+                                                    <form method="post" action="@Url.Action("Delete", new { id = poi.Id })" class="flex-fill">
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="btn btn-sm w-100"
+                                                                style="background:#ef4444;color:#fff;border:none;">Xóa</button>
+                                                    </form>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -256,14 +192,55 @@
     else
     {
         <div class="text-center py-5">
-            <div style="width:80px;height:80px;border-radius:50%;background:rgba(102,126,234,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
-                <i class="bi bi-shop" style="font-size:2rem;color:var(--primary);"></i>
+            <div style="width:60px;height:60px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                <i class="bi bi-shop" style="font-size:1.5rem;color:#4f46e5;"></i>
             </div>
-            <h6 class="fw-bold mb-2">Chưa có POI nào</h6>
-            <p class="text-muted mb-3" style="font-size:0.875rem;">Hãy thêm địa điểm đầu tiên để bắt đầu</p>
-            <a href="@Url.Action("Create")" class="btn btn-primary" style="border-radius:10px;padding:10px 20px;">
-                <i class="bi bi-plus-circle me-2"></i>Thêm POI mới
+            <p style="font-weight:600;color:#1e293b;margin-bottom:4px;">Chưa có POI nào</p>
+            <p style="font-size:0.813rem;color:#94a3b8;margin-bottom:20px;">Hãy thêm địa điểm đầu tiên để bắt đầu</p>
+            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Thêm POI mới
             </a>
         </div>
     }
 </div>
+
+@section Styles {
+    <style>
+        .poi-avatar {
+            width: 38px; height: 38px;
+            border-radius: 8px;
+            background: #eef2ff;
+            color: #4f46e5;
+            font-weight: 700;
+            font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .dot-active   { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981; }
+        .dot-inactive { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #cbd5e1; }
+
+        .status-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 0.75rem; font-weight: 500;
+            padding: 4px 10px; border-radius: 20px;
+        }
+        .status-active   { background: #f0fdf4; color: #166534; }
+        .status-inactive { background: #f8fafc; color: #64748b; }
+
+        .tbl-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 30px; height: 30px; border-radius: 7px;
+            border: none; background: transparent;
+            color: #94a3b8; font-size: 0.938rem; cursor: pointer;
+            text-decoration: none; transition: all 0.15s;
+        }
+        .tbl-btn:hover          { background: #f1f5f9; color: #4f46e5; }
+        .tbl-btn-edit:hover     { background: #eff6ff; color: #3b82f6; }
+        .tbl-btn-pause:hover    { background: #fffbeb; color: #f59e0b; }
+        .tbl-btn-play:hover     { background: #f0fdf4; color: #10b981; }
+        .tbl-btn-delete:hover   { background: #fef2f2; color: #ef4444; }
+
+        .badge-soft-primary { background: #eef2ff; color: #4f46e5; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500; }
+        .badge-soft-info    { background: #eff6ff; color: #2563eb; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500; }
+    </style>
+}

@@ -4,18 +4,17 @@
     ViewData["Title"] = "Chi tiết POI";
 }
 
-<!-- Page Header -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h4 class="page-title"><i class="bi bi-eye me-2"></i>@Model.Name</h4>
-        <p class="page-subtitle">Chi tiết địa điểm #@Model.Id</p>
+        <h1 class="page-title-text">@Model.Name</h1>
+        <p class="page-subtitle-text">Chi tiết địa điểm #@Model.Id</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-primary btn-sm" style="border-radius:8px;">
-            <i class="bi bi-pencil-square me-1"></i> Chỉnh sửa
+        <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i>Chỉnh sửa
         </a>
-        <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm" style="border-radius:8px;">
-            <i class="bi bi-arrow-left me-1"></i> Quay lại
+        <a href="@Url.Action("Index")" class="btn btn-sm" style="background:#f1f5f9;color:#475569;border:none;">
+            <i class="bi bi-arrow-left me-1"></i>Quay lại
         </a>
     </div>
 </div>
@@ -23,111 +22,123 @@
 <div class="row g-4">
     <!-- Main Info -->
     <div class="col-lg-8">
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-shop me-1"></i> Thông tin chính</h6>
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-shop me-2" style="color:#4f46e5;"></i>Thông tin chính</span>
                 @if (Model.IsActive)
                 {
-                    <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle"></i> Hoạt động</span>
+                    <span class="status-pill status-active"><span class="dot-active"></span>Hoạt động</span>
                 }
                 else
                 {
-                    <span class="badge bg-secondary-subtle text-secondary"><i class="bi bi-x-circle"></i> Vô hiệu</span>
+                    <span class="status-pill status-inactive"><span class="dot-inactive"></span>Tạm dừng</span>
                 }
             </div>
-            <div class="card-body p-4">
+            <div class="card-body">
                 @if (!string.IsNullOrEmpty(Model.ImageUrl))
                 {
-                    <div class="mb-4 text-center">
+                    <div class="mb-4">
                         <img src="@Model.ImageUrl" alt="@Model.Name"
-                             style="max-width:100%;max-height:300px;border-radius:12px;object-fit:cover;"
-                             class="shadow-sm" />
+                             style="width:100%;height:220px;object-fit:cover;border-radius:10px;border:1px solid #e2e8f0;" />
                     </div>
                 }
 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <div class="mb-3">
-                            <small class="text-muted fw-semibold d-block mb-1">Tên</small>
-                            <span class="fw-medium">@Model.Name</span>
+                        <div class="info-field">
+                            <div class="info-label">Tên địa điểm</div>
+                            <div class="info-value">@Model.Name</div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="mb-3">
-                            <small class="text-muted fw-semibold d-block mb-1">Địa chỉ</small>
-                            <span><i class="bi bi-geo-alt text-danger"></i> @(Model.Address ?? "N/A")</span>
+                        <div class="info-field">
+                            <div class="info-label">Địa chỉ</div>
+                            <div class="info-value">
+                                <i class="bi bi-geo-alt" style="color:#ef4444;"></i>
+                                @(Model.Address ?? "Chưa có")
+                            </div>
                         </div>
                     </div>
                     <div class="col-12">
-                        <div class="mb-3">
-                            <small class="text-muted fw-semibold d-block mb-1">Mô tả</small>
-                            <span>@(Model.Description ?? "N/A")</span>
+                        <div class="info-field">
+                            <div class="info-label">Mô tả</div>
+                            <div class="info-value">@(Model.Description ?? "Chưa có mô tả")</div>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="mb-3">
-                            <small class="text-muted fw-semibold d-block mb-1">Tọa độ</small>
-                            <span class="badge bg-light text-dark border">Lat: @Model.Latitude.ToString("F6")</span>
-                            <span class="badge bg-light text-dark border">Lng: @Model.Longitude.ToString("F6")</span>
+                        <div class="info-field">
+                            <div class="info-label">Tọa độ</div>
+                            <div class="info-value d-flex flex-column gap-1">
+                                <code style="font-size:0.75rem;background:#f8fafc;padding:2px 6px;border-radius:4px;">Lat: @Model.Latitude.ToString("F6")</code>
+                                <code style="font-size:0.75rem;background:#f8fafc;padding:2px 6px;border-radius:4px;">Lng: @Model.Longitude.ToString("F6")</code>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="mb-3">
-                            <small class="text-muted fw-semibold d-block mb-1">Loại</small>
-                            <span class="badge bg-primary">@Model.CategoryName</span>
-                            @if (Model.Category == 2)
-                            {
-                                <span class="badge bg-warning text-dark">@Model.FoodTypeName</span>
-                            }
+                        <div class="info-field">
+                            <div class="info-label">Loại</div>
+                            <div class="info-value d-flex flex-wrap gap-1">
+                                <span class="badge-soft-primary">@Model.CategoryName</span>
+                                @if (Model.Category == 2)
+                                {
+                                    <span class="badge-soft-warning">@Model.FoodTypeName</span>
+                                }
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="mb-3">
-                            <small class="text-muted fw-semibold d-block mb-1">Đánh giá</small>
-                            @if (Model.Rating.HasValue)
-                            {
-                                <span><i class="bi bi-star-fill text-warning"></i> @Model.Rating.Value.ToString("F1") <small class="text-muted">(@Model.ReviewCount)</small></span>
-                            }
-                            else
-                            {
-                                <span class="text-muted">Chưa có</span>
-                            }
+                        <div class="info-field">
+                            <div class="info-label">Đánh giá</div>
+                            <div class="info-value">
+                                @if (Model.Rating.HasValue)
+                                {
+                                    <span><i class="bi bi-star-fill" style="color:#f59e0b;"></i> @Model.Rating.Value.ToString("F1") <span style="color:#94a3b8;font-size:0.75rem;">(@Model.ReviewCount đánh giá)</span></span>
+                                }
+                                else
+                                {
+                                    <span style="color:#94a3b8;">Chưa có đánh giá</span>
+                                }
+                            </div>
                         </div>
                     </div>
                     @if (Model.Category == 2 && (Model.PriceMin > 0 || Model.PriceMax > 0))
                     {
                         <div class="col-md-4">
-                            <div class="mb-3">
-                                <small class="text-muted fw-semibold d-block mb-1">Giá</small>
-                                <span class="text-success fw-bold"><i class="bi bi-cash"></i> @Model.PriceMin.ToString("N0") - @Model.PriceMax.ToString("N0") VND</span>
+                            <div class="info-field">
+                                <div class="info-label">Giá</div>
+                                <div class="info-value" style="color:#10b981;font-weight:600;">
+                                    @Model.PriceMin.ToString("N0")–@Model.PriceMax.ToString("N0") VND
+                                </div>
                             </div>
                         </div>
                     }
                     <div class="col-md-4">
-                        <div class="mb-3">
-                            <small class="text-muted fw-semibold d-block mb-1">Thời gian tham quan</small>
-                            <span><i class="bi bi-clock"></i> @Model.EstimatedMinutes phút</span>
+                        <div class="info-field">
+                            <div class="info-label">Thời gian tham quan</div>
+                            <div class="info-value"><i class="bi bi-clock me-1"></i>@Model.EstimatedMinutes phút</div>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="mb-3">
-                            <small class="text-muted fw-semibold d-block mb-1">Ưu tiên</small>
-                            @switch (Model.Priority)
-                            {
-                                case 1: <span class="badge bg-secondary">Thấp</span> break;
-                                case 2: <span class="badge bg-info">Trung bình</span> break;
-                                case 3: <span class="badge bg-danger">Cao</span> break;
-                                default: <span class="badge bg-secondary">@Model.Priority</span> break;
-                            }
+                        <div class="info-field">
+                            <div class="info-label">Ưu tiên</div>
+                            <div class="info-value">
+                                @switch (Model.Priority)
+                                {
+                                    case 1: <span class="badge-soft-secondary">Thấp</span> break;
+                                    case 2: <span class="badge-soft-info">Trung bình</span> break;
+                                    case 3: <span class="badge-soft-danger">Cao</span> break;
+                                    default: <span class="badge-soft-secondary">@Model.Priority</span> break;
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 @if (!string.IsNullOrEmpty(Model.MapLink))
                 {
-                    <div class="mt-2">
-                        <a href="@Model.MapLink" target="_blank" class="btn btn-outline-primary btn-sm" style="border-radius:8px;">
-                            <i class="bi bi-map me-1"></i> Xem trên Google Maps
+                    <div class="mt-3 pt-3" style="border-top:1px solid #f1f5f9;">
+                        <a href="@Model.MapLink" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-map me-1"></i>Xem trên Google Maps
                         </a>
                     </div>
                 }
@@ -137,42 +148,44 @@
         <!-- Narration Content -->
         @if (Model.Contents != null && Model.Contents.Any())
         {
-            <div class="card shadow-sm">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-translate me-1"></i> Nội dung thuyết minh</h6>
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-translate me-2" style="color:#8b5cf6;"></i>Nội dung thuyết minh
                 </div>
-                <div class="card-body p-4">
-                    <ul class="nav nav-tabs" id="detailLangTabs" role="tablist">
-                        <li class="nav-item"><a class="nav-link @(Model.Contents.Any(c => c.Language == "vi") ? "active" : "")" data-bs-toggle="tab" href="#detail-tab-vi">🇻🇳 Tiếng Việt</a></li>
-                        <li class="nav-item"><a class="nav-link @(!Model.Contents.Any(c => c.Language == "vi") && Model.Contents.Any(c => c.Language == "en") ? "active" : "")" data-bs-toggle="tab" href="#detail-tab-en">🇬🇧 English</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#detail-tab-ko">🇰🇷 한국어</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#detail-tab-zh">🇨🇳 中文</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#detail-tab-ja">🇯🇵 日本語</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#detail-tab-th">🇹🇭 ภาษาไทย</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#detail-tab-fr">🇫🇷 Français</a></li>
-                    </ul>
-                    <div class="tab-content pt-3">
-                        @{
-                            var languages = new[] { "vi", "en", "ko", "zh", "ja", "th", "fr" };
-                            var firstLang = Model.Contents.Select(c => c.Language).FirstOrDefault(l => languages.Contains(l)) ?? "";
+                <div class="card-body">
+                    @{
+                        var languages = new[] { "vi", "en", "ko", "zh", "ja", "th", "fr" };
+                        var langLabels = new Dictionary<string, string> {
+                            {"vi","🇻🇳 Việt"}, {"en","🇬🇧 EN"}, {"ko","🇰🇷 KO"},
+                            {"zh","🇨🇳 ZH"}, {"ja","🇯🇵 JA"}, {"th","🇹🇭 TH"}, {"fr","🇫🇷 FR"}
+                        };
+                        var firstLang = Model.Contents.Select(c => c.Language).FirstOrDefault(l => languages.Contains(l)) ?? "vi";
+                    }
+                    <ul class="nav nav-tabs-pill mb-3" role="tablist">
+                        @foreach (var lang in languages)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(lang == firstLang ? "active" : "")"
+                                   data-bs-toggle="tab" href="#dtab-@lang">@langLabels[lang]</a>
+                            </li>
                         }
+                    </ul>
+                    <div class="tab-content">
                         @foreach (var lang in languages)
                         {
                             var content = Model.Contents.FirstOrDefault(c => c.Language == lang);
-                            <div class="tab-pane fade @(lang == firstLang ? "show active" : "")" id="detail-tab-@lang">
+                            <div class="tab-pane fade @(lang == firstLang ? "show active" : "")" id="dtab-@lang">
                                 @if (content != null)
                                 {
-                                    <p style="white-space: pre-wrap;">@content.TextContent</p>
+                                    <p style="white-space:pre-wrap;font-size:0.875rem;color:#374151;line-height:1.7;">@content.TextContent</p>
                                     @if (!string.IsNullOrEmpty(content.AudioUrl))
                                     {
-                                        <div class="mt-2">
-                                            <audio controls src="@content.AudioUrl" class="w-100"></audio>
-                                        </div>
+                                        <audio controls src="@content.AudioUrl" style="width:100%;border-radius:8px;"></audio>
                                     }
                                 }
                                 else
                                 {
-                                    <p class="text-muted fst-italic">Chưa có nội dung cho ngôn ngữ này.</p>
+                                    <p style="color:#94a3b8;font-style:italic;font-size:0.875rem;">Chưa có nội dung cho ngôn ngữ này.</p>
                                 }
                             </div>
                         }
@@ -184,53 +197,54 @@
 
     <!-- Side Panel -->
     <div class="col-lg-4">
-        <!-- Technical -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white py-3 border-bottom">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-gear me-1"></i> Kỹ thuật</h6>
+        <!-- Technical Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-gear me-2" style="color:#64748b;"></i>Thông tin kỹ thuật
             </div>
-            <div class="card-body p-4">
-                <div class="mb-3">
-                    <small class="text-muted fw-semibold d-block">Bán kính geofence</small>
-                    <span>@Model.Radius m</span>
+            <div class="card-body d-flex flex-column gap-3">
+                <div class="info-field">
+                    <div class="info-label">Bán kính geofence</div>
+                    <div class="info-value">@Model.Radius m</div>
                 </div>
-                <div class="mb-3">
-                    <small class="text-muted fw-semibold d-block">Owner ID</small>
-                    <span>@(Model.OwnerId?.ToString() ?? "N/A")</span>
+                <div class="info-field">
+                    <div class="info-label">Owner ID</div>
+                    <div class="info-value">@(Model.OwnerId?.ToString() ?? "—")</div>
                 </div>
-                <div class="mb-3">
-                    <small class="text-muted fw-semibold d-block">Tour ID</small>
-                    <span>@(Model.TourId?.ToString() ?? "N/A")</span>
+                <div class="info-field">
+                    <div class="info-label">Tour ID</div>
+                    <div class="info-value">@(Model.TourId?.ToString() ?? "—")</div>
                 </div>
-                <div class="mb-3">
-                    <small class="text-muted fw-semibold d-block">Ngày tạo</small>
-                    <span><i class="bi bi-calendar-plus"></i> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                <div class="info-field">
+                    <div class="info-label">Ngày tạo</div>
+                    <div class="info-value">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
                 </div>
-                <div class="mb-0">
-                    <small class="text-muted fw-semibold d-block">Cập nhật</small>
-                    <span><i class="bi bi-calendar-check"></i> @Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                <div class="info-field">
+                    <div class="info-label">Cập nhật lần cuối</div>
+                    <div class="info-value">@Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</div>
                 </div>
             </div>
         </div>
 
         <!-- Actions -->
-        <div class="card shadow-sm">
-            <div class="card-header bg-white py-3 border-bottom">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-lightning me-1"></i> Thao tác</h6>
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-lightning-charge me-2" style="color:#f59e0b;"></i>Thao tác
             </div>
-            <div class="card-body d-grid gap-2 p-4">
-                <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-primary" style="border-radius:8px;">
-                    <i class="bi bi-pencil me-1"></i> Chỉnh sửa
+            <div class="card-body d-grid gap-2">
+                <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-primary">
+                    <i class="bi bi-pencil me-1"></i>Chỉnh sửa
                 </a>
                 <form method="post" action="@Url.Action("ToggleActive", new { id = Model.Id })">
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="btn @(Model.IsActive ? "btn-warning" : "btn-success") w-100" style="border-radius:8px;">
+                    <button type="submit" class="btn w-100" style="background:@(Model.IsActive ? "#fffbeb" : "#f0fdf4");color:@(Model.IsActive ? "#92400e" : "#166534");border:1px solid @(Model.IsActive ? "#fde68a" : "#bbf7d0");">
                         <i class="bi bi-toggle-@(Model.IsActive ? "off" : "on") me-1"></i>
                         @(Model.IsActive ? "Tạm dừng" : "Kích hoạt")
                     </button>
                 </form>
-                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" style="border-radius:8px;">
-                    <i class="bi bi-trash me-1"></i> Xóa POI
+                <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#deleteModal"
+                        style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;">
+                    <i class="bi bi-trash me-1"></i>Xóa POI
                 </button>
             </div>
         </div>
@@ -239,25 +253,44 @@
 
 <!-- Delete Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content" style="border-radius:14px;">
-            <div class="modal-header border-0 pb-0">
-                <h6 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle text-danger me-1"></i> Xác nhận xóa</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Bạn có chắc chắn muốn xóa <strong>@Model.Name</strong>?</p>
-                <p class="text-danger small mb-0"><i class="bi bi-exclamation-circle"></i> Hành động này không thể hoàn tác!</p>
-            </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal" style="border-radius:8px;">Hủy</button>
-                <form method="post" action="@Url.Action("Delete", new { id = Model.Id })" class="d-inline">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-danger btn-sm" style="border-radius:8px;">
-                        <i class="bi bi-trash me-1"></i> Xóa vĩnh viễn
-                    </button>
-                </form>
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="border-radius:14px;border:1px solid #e2e8f0;">
+            <div class="modal-body p-4 text-center">
+                <div style="width:48px;height:48px;border-radius:12px;background:#fef2f2;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                    <i class="bi bi-trash" style="color:#ef4444;font-size:1.25rem;"></i>
+                </div>
+                <h6 style="font-weight:700;margin-bottom:6px;">Xóa POI?</h6>
+                <p style="font-size:0.813rem;color:#64748b;margin-bottom:20px;">
+                    Xóa <strong>@Model.Name</strong>? Hành động không thể hoàn tác.
+                </p>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm flex-fill" data-bs-dismiss="modal"
+                            style="background:#f1f5f9;color:#475569;border:none;">Hủy</button>
+                    <form method="post" action="@Url.Action("Delete", new { id = Model.Id })" class="flex-fill">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm w-100"
+                                style="background:#ef4444;color:#fff;border:none;">Xóa vĩnh viễn</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Styles {
+    <style>
+        .info-field { display: flex; flex-direction: column; gap: 3px; }
+        .info-label { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; }
+        .info-value { font-size: 0.875rem; color: #1e293b; }
+        .status-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 0.75rem; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
+        .status-active { background: #f0fdf4; color: #166534; }
+        .status-inactive { background: #f8fafc; color: #64748b; }
+        .dot-active   { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981; }
+        .dot-inactive { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #cbd5e1; }
+        .badge-soft-primary   { background: #eef2ff; color: #4f46e5; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500; }
+        .badge-soft-warning   { background: #fffbeb; color: #92400e; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500; }
+        .badge-soft-info      { background: #eff6ff; color: #2563eb; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500; }
+        .badge-soft-secondary { background: #f1f5f9; color: #475569; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500; }
+        .badge-soft-danger    { background: #fef2f2; color: #dc2626; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500; }
+    </style>
+}

@@ -1,357 +1,442 @@
 @model HeriStepAI.Web.ViewModels.ShopOwnerEditViewModel
 @{
     ViewData["Title"] = "Chỉnh sửa cửa hàng";
+    Layout = null;
     var poi = Model.POI;
     var contents = Model.Contents;
 }
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HeriStepAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        body { background: #f8fafc; margin: 0; color: #1e293b; }
 
-<style>
-    body { background-color: #f0f2f5; }
-    .nav-owner { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    .section-title {
-        font-size: 0.85rem; font-weight: 700; color: #667eea; text-transform: uppercase; letter-spacing: 0.5px;
-        border-bottom: 2px solid #e8ecf4; padding-bottom: 10px; margin-bottom: 20px;
-    }
-    .section-title i { margin-right: 6px; }
-    .card { border-radius: 16px !important; }
-    .content-card {
-        border: 1px solid #e8ecf4; border-radius: 12px; transition: all 0.2s; background: #fff;
-    }
-    .content-card:hover { border-color: #667eea; box-shadow: 0 2px 12px rgba(102,126,234,0.12); }
-    .content-card .card-index {
-        width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2);
-        color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;
-    }
-    .lang-flag { font-size: 1.1rem; }
-    .image-upload-zone {
-        border: 2px dashed #dee2e6; border-radius: 12px; padding: 24px; text-align: center;
-        cursor: pointer; transition: all 0.2s; background: #fafbfc;
-    }
-    .image-upload-zone:hover { border-color: #667eea; background: #f0f2ff; }
-    .image-upload-zone.has-image { border-style: solid; border-color: #667eea; padding: 8px; }
-    .btn-save {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;
-        padding: 12px 32px; border-radius: 12px; font-weight: 600;
-    }
-    .btn-save:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
-    .form-control:focus, .form-select:focus { border-color: #667eea; box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.15); }
-</style>
+        /* Navbar */
+        .so-navbar {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            height: 60px;
+            display: flex; align-items: center;
+            padding: 0 24px;
+            position: sticky; top: 0; z-index: 100;
+            justify-content: space-between;
+        }
+        .so-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .so-brand-icon { width: 32px; height: 32px; border-radius: 8px; background: #4f46e5; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.938rem; }
+        .so-brand-name { font-size: 1rem; font-weight: 700; color: #1e293b; }
+        .so-right { display: flex; align-items: center; gap: 12px; }
+        .so-user { font-size: 0.813rem; color: #64748b; display: flex; align-items: center; gap: 6px; }
+        .btn-logout { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; color: #64748b; font-size: 0.813rem; font-weight: 500; cursor: pointer; transition: all .15s; }
+        .btn-logout:hover { background: #fef2f2; border-color: #fecaca; color: #ef4444; }
 
-<!-- Navbar -->
-<nav class="navbar nav-owner shadow-sm">
-    <div class="container-fluid px-4">
-        <a href="@Url.Action("Dashboard")" class="navbar-brand text-white fw-bold text-decoration-none">
-            <i class="bi bi-shop-window me-1"></i> HeriStepAI
+        /* Content */
+        .so-content { max-width: 1100px; margin: 0 auto; padding: 24px; }
+
+        /* Breadcrumb */
+        .breadcrumb { font-size: 0.813rem; background: none; padding: 0; margin: 0; }
+        .breadcrumb-item a { color: #64748b; text-decoration: none; }
+        .breadcrumb-item a:hover { color: #4f46e5; }
+        .breadcrumb-item.active { color: #1e293b; font-weight: 500; }
+        .breadcrumb-item + .breadcrumb-item::before { color: #cbd5e1; }
+
+        /* Cards */
+        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+        .card-header { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 14px 20px; font-size: 0.875rem; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+        .card-body { padding: 20px; }
+
+        /* Form */
+        .form-label { font-size: 0.813rem; font-weight: 600; color: #374151; margin-bottom: 5px; display: block; }
+        .form-control, .form-select {
+            border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; color: #1e293b;
+            padding: 8px 12px; width: 100%; transition: border-color .15s, box-shadow .15s; background: #fff;
+        }
+        .form-control:focus, .form-select:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.08); outline: none; }
+        textarea.form-control { resize: vertical; min-height: 90px; }
+        .input-group .form-control { border-radius: 8px 0 0 8px; }
+        .input-group-text { border: 1px solid #e2e8f0; border-left: none; border-radius: 0 8px 8px 0; background: #f8fafc; font-size: 0.813rem; color: #64748b; padding: 8px 12px; }
+        .mb-form { margin-bottom: 16px; }
+
+        /* Image upload zone */
+        .upload-zone {
+            border: 2px dashed #e2e8f0; border-radius: 10px; padding: 28px 20px;
+            text-align: center; cursor: pointer; transition: all .2s; background: #fafbfc;
+        }
+        .upload-zone:hover { border-color: #4f46e5; background: #eef2ff; }
+        .upload-zone.has-image { border-style: solid; border-color: #4f46e5; padding: 8px; }
+
+        /* Submit buttons */
+        .btn-save { display: block; width: 100%; padding: 11px; border-radius: 8px; background: #4f46e5; color: #fff; border: none; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background .15s; text-align: center; }
+        .btn-save:hover { background: #4338ca; }
+        .btn-back { display: block; width: 100%; padding: 9px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; color: #475569; font-size: 0.875rem; font-weight: 500; text-decoration: none; text-align: center; transition: all .15s; }
+        .btn-back:hover { background: #f8fafc; border-color: #cbd5e1; color: #1e293b; }
+
+        /* Content cards */
+        .content-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-bottom: 12px; background: #fff; transition: border-color .15s; }
+        .content-card:hover { border-color: #c7d2fe; }
+        .content-num { width: 26px; height: 26px; border-radius: 50%; background: #4f46e5; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
+        .btn-add-content { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; background: #4f46e5; color: #fff; border: none; font-size: 0.813rem; font-weight: 500; cursor: pointer; transition: background .15s; }
+        .btn-add-content:hover { background: #4338ca; }
+        .btn-remove { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 7px; border: 1px solid #fecaca; background: #fef2f2; color: #ef4444; cursor: pointer; transition: all .15s; flex-shrink: 0; }
+        .btn-remove:hover { background: #fee2e2; border-color: #fca5a5; }
+
+        /* Metadata card */
+        .meta-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; }
+        .meta-row { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: #64748b; padding: 3px 0; }
+        .meta-row i { color: #94a3b8; width: 14px; }
+
+        /* Alert */
+        .alert { border-radius: 10px; border: none; font-size: 0.875rem; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: #f0fdf4; color: #166534; }
+        .alert-danger  { background: #fef2f2; color: #991b1b; }
+        .btn-close { background: none; border: none; cursor: pointer; color: inherit; opacity: .6; font-size: 1rem; margin-left: auto; }
+        .btn-close:hover { opacity: 1; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="so-navbar">
+        <a href="@Url.Action("Dashboard")" class="so-brand">
+            <div class="so-brand-icon"><i class="bi bi-geo-alt-fill"></i></div>
+            <span class="so-brand-name">HeriStepAI</span>
         </a>
-        <div class="d-flex align-items-center gap-3">
-            <span class="text-white-50 small d-none d-md-inline">
+        <div class="so-right">
+            <span class="so-user d-none d-md-flex">
                 <i class="bi bi-person-circle"></i> @User.Identity?.Name
             </span>
             <form asp-controller="Auth" asp-action="Logout" method="post" class="mb-0">
-                <button type="submit" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                <button type="submit" class="btn-logout">
+                    <i class="bi bi-box-arrow-right"></i>Đăng xuất
                 </button>
             </form>
         </div>
-    </div>
-</nav>
-
-<div class="container py-4" style="max-width: 1100px;">
-
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="@Url.Action("Dashboard")" class="text-decoration-none"><i class="bi bi-house"></i> Dashboard</a></li>
-            <li class="breadcrumb-item active">Chỉnh sửa</li>
-        </ol>
     </nav>
 
-    <!-- Page title -->
-    <div class="d-flex align-items-center gap-3 mb-4">
-        @if (!string.IsNullOrEmpty(poi.ImageUrl))
-        {
-            <img src="@poi.ImageUrl" alt="" style="width: 48px; height: 48px; object-fit: cover; border-radius: 12px;" class="shadow-sm" />
-        }
-        <div>
-            <h4 class="fw-bold mb-0">@poi.Name</h4>
-            <small class="text-muted">ID: @poi.Id &middot; Cập nhật lần cuối: @poi.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+    <div class="so-content">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" style="margin-bottom: 16px;">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="@Url.Action("Dashboard")"><i class="bi bi-house"></i> Dashboard</a></li>
+                <li class="breadcrumb-item active">Chỉnh sửa</li>
+            </ol>
+        </nav>
+
+        <!-- Page header -->
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;">
+            @if (!string.IsNullOrEmpty(poi.ImageUrl))
+            {
+                <img src="@poi.ImageUrl" alt="" style="width: 48px; height: 48px; object-fit: cover; border-radius: 10px; border: 1px solid #e2e8f0;" />
+            }
+            else
+            {
+                <div style="width: 48px; height: 48px; border-radius: 10px; background: #eef2ff; color: #4f46e5; font-weight: 700; font-size: 1.25rem; display: flex; align-items: center; justify-content: center;">@poi.Name.Substring(0,1).ToUpper()</div>
+            }
+            <div>
+                <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0 0 2px; letter-spacing: -.02em;">@poi.Name</h1>
+                <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Cập nhật lần cuối: @poi.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
         </div>
+
+        <!-- Alerts -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>@TempData["Success"]</span>
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>@TempData["Error"]</span>
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
+            </div>
+        }
+
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="Id" value="@poi.Id" />
+
+            <div class="row g-4">
+                <!-- Left: Basic Info -->
+                <div class="col-lg-7">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="bi bi-info-circle" style="color: #4f46e5;"></i>Thông tin cơ bản
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-form">
+                                <label class="form-label">Tên cửa hàng <span style="color: #ef4444;">*</span></label>
+                                <input type="text" name="Name" value="@poi.Name" class="form-control" required placeholder="Nhập tên cửa hàng" />
+                            </div>
+                            <div class="mb-form">
+                                <label class="form-label">Mô tả</label>
+                                <textarea name="Description" class="form-control" rows="3"
+                                          placeholder="Mô tả về cửa hàng, món ăn đặc trưng, lịch sử...">@poi.Description</textarea>
+                            </div>
+                            <div class="mb-form">
+                                <label class="form-label"><i class="bi bi-geo-alt me-1" style="color: #ef4444;"></i>Địa chỉ</label>
+                                <input type="text" name="Address" value="@poi.Address" class="form-control"
+                                       placeholder="Số nhà, đường, quận, thành phố" />
+                            </div>
+                            <div class="row g-3 mb-form">
+                                <div class="col-md-6">
+                                    <label class="form-label">Loại món ăn</label>
+                                    <select name="FoodType" class="form-select" id="foodTypeSelect">
+                                        <option value="0">Khác</option>
+                                        <option value="1">Hải sản</option>
+                                        <option value="2">Món chay</option>
+                                        <option value="3">Đặc sản Việt Nam</option>
+                                        <option value="4">Ẩm thực đường phố</option>
+                                        <option value="5">Đồ nướng (BBQ)</option>
+                                        <option value="6">Bún, Phở, Mì</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Thời gian tham quan (phút)</label>
+                                    <input type="number" name="EstimatedMinutes" value="@poi.EstimatedMinutes" class="form-control" min="5" max="300" placeholder="30" />
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="form-label">Giá từ (VNĐ)</label>
+                                    <div class="input-group">
+                                        <input type="number" name="PriceMin" value="@poi.PriceMin" class="form-control" min="0" placeholder="0" />
+                                        <span class="input-group-text">đ</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Giá đến (VNĐ)</label>
+                                    <div class="input-group">
+                                        <input type="number" name="PriceMax" value="@poi.PriceMax" class="form-control" min="0" placeholder="0" />
+                                        <span class="input-group-text">đ</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Image + Actions + Metadata -->
+                <div class="col-lg-5">
+                    <!-- Image Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="bi bi-image" style="color: #3b82f6;"></i>Hình ảnh
+                        </div>
+                        <div class="card-body">
+                            <div id="uploadZone" class="upload-zone @(string.IsNullOrEmpty(poi.ImageUrl) ? "" : "has-image")"
+                                 onclick="document.getElementById('imageFileInput').click();">
+                                @if (!string.IsNullOrEmpty(poi.ImageUrl))
+                                {
+                                    <img id="previewImg" src="@poi.ImageUrl" alt="Preview"
+                                         style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px;" />
+                                }
+                                else
+                                {
+                                    <div id="uploadPlaceholder">
+                                        <i class="bi bi-cloud-arrow-up" style="font-size: 2rem; color: #94a3b8;"></i>
+                                        <p style="margin: 8px 0 2px; color: #64748b; font-size: 0.875rem; font-weight: 500;">Click để chọn ảnh</p>
+                                        <p style="margin: 0; font-size: 0.75rem; color: #94a3b8;">JPG, PNG · Tối đa 5MB</p>
+                                    </div>
+                                    <img id="previewImg" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; display: none;" alt="" />
+                                }
+                            </div>
+                            <input type="file" class="d-none" name="ImageFile" id="imageFileInput" accept="image/*" />
+                            <div style="text-align: center; margin-top: 10px;">
+                                <button type="button" class="btn-back" style="width: auto; padding: 5px 14px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.813rem;"
+                                        onclick="document.getElementById('imageFileInput').click();">
+                                    <i class="bi bi-pencil"></i>Đổi ảnh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Save Actions -->
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                        <button type="submit" class="btn-save">
+                            <i class="bi bi-check2 me-1"></i>Lưu thay đổi
+                        </button>
+                        <a href="@Url.Action("Dashboard")" class="btn-back">
+                            <i class="bi bi-arrow-left me-1"></i>Quay lại Dashboard
+                        </a>
+                    </div>
+
+                    <!-- Metadata -->
+                    <div class="meta-card">
+                        <div class="meta-row">
+                            <i class="bi bi-pin-map"></i>
+                            <span>Tọa độ: @poi.Latitude.ToString("F6"), @poi.Longitude.ToString("F6")</span>
+                        </div>
+                        <div class="meta-row">
+                            <i class="bi bi-calendar-plus"></i>
+                            <span>Tạo: @poi.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                        @if (poi.Rating.HasValue)
+                        {
+                            <div class="meta-row">
+                                <i class="bi bi-star-fill" style="color: #f59e0b;"></i>
+                                <span>Rating: @poi.Rating.Value.ToString("F1") (@poi.ReviewCount đánh giá)</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contents Section -->
+            <div class="card" style="margin-top: 4px;">
+                <div class="card-header" style="justify-content: space-between;">
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <i class="bi bi-translate" style="color: #8b5cf6;"></i>Nội dung thuyết minh
+                    </span>
+                    <button type="button" class="btn-add-content" id="btnAddContent">
+                        <i class="bi bi-plus-lg"></i>Thêm ngôn ngữ
+                    </button>
+                </div>
+                <div class="card-body">
+                    <p style="font-size: 0.813rem; color: #64748b; margin: 0 0 16px;">Nội dung dùng cho TTS (Text-to-Speech) trên ứng dụng mobile. Hỗ trợ nhiều ngôn ngữ.</p>
+
+                    <div id="contentsContainer">
+                        @if (contents.Any())
+                        {
+                            var idx = 0;
+                            @foreach (var content in contents)
+                            {
+                                var langName = content.Language switch { "vi" => "Tiếng Việt", "en" => "English", "zh" => "中文", "ja" => "日本語", "ko" => "한국어", "th" => "ภาษาไทย", "fr" => "Français", _ => content.Language };
+                                var langFlag = content.Language switch { "vi" => "🇻🇳", "en" => "🇬🇧", "zh" => "🇨🇳", "ja" => "🇯🇵", "ko" => "🇰🇷", "th" => "🇹🇭", "fr" => "🇫🇷", _ => "🌐" };
+                                <div class="content-card" data-index="@idx">
+                                    <input type="hidden" name="Contents[@idx].Id" value="@content.Id" />
+                                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                                        <div class="content-num mt-1">@(idx + 1)</div>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-md-4">
+                                                    <label class="form-label" style="font-size: 0.75rem;">
+                                                        <span style="margin-right: 4px;">@langFlag</span>Ngôn ngữ
+                                                    </label>
+                                                    <select name="Contents[@idx].Language" class="form-select" style="font-size: 0.813rem;">
+                                                        <option value="vi">🇻🇳 Tiếng Việt</option>
+                                                        <option value="en">🇬🇧 English</option>
+                                                        <option value="ko">🇰🇷 한국어</option>
+                                                        <option value="zh">🇨🇳 中文</option>
+                                                        <option value="ja">🇯🇵 日本語</option>
+                                                        <option value="th">🇹🇭 ภาษาไทย</option>
+                                                        <option value="fr">🇫🇷 Français</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label class="form-label" style="font-size: 0.75rem;">Loại nội dung</label>
+                                                    <select name="Contents[@idx].ContentType" class="form-select" style="font-size: 0.813rem;">
+                                                        <option value="1">📝 TTS</option>
+                                                        <option value="2">🎵 Audio</option>
+                                                    </select>
+                                                </div>
+                                                @if (!string.IsNullOrEmpty(content.TextContent))
+                                                {
+                                                    <div class="col-md-5 d-flex align-items-end">
+                                                        <span style="font-size: 0.75rem; color: #10b981; display: flex; align-items: center; gap: 4px;">
+                                                            <i class="bi bi-check-circle-fill"></i>@content.TextContent.Length ký tự
+                                                        </span>
+                                                    </div>
+                                                }
+                                            </div>
+                                            <div>
+                                                <label class="form-label" style="font-size: 0.75rem;">Nội dung thuyết minh</label>
+                                                <textarea name="Contents[@idx].TextContent" class="form-control" rows="4"
+                                                          placeholder="Nhập nội dung thuyết minh chi tiết về cửa hàng...">@content.TextContent</textarea>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn-remove btn-remove-content mt-1" title="Xóa">
+                                            <i class="bi bi-trash3" style="font-size: .813rem;"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                idx++;
+                            }
+                        }
+                        else
+                        {
+                            <div id="noContentPlaceholder" style="text-align: center; padding: 40px 20px; background: #f8fafc; border-radius: 10px; border: 1px dashed #e2e8f0;">
+                                <div style="width: 48px; height: 48px; border-radius: 50%; background: #eef2ff; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                                    <i class="bi bi-chat-square-text" style="color: #4f46e5; font-size: 1.25rem;"></i>
+                                </div>
+                                <p style="font-weight: 600; margin-bottom: 4px; color: #1e293b;">Chưa có nội dung thuyết minh</p>
+                                <p style="font-size: .813rem; color: #94a3b8; margin: 0;">Nhấn <strong>Thêm ngôn ngữ</strong> để bắt đầu thêm nội dung.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </form>
     </div>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert" style="border-radius: 12px;">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert" style="border-radius: 12px;">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    <form asp-action="Edit" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="Id" value="@poi.Id" />
-
-        <div class="row g-4">
-            <!-- Left Column: Basic Info -->
-            <div class="col-lg-7">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body p-4">
-                        <div class="section-title">
-                            <i class="bi bi-info-circle"></i> Thông tin cơ bản
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Tên cửa hàng <span class="text-danger">*</span></label>
-                            <input type="text" name="Name" value="@poi.Name" class="form-control" required placeholder="Nhập tên cửa hàng" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Mô tả</label>
-                            <textarea name="Description" class="form-control" rows="3"
-                                      placeholder="Mô tả về cửa hàng, món ăn đặc trưng, lịch sử...">@poi.Description</textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold"><i class="bi bi-geo-alt text-danger"></i> Địa chỉ</label>
-                            <input type="text" name="Address" value="@poi.Address" class="form-control"
-                                   placeholder="Số nhà, đường, quận, thành phố" />
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Loại món ăn</label>
-                                <select name="FoodType" class="form-select">
-                                    <option value="0" selected="@(poi.FoodType == 0 ? "selected" : null)">Khác</option>
-                                    <option value="1" selected="@(poi.FoodType == 1 ? "selected" : null)">Hải sản</option>
-                                    <option value="2" selected="@(poi.FoodType == 2 ? "selected" : null)">Món chay</option>
-                                    <option value="3" selected="@(poi.FoodType == 3 ? "selected" : null)">Đặc sản Việt Nam</option>
-                                    <option value="4" selected="@(poi.FoodType == 4 ? "selected" : null)">Ẩm thực đường phố</option>
-                                    <option value="5" selected="@(poi.FoodType == 5 ? "selected" : null)">Đồ nướng (BBQ)</option>
-                                    <option value="6" selected="@(poi.FoodType == 6 ? "selected" : null)">Bún, Phở, Mì</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Thời gian (phút)</label>
-                                <input type="number" name="EstimatedMinutes" value="@poi.EstimatedMinutes" class="form-control" min="5" max="300" placeholder="30" />
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-6">
-                                <label class="form-label fw-semibold">Giá từ (VNĐ)</label>
-                                <div class="input-group">
-                                    <input type="number" name="PriceMin" value="@poi.PriceMin" class="form-control" min="0" placeholder="0" />
-                                    <span class="input-group-text">đ</span>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label fw-semibold">Giá đến (VNĐ)</label>
-                                <div class="input-group">
-                                    <input type="number" name="PriceMax" value="@poi.PriceMax" class="form-control" min="0" placeholder="0" />
-                                    <span class="input-group-text">đ</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column: Image + Save -->
-            <div class="col-lg-5">
-                <!-- Image Card -->
-                <div class="card border-0 shadow-sm mb-3">
-                    <div class="card-body p-4">
-                        <div class="section-title">
-                            <i class="bi bi-image"></i> Hình ảnh
-                        </div>
-
-                        <div id="imageUploadZone" class="image-upload-zone @(string.IsNullOrEmpty(poi.ImageUrl) ? "" : "has-image")" onclick="document.getElementById('imageFileInput').click();">
-                            @if (!string.IsNullOrEmpty(poi.ImageUrl))
-                            {
-                                <img id="previewImg" src="@poi.ImageUrl" alt="Preview"
-                                     class="img-fluid rounded" style="max-height: 220px;" />
-                            }
-                            else
-                            {
-                                <div id="uploadPlaceholder">
-                                    <i class="bi bi-cloud-arrow-up fs-1 text-muted"></i>
-                                    <p class="text-muted mb-0 mt-2">Click để chọn ảnh</p>
-                                    <small class="text-muted">JPG, PNG - Tối đa 5MB</small>
-                                </div>
-                                <img id="previewImg" class="img-fluid rounded" style="max-height: 220px; display: none;" />
-                            }
-                        </div>
-
-                        <input type="file" class="d-none" name="ImageFile" id="imageFileInput" accept="image/*" />
-                        <div class="text-center mt-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('imageFileInput').click();">
-                                <i class="bi bi-pencil"></i> Đổi ảnh
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Save Actions -->
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary btn-save btn-lg text-white">
-                        <i class="bi bi-check-lg me-1"></i> Lưu thay đổi
-                    </button>
-                    <a href="@Url.Action("Dashboard")" class="btn btn-outline-secondary" style="border-radius: 12px;">
-                        <i class="bi bi-arrow-left me-1"></i> Quay lại Dashboard
-                    </a>
-                </div>
-
-                <!-- Quick Info -->
-                <div class="card border-0 shadow-sm mt-3">
-                    <div class="card-body p-3">
-                        <small class="text-muted d-block mb-1"><i class="bi bi-pin-map me-1"></i> Tọa độ: @poi.Latitude.ToString("F6"), @poi.Longitude.ToString("F6")</small>
-                        <small class="text-muted d-block mb-1"><i class="bi bi-calendar me-1"></i> Tạo: @poi.CreatedAt.ToString("dd/MM/yyyy")</small>
-                        <small class="text-muted d-block"><i class="bi bi-star me-1"></i> Rating: @(poi.Rating?.ToString("F1") ?? "N/A") (@poi.ReviewCount đánh giá)</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- POI Contents Section -->
-        <div class="card border-0 shadow-sm mt-4">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="section-title mb-0" style="border-bottom: none; padding-bottom: 0;">
-                        <i class="bi bi-translate"></i> Nội dung thuyết minh
-                    </div>
-                    <button type="button" class="btn btn-primary btn-sm" id="btnAddContent" style="border-radius: 8px;">
-                        <i class="bi bi-plus-lg me-1"></i> Thêm ngôn ngữ
-                    </button>
-                </div>
-                <p class="text-muted small mb-3">Nội dung dùng cho TTS (Text-to-Speech) trên ứng dụng mobile. Hỗ trợ nhiều ngôn ngữ.</p>
-
-                <div id="contentsContainer">
-                    @if (contents.Any())
-                    {
-                        var idx = 0;
-                        @foreach (var content in contents)
-                        {
-                            var langName = content.Language switch { "vi" => "Tiếng Việt", "en" => "English", "zh" => "中文", "ja" => "日本語", "ko" => "한국어", "th" => "ภาษาไทย", "fr" => "Français", _ => content.Language };
-                            var langFlag = content.Language switch { "vi" => "🇻🇳", "en" => "🇬🇧", "zh" => "🇨🇳", "ja" => "🇯🇵", "ko" => "🇰🇷", "th" => "🇹🇭", "fr" => "🇫🇷", _ => "🌐" };
-                            <div class="content-card p-3 mb-3" data-index="@idx">
-                                <input type="hidden" name="Contents[@idx].Id" value="@content.Id" />
-                                <div class="d-flex align-items-start gap-3">
-                                    <div class="card-index mt-1">@(idx + 1)</div>
-                                    <div class="flex-grow-1">
-                                        <div class="row g-2 mb-2">
-                                            <div class="col-md-4">
-                                                <label class="form-label small fw-semibold mb-1">
-                                                    <span class="lang-flag me-1">@langFlag</span> Ngôn ngữ
-                                                </label>
-                                                <select name="Contents[@idx].Language" class="form-select form-select-sm">
-                                                    <option value="vi" selected="@(content.Language == "vi" ? "selected" : null)">🇻🇳 Tiếng Việt</option>
-                                                    <option value="en" selected="@(content.Language == "en" ? "selected" : null)">🇬🇧 English</option>
-                                                    <option value="ko" selected="@(content.Language == "ko" ? "selected" : null)">🇰🇷 한국어</option>
-                                                    <option value="zh" selected="@(content.Language == "zh" ? "selected" : null)">🇨🇳 中文</option>
-                                                    <option value="ja" selected="@(content.Language == "ja" ? "selected" : null)">🇯🇵 日本語</option>
-                                                    <option value="th" selected="@(content.Language == "th" ? "selected" : null)">🇹🇭 ภาษาไทย</option>
-                                                    <option value="fr" selected="@(content.Language == "fr" ? "selected" : null)">🇫🇷 Français</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <label class="form-label small fw-semibold mb-1">Loại nội dung</label>
-                                                <select name="Contents[@idx].ContentType" class="form-select form-select-sm">
-                                                    <option value="1" selected="@(content.ContentType == 1 ? "selected" : null)">📝 TTS</option>
-                                                    <option value="2" selected="@(content.ContentType == 2 ? "selected" : null)">🎵 Audio</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-5 d-flex align-items-end">
-                                                <small class="text-muted">
-                                                    @if (!string.IsNullOrEmpty(content.TextContent))
-                                                    {
-                                                        <span class="text-success"><i class="bi bi-check-circle"></i> @content.TextContent.Length ký tự</span>
-                                                    }
-                                                </small>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label class="form-label small fw-semibold mb-1">Nội dung thuyết minh</label>
-                                            <textarea name="Contents[@idx].TextContent" class="form-control form-control-sm" rows="4"
-                                                      placeholder="Nhập nội dung thuyết minh chi tiết về cửa hàng...">@content.TextContent</textarea>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn btn-outline-danger btn-sm btn-remove-content flex-shrink-0 mt-1" title="Xóa nội dung này">
-                                        <i class="bi bi-trash3"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            idx++;
-                        }
-                    }
-                    else
-                    {
-                        <div id="noContentPlaceholder" class="text-center py-5 bg-light rounded-3">
-                            <i class="bi bi-chat-square-text fs-1 text-muted"></i>
-                            <p class="text-muted mb-1 mt-3">Chưa có nội dung thuyết minh</p>
-                            <small class="text-muted">Nhấn <strong>"Thêm ngôn ngữ"</strong> để bắt đầu thêm nội dung.</small>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </form>
-</div>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Set select values via JavaScript (safe for Razor tag helpers)
+        document.getElementById('foodTypeSelect').value = '@poi.FoodType';
+
+        // Set language/contentType selects for existing content
+        @{ var setIdx = 0; }
+        @foreach (var content in contents)
+        {
+            <text>
+            (function() {
+                var sel = document.querySelector('select[name="Contents[@setIdx].Language"]');
+                if (sel) sel.value = '@content.Language';
+                var ct = document.querySelector('select[name="Contents[@setIdx].ContentType"]');
+                if (ct) ct.value = '@content.ContentType';
+            })();
+            </text>
+            setIdx++;
+        }
+
         // Image preview
         const imageFileInput = document.getElementById('imageFileInput');
-        const previewImg = document.getElementById('previewImg');
-        const uploadZone = document.getElementById('imageUploadZone');
+        const previewImg     = document.getElementById('previewImg');
+        const uploadZone     = document.getElementById('uploadZone');
         const uploadPlaceholder = document.getElementById('uploadPlaceholder');
 
-        imageFileInput.addEventListener('change', function() {
+        imageFileInput.addEventListener('change', function () {
             const file = this.files[0];
-            if (file && file.type.startsWith('image/')) {
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('File quá lớn! Vui lòng chọn file nhỏ hơn 5MB.');
-                    this.value = '';
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImg.src = e.target.result;
-                    previewImg.style.display = 'block';
-                    if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
-                    uploadZone.classList.add('has-image');
-                };
-                reader.readAsDataURL(file);
-            }
+            if (!file || !file.type.startsWith('image/')) return;
+            if (file.size > 5 * 1024 * 1024) { alert('File quá lớn! Tối đa 5MB.'); this.value = ''; return; }
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+                if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+                uploadZone.classList.add('has-image');
+            };
+            reader.readAsDataURL(file);
         });
 
         // Dynamic content management
         let contentIndex = @(contents.Count);
 
-        document.getElementById('btnAddContent').addEventListener('click', function() {
+        document.getElementById('btnAddContent').addEventListener('click', function () {
             const placeholder = document.getElementById('noContentPlaceholder');
             if (placeholder) placeholder.remove();
 
             const container = document.getElementById('contentsContainer');
             const idx = contentIndex++;
             const num = container.querySelectorAll('.content-card').length + 1;
+
             const html = `
-                <div class="content-card p-3 mb-3" data-index="${idx}">
+                <div class="content-card" data-index="${idx}">
                     <input type="hidden" name="Contents[${idx}].Id" value="0" />
-                    <div class="d-flex align-items-start gap-3">
-                        <div class="card-index mt-1">${num}</div>
-                        <div class="flex-grow-1">
-                            <div class="row g-2 mb-2">
+                    <div style="display:flex;align-items:flex-start;gap:12px;">
+                        <div class="content-num mt-1">${num}</div>
+                        <div style="flex:1;min-width:0;">
+                            <div class="row g-2 mb-3">
                                 <div class="col-md-4">
-                                    <label class="form-label small fw-semibold mb-1">Ngôn ngữ</label>
-                                    <select name="Contents[${idx}].Language" class="form-select form-select-sm">
+                                    <label class="form-label" style="font-size:0.75rem;">Ngôn ngữ</label>
+                                    <select name="Contents[${idx}].Language" class="form-select" style="font-size:0.813rem;">
                                         <option value="vi">🇻🇳 Tiếng Việt</option>
                                         <option value="en">🇬🇧 English</option>
                                         <option value="ko">🇰🇷 한국어</option>
@@ -362,38 +447,38 @@
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small fw-semibold mb-1">Loại nội dung</label>
-                                    <select name="Contents[${idx}].ContentType" class="form-select form-select-sm">
+                                    <label class="form-label" style="font-size:0.75rem;">Loại nội dung</label>
+                                    <select name="Contents[${idx}].ContentType" class="form-select" style="font-size:0.813rem;">
                                         <option value="1">📝 TTS</option>
                                         <option value="2">🎵 Audio</option>
                                     </select>
                                 </div>
                             </div>
                             <div>
-                                <label class="form-label small fw-semibold mb-1">Nội dung thuyết minh</label>
-                                <textarea name="Contents[${idx}].TextContent" class="form-control form-control-sm" rows="4"
+                                <label class="form-label" style="font-size:0.75rem;">Nội dung thuyết minh</label>
+                                <textarea name="Contents[${idx}].TextContent" class="form-control" rows="4"
                                           placeholder="Nhập nội dung thuyết minh chi tiết về cửa hàng..."></textarea>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-outline-danger btn-sm btn-remove-content flex-shrink-0 mt-1" title="Xóa nội dung này">
-                            <i class="bi bi-trash3"></i>
+                        <button type="button" class="btn-remove btn-remove-content mt-1" title="Xóa">
+                            <i class="bi bi-trash3" style="font-size:.813rem;"></i>
                         </button>
                     </div>
                 </div>`;
             container.insertAdjacentHTML('beforeend', html);
         });
 
-        document.getElementById('contentsContainer').addEventListener('click', function(e) {
+        document.getElementById('contentsContainer').addEventListener('click', function (e) {
             const btn = e.target.closest('.btn-remove-content');
             if (btn) {
                 if (confirm('Bạn có chắc muốn xóa nội dung này?')) {
                     btn.closest('.content-card').remove();
-                    // Re-number remaining cards
-                    document.querySelectorAll('#contentsContainer .card-index').forEach((el, i) => {
+                    document.querySelectorAll('#contentsContainer .content-num').forEach((el, i) => {
                         el.textContent = i + 1;
                     });
                 }
             }
         });
     </script>
-}
+</body>
+</html>

@@ -1,239 +1,256 @@
 @model List<HeriStepAI.Web.ViewModels.ShopOwnerPOIViewModel>
 @{
-    ViewData["Title"] = "Dashboard Chủ Cửa Hàng";
-    var totalPOIs = (int)(ViewBag.TotalPOIs ?? 0);
-    var totalVisits = (int)(ViewBag.TotalVisits ?? 0);
-    var activePOIs = (int)(ViewBag.ActivePOIs ?? 0);
+    ViewData["Title"] = "Dashboard - Chủ cửa hàng";
+    var totalPOIs   = (int)(ViewBag.TotalPOIs   ?? 0);
+    var totalVisits = (int)(ViewBag.TotalVisits  ?? 0);
+    var activePOIs  = (int)(ViewBag.ActivePOIs   ?? 0);
 }
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HeriStepAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *  { font-family:'Inter',sans-serif; box-sizing:border-box; }
+        body { background:#f8fafc; margin:0; color:#1e293b; }
 
-<style>
-    :root {
-        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --success-gradient: linear-gradient(135deg, #11998e, #38ef7d);
-        --danger-gradient: linear-gradient(135deg, #f093fb, #f5576c);
-    }
-    body { background-color: #f0f2f5; }
-    .nav-owner { background: var(--primary-gradient); }
-    .stat-card { transition: transform 0.2s, box-shadow 0.2s; border-radius: 16px; }
-    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important; }
-    .poi-row { transition: all 0.2s; }
-    .poi-row:hover { background-color: #f8f9ff; }
-    .avatar-lg { width: 64px; height: 64px; object-fit: cover; border-radius: 12px; }
-    .badge-food { font-size: 0.7rem; padding: 4px 8px; border-radius: 6px; }
-    .stat-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
-    .table > :not(caption) > * > * { vertical-align: middle; }
-    .content-count { font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; }
-</style>
+        /* Navbar */
+        .so-navbar {
+            background:#fff;
+            border-bottom:1px solid #e2e8f0;
+            height:60px;
+            display:flex; align-items:center;
+            padding:0 24px;
+            position:sticky; top:0; z-index:100;
+            justify-content:space-between;
+        }
+        .so-brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+        .so-brand-icon { width:32px;height:32px;border-radius:8px;background:#4f46e5;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.938rem; }
+        .so-brand-name { font-size:1rem;font-weight:700;color:#1e293b; }
+        .so-right { display:flex; align-items:center; gap:12px; }
+        .so-user { font-size:0.813rem; color:#64748b; display:flex; align-items:center; gap:6px; }
+        .btn-logout { display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:0.813rem;font-weight:500;cursor:pointer;transition:all .15s; }
+        .btn-logout:hover { background:#fef2f2;border-color:#fecaca;color:#ef4444; }
 
-<!-- Navbar -->
-<nav class="navbar nav-owner shadow-sm px-0">
-    <div class="container-fluid px-4">
-        <span class="navbar-brand text-white fw-bold mb-0">
-            <i class="bi bi-shop-window me-1"></i> HeriStepAI
-        </span>
-        <div class="d-flex align-items-center gap-3">
-            <span class="text-white-50 small d-none d-md-inline">
+        /* Content */
+        .so-content { max-width:1300px; margin:0 auto; padding:24px; }
+
+        /* Stat cards */
+        .stat-card { background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;transition:box-shadow .2s,transform .2s; }
+        .stat-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-2px); }
+        .stat-icon { width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0; }
+        .stat-number { font-size:1.75rem;font-weight:700;color:#1e293b;line-height:1; }
+        .stat-label  { font-size:0.813rem;color:#64748b;font-weight:500; }
+
+        /* Table */
+        .table-card { background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden; }
+        .table { margin:0; }
+        .table thead tr th { background:#f8fafc;font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#64748b;border-bottom:1px solid #e2e8f0;padding:12px 16px;white-space:nowrap; }
+        .table tbody tr { transition:background .1s; }
+        .table tbody tr:hover { background:#f8fafc; }
+        .table tbody td { padding:14px 16px;vertical-align:middle;border-color:#f1f5f9;font-size:0.875rem; }
+
+        /* Badges */
+        .badge-soft-success { background:#f0fdf4;color:#166534;border-radius:6px;padding:3px 8px;font-size:.75rem;font-weight:500; }
+        .badge-soft-secondary{ background:#f1f5f9;color:#475569;border-radius:6px;padding:3px 8px;font-size:.75rem;font-weight:500; }
+        .badge-soft-info    { background:#eff6ff;color:#1e40af;border-radius:6px;padding:3px 8px;font-size:.75rem;font-weight:500; }
+        .badge-soft-warning { background:#fffbeb;color:#92400e;border-radius:6px;padding:3px 8px;font-size:.75rem;font-weight:500; }
+        .dot-active { display:inline-block;width:7px;height:7px;border-radius:50%;background:#10b981; }
+        .dot-inactive{ display:inline-block;width:7px;height:7px;border-radius:50%;background:#cbd5e1; }
+        .tbl-btn { display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;border:none;background:transparent;color:#94a3b8;font-size:.938rem;cursor:pointer;text-decoration:none;transition:all .15s; }
+        .tbl-btn:hover { background:#f1f5f9;color:#4f46e5; }
+        .tbl-btn-stat:hover { background:#eff6ff;color:#3b82f6; }
+        .poi-thumb { width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #e2e8f0; }
+        .poi-avatar { width:38px;height:38px;border-radius:8px;background:#eef2ff;color:#4f46e5;font-weight:700;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="so-navbar">
+        <div class="so-brand">
+            <div class="so-brand-icon"><i class="bi bi-geo-alt-fill"></i></div>
+            <span class="so-brand-name">HeriStepAI</span>
+        </div>
+        <div class="so-right">
+            <span class="so-user d-none d-md-flex">
                 <i class="bi bi-person-circle"></i> @User.Identity?.Name
             </span>
             <form asp-controller="Auth" asp-action="Logout" method="post" class="mb-0">
-                <button type="submit" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                <button type="submit" class="btn-logout">
+                    <i class="bi bi-box-arrow-right"></i>Đăng xuất
                 </button>
             </form>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<div class="container-fluid px-4 py-4" style="max-width: 1400px;">
+    <div class="so-content">
+        <!-- Header -->
+        <div style="margin-bottom:24px;">
+            <h1 style="font-size:1.375rem;font-weight:700;margin:0 0 4px;letter-spacing:-.02em;">Dashboard</h1>
+            <p style="font-size:0.813rem;color:#64748b;margin:0;">Quản lý cửa hàng và theo dõi lượt ghé thăm</p>
+        </div>
 
-    <!-- Header -->
-    <div class="mb-4">
-        <h4 class="fw-bold mb-1"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h4>
-        <p class="text-muted mb-0">Quản lý cửa hàng và theo dõi lượt ghé thăm</p>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm stat-card h-100">
-                <div class="card-body d-flex align-items-center gap-3 p-3">
-                    <div class="stat-icon text-white" style="background: var(--primary-gradient);">
-                        <i class="bi bi-shop fs-5"></i>
+        <!-- Stat Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="stat-icon" style="background:#eef2ff;"><i class="bi bi-shop" style="color:#4f46e5;"></i></div>
+                        <span style="font-size:.688rem;font-weight:600;color:#4f46e5;background:#eef2ff;padding:3px 8px;border-radius:6px;">Cửa hàng</span>
                     </div>
                     <div>
-                        <div class="text-muted small mb-1">Tổng cửa hàng</div>
-                        <div class="fs-3 fw-bold lh-1">@totalPOIs</div>
+                        <div class="stat-number">@totalPOIs</div>
+                        <div class="stat-label">Tổng cửa hàng</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="stat-icon" style="background:#f0fdf4;"><i class="bi bi-people-fill" style="color:#10b981;"></i></div>
+                        <span style="font-size:.688rem;font-weight:600;color:#166534;background:#f0fdf4;padding:3px 8px;border-radius:6px;">Lượt ghé</span>
+                    </div>
+                    <div>
+                        <div class="stat-number">@totalVisits</div>
+                        <div class="stat-label">Tổng lượt ghé thăm</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="stat-icon" style="background:#fefce8;"><i class="bi bi-check-circle-fill" style="color:#f59e0b;"></i></div>
+                        <span style="font-size:.688rem;font-weight:600;color:#92400e;background:#fefce8;padding:3px 8px;border-radius:6px;">Đang mở</span>
+                    </div>
+                    <div>
+                        <div class="stat-number">@activePOIs</div>
+                        <div class="stat-label">Đang hoạt động</div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm stat-card h-100">
-                <div class="card-body d-flex align-items-center gap-3 p-3">
-                    <div class="stat-icon text-white" style="background: var(--success-gradient);">
-                        <i class="bi bi-people fs-5"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small mb-1">Tổng lượt ghé thăm</div>
-                        <div class="fs-3 fw-bold lh-1">@totalVisits</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm stat-card h-100">
-                <div class="card-body d-flex align-items-center gap-3 p-3">
-                    <div class="stat-icon text-white" style="background: var(--danger-gradient);">
-                        <i class="bi bi-check-circle fs-5"></i>
-                    </div>
-                    <div>
-                        <div class="text-muted small mb-1">Đang hoạt động</div>
-                        <div class="fs-3 fw-bold lh-1">@activePOIs</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- POI List Table -->
-    <div class="card border-0 shadow-sm" style="border-radius: 16px; overflow: hidden;">
-        <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
-            <h6 class="mb-0 fw-bold"><i class="bi bi-list-ul me-1"></i> Danh sách cửa hàng</h6>
-            <span class="badge bg-primary rounded-pill">@totalPOIs</span>
-        </div>
+        <!-- POI Table -->
+        <div class="table-card">
+            <div class="d-flex align-items-center justify-content-between" style="padding:16px 20px;border-bottom:1px solid #e2e8f0;">
+                <span style="font-size:.938rem;font-weight:600;color:#1e293b;">
+                    <i class="bi bi-list-ul me-2" style="color:#4f46e5;"></i>Danh sách cửa hàng
+                </span>
+                <span style="background:#4f46e5;color:#fff;font-size:.75rem;font-weight:600;padding:4px 12px;border-radius:20px;">@totalPOIs</span>
+            </div>
 
-        @if (Model.Any())
-        {
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-4" style="min-width: 300px;">Cửa hàng</th>
-                            <th class="text-center" style="width: 100px;">Loại món</th>
-                            <th class="text-center" style="width: 130px;">Giá</th>
-                            <th class="text-center" style="width: 80px;">Lượt ghé</th>
-                            <th class="text-center" style="width: 80px;">Unique</th>
-                            <th class="text-center" style="width: 100px;">Nội dung</th>
-                            <th class="text-center" style="width: 100px;">Trạng thái</th>
-                            <th class="text-end pe-4" style="width: 180px;">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr class="poi-row">
-                                <!-- Shop Info -->
-                                <td class="ps-4">
-                                    <div class="d-flex align-items-center gap-3">
-                                        @if (!string.IsNullOrEmpty(item.POI.ImageUrl))
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="min-width:280px;padding-left:20px;">Cửa hàng</th>
+                                <th class="text-center" style="width:110px;">Loại món</th>
+                                <th class="text-center" style="width:140px;">Giá (đ)</th>
+                                <th class="text-center" style="width:80px;">Lượt ghé</th>
+                                <th class="text-center" style="width:80px;">Unique</th>
+                                <th class="text-center" style="width:110px;">Nội dung</th>
+                                <th class="text-center" style="width:100px;">Trạng thái</th>
+                                <th class="text-end" style="width:100px;padding-right:20px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td style="padding-left:20px;">
+                                        <div class="d-flex align-items-center gap-3">
+                                            @if (!string.IsNullOrEmpty(item.POI.ImageUrl))
+                                            {
+                                                <img src="@item.POI.ImageUrl" alt="" class="poi-thumb" />
+                                            }
+                                            else
+                                            {
+                                                <div class="poi-avatar">@item.POI.Name.Substring(0,1).ToUpper()</div>
+                                            }
+                                            <div style="min-width:0;">
+                                                <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">@item.POI.Name</div>
+                                                <div style="font-size:.75rem;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">
+                                                    <i class="bi bi-geo-alt"></i> @(item.POI.Address ?? "Chưa có địa chỉ")
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        @{
+                                            var foodName = item.POI.FoodType switch { 1=>"Hải sản",2=>"Chay",3=>"Đặc sản",4=>"Đường phố",5=>"Nướng",6=>"Bún/Phở",_=>"Khác" };
+                                        }
+                                        <span class="badge-soft-info">@foodName</span>
+                                    </td>
+                                    <td class="text-center" style="font-size:.813rem;">
+                                        @if (item.POI.PriceMin > 0 || item.POI.PriceMax > 0)
                                         {
-                                            <img src="@item.POI.ImageUrl" alt="" class="avatar-lg shadow-sm flex-shrink-0" />
+                                            <span style="font-weight:600;color:#10b981;">@item.POI.PriceMin.ToString("N0")–@item.POI.PriceMax.ToString("N0")</span>
+                                        }
+                                        else { <span style="color:#cbd5e1;">—</span> }
+                                    </td>
+                                    <td class="text-center"><span style="font-weight:700;color:#4f46e5;">@item.TotalVisits</span></td>
+                                    <td class="text-center"><span style="font-weight:700;color:#10b981;">@item.UniqueVisitors</span></td>
+                                    <td class="text-center">
+                                        @{
+                                            var cc = item.POI.Contents?.Count ?? 0;
+                                        }
+                                        @if (cc > 0)
+                                        {
+                                            <span class="badge-soft-info"><i class="bi bi-translate"></i> @cc</span>
                                         }
                                         else
                                         {
-                                            <div class="avatar-lg bg-light d-flex align-items-center justify-content-center shadow-sm flex-shrink-0">
-                                                <i class="bi bi-image text-muted"></i>
-                                            </div>
+                                            <span class="badge-soft-warning"><i class="bi bi-exclamation-circle"></i> Chưa có</span>
                                         }
-                                        <div class="min-w-0">
-                                            <div class="fw-semibold text-truncate" style="max-width: 220px;">@item.POI.Name</div>
-                                            <small class="text-muted text-truncate d-block" style="max-width: 220px;">
-                                                <i class="bi bi-geo-alt"></i> @(item.POI.Address ?? "Chưa có địa chỉ")
-                                            </small>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.POI.IsActive)
+                                        {
+                                            <span style="display:inline-flex;align-items:center;gap:5px;background:#f0fdf4;color:#166534;font-size:.75rem;font-weight:500;padding:4px 10px;border-radius:20px;">
+                                                <span class="dot-active"></span>Hoạt động
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span style="display:inline-flex;align-items:center;gap:5px;background:#f8fafc;color:#64748b;font-size:.75rem;font-weight:500;padding:4px 10px;border-radius:20px;">
+                                                <span class="dot-inactive"></span>Tạm dừng
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-end" style="padding-right:20px;">
+                                        <div class="d-inline-flex gap-1">
+                                            <a href="@Url.Action("Edit", new { id = item.POI.Id })" class="tbl-btn" title="Chỉnh sửa">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="@Url.Action("Statistics", new { id = item.POI.Id })" class="tbl-btn tbl-btn-stat" title="Thống kê">
+                                                <i class="bi bi-bar-chart"></i>
+                                            </a>
                                         </div>
-                                    </div>
-                                </td>
-
-                                <!-- Food Type -->
-                                <td class="text-center">
-                                    @{
-                                        var foodName = item.POI.FoodType switch { 1 => "Hải sản", 2 => "Món chay", 3 => "Đặc sản", 4 => "Đường phố", 5 => "Nướng", 6 => "Bún/Phở", _ => "Khác" };
-                                        var foodColor = item.POI.FoodType switch { 1 => "primary", 2 => "success", 3 => "warning", 4 => "danger", 5 => "info", 6 => "secondary", _ => "dark" };
-                                    }
-                                    <span class="badge bg-@(foodColor)-subtle text-@foodColor badge-food">@foodName</span>
-                                </td>
-
-                                <!-- Price -->
-                                <td class="text-center">
-                                    @if (item.POI.PriceMin > 0 || item.POI.PriceMax > 0)
-                                    {
-                                        <small class="fw-medium">@item.POI.PriceMin.ToString("N0") - @item.POI.PriceMax.ToString("N0")đ</small>
-                                    }
-                                    else
-                                    {
-                                        <small class="text-muted">--</small>
-                                    }
-                                </td>
-
-                                <!-- Visits -->
-                                <td class="text-center">
-                                    <span class="fw-bold text-primary">@item.TotalVisits</span>
-                                </td>
-
-                                <!-- Unique -->
-                                <td class="text-center">
-                                    <span class="fw-bold text-success">@item.UniqueVisitors</span>
-                                </td>
-
-                                <!-- Contents count -->
-                                <td class="text-center">
-                                    @{
-                                        var contentCount = item.POI.Contents?.Count ?? 0;
-                                    }
-                                    @if (contentCount > 0)
-                                    {
-                                        <span class="badge bg-info-subtle text-info content-count">
-                                            <i class="bi bi-translate"></i> @contentCount ngôn ngữ
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-warning-subtle text-warning content-count">
-                                            <i class="bi bi-exclamation-circle"></i> Chưa có
-                                        </span>
-                                    }
-                                </td>
-
-                                <!-- Status -->
-                                <td class="text-center">
-                                    @if (item.POI.IsActive)
-                                    {
-                                        <span class="badge bg-success-subtle text-success" style="font-size: 0.7rem;">
-                                            <i class="bi bi-circle-fill" style="font-size: 0.4rem;"></i> Hoạt động
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.7rem;">
-                                            <i class="bi bi-circle-fill" style="font-size: 0.4rem;"></i> Tạm dừng
-                                        </span>
-                                    }
-                                </td>
-
-                                <!-- Actions -->
-                                <td class="text-end pe-4">
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="@Url.Action("Edit", new { id = item.POI.Id })" class="btn btn-outline-primary" title="Chỉnh sửa">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <a href="@Url.Action("Statistics", new { id = item.POI.Id })" class="btn btn-outline-info" title="Thống kê">
-                                            <i class="bi bi-bar-chart"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        }
-        else
-        {
-            <div class="text-center py-5">
-                <i class="bi bi-shop fs-1 text-muted"></i>
-                <p class="text-muted mt-3 mb-1">Bạn chưa có cửa hàng nào.</p>
-                <small class="text-muted">Vui lòng liên hệ Admin để được thêm cửa hàng.</small>
-            </div>
-        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <div style="width:56px;height:56px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+                        <i class="bi bi-shop" style="font-size:1.5rem;color:#4f46e5;"></i>
+                    </div>
+                    <p style="font-weight:600;margin-bottom:4px;">Bạn chưa có cửa hàng nào</p>
+                    <p style="font-size:.813rem;color:#94a3b8;margin:0;">Vui lòng liên hệ Admin để được thêm cửa hàng.</p>
+                </div>
+            }
+        </div>
     </div>
-</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

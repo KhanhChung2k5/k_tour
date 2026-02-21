@@ -29,16 +29,24 @@ public class AuthController : Controller
         var json = JsonSerializer.Serialize(new { Email = email, Password = password });
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        HttpResponseMessage response;
+        HttpResponseMessage? response = null;
         try
         {
-            response = await client.PostAsync("auth/login", content);
+            // Retry tối đa 3 lần nếu API trả 429 (Render spin-up throttle)
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                var retryContent = new StringContent(json, Encoding.UTF8, "application/json");
+                response = await client.PostAsync("auth/login", retryContent);
+                if ((int)response.StatusCode != 429) break;
+                if (attempt < 2) await Task.Delay(5000 * (attempt + 1)); // 5s, 10s
+            }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             ViewBag.Error = "Không kết nối được API. Kiểm tra API đang chạy (port 5000).";
             return View();
         }
+        response ??= new HttpResponseMessage(System.Net.HttpStatusCode.ServiceUnavailable);
 
         if (response.IsSuccessStatusCode)
         {
