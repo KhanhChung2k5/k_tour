@@ -15,32 +15,36 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         *  { font-family:'Inter',sans-serif; box-sizing:border-box; }
-        body { background:#f8fafc; margin:0; color:#1e293b; }
+        body { background:linear-gradient(135deg,#eef2ff 0%,#faf9ff 45%,#ecfdf5 100%); background-attachment:fixed; margin:0; color:#1e293b; }
 
         /* Navbar */
         .so-navbar {
-            background:#fff;
-            border-bottom:1px solid #e2e8f0;
+            background:linear-gradient(135deg,#1e1b4b 0%,#312e81 60%,#4c1d95 100%);
+            border-bottom:none;
             height:60px;
             display:flex; align-items:center;
             padding:0 24px;
             position:sticky; top:0; z-index:100;
             justify-content:space-between;
+            box-shadow:0 2px 16px rgba(79,70,229,0.25);
         }
         .so-brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
-        .so-brand-icon { width:32px;height:32px;border-radius:8px;background:#4f46e5;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.938rem; }
-        .so-brand-name { font-size:1rem;font-weight:700;color:#1e293b; }
+        .so-brand-icon { width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.938rem; }
+        .so-brand-name { font-size:1rem;font-weight:700;color:#fff; }
         .so-right { display:flex; align-items:center; gap:12px; }
-        .so-user { font-size:0.813rem; color:#64748b; display:flex; align-items:center; gap:6px; }
-        .btn-logout { display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:0.813rem;font-weight:500;cursor:pointer;transition:all .15s; }
-        .btn-logout:hover { background:#fef2f2;border-color:#fecaca;color:#ef4444; }
+        .so-user { font-size:0.813rem; color:rgba(255,255,255,0.7); display:flex; align-items:center; gap:6px; }
+        .btn-logout { display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.85);font-size:0.813rem;font-weight:500;cursor:pointer;transition:all .15s; }
+        .btn-logout:hover { background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.5);color:#fca5a5; }
 
         /* Content */
         .so-content { max-width:1300px; margin:0 auto; padding:24px; }
 
         /* Stat cards */
-        .stat-card { background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;transition:box-shadow .2s,transform .2s; }
-        .stat-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-2px); }
+        .stat-card { border:none;border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:12px;transition:box-shadow .2s,transform .2s;color:#fff;position:relative;overflow:hidden; }
+        .stat-card::before { content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.08); }
+        .stat-card:hover { box-shadow:0 8px 32px rgba(0,0,0,.18);transform:translateY(-3px); }
+        .stat-card .stat-number { color:#fff; }
+        .stat-card .stat-label  { color:rgba(255,255,255,0.75); }
         .stat-icon { width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0; }
         .stat-number { font-size:1.75rem;font-weight:700;color:#1e293b;line-height:1; }
         .stat-label  { font-size:0.813rem;color:#64748b;font-weight:500; }
@@ -96,36 +100,36 @@
         <!-- Stat Cards -->
         <div class="row g-3 mb-4">
             <div class="col-md-4">
-                <div class="stat-card">
+                <div class="stat-card" style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);">
                     <div class="d-flex align-items-center justify-content-between">
-                        <div class="stat-icon" style="background:#eef2ff;"><i class="bi bi-shop" style="color:#4f46e5;"></i></div>
-                        <span style="font-size:.688rem;font-weight:600;color:#4f46e5;background:#eef2ff;padding:3px 8px;border-radius:6px;">Cửa hàng</span>
+                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-shop"></i></div>
+                        <span style="background:rgba(255,255,255,0.18);color:#fff;font-size:.688rem;font-weight:600;padding:4px 10px;border-radius:20px;">Cửa hàng</span>
                     </div>
-                    <div>
+                    <div style="position:relative;z-index:1;">
                         <div class="stat-number">@totalPOIs</div>
                         <div class="stat-label">Tổng cửa hàng</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="stat-card">
+                <div class="stat-card" style="background:linear-gradient(135deg,#059669 0%,#0ea5e9 100%);">
                     <div class="d-flex align-items-center justify-content-between">
-                        <div class="stat-icon" style="background:#f0fdf4;"><i class="bi bi-people-fill" style="color:#10b981;"></i></div>
-                        <span style="font-size:.688rem;font-weight:600;color:#166534;background:#f0fdf4;padding:3px 8px;border-radius:6px;">Lượt ghé</span>
+                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-people-fill"></i></div>
+                        <span style="background:rgba(255,255,255,0.18);color:#fff;font-size:.688rem;font-weight:600;padding:4px 10px;border-radius:20px;">Lượt ghé</span>
                     </div>
-                    <div>
+                    <div style="position:relative;z-index:1;">
                         <div class="stat-number">@totalVisits</div>
                         <div class="stat-label">Tổng lượt ghé thăm</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="stat-card">
+                <div class="stat-card" style="background:linear-gradient(135deg,#d97706 0%,#ef4444 100%);">
                     <div class="d-flex align-items-center justify-content-between">
-                        <div class="stat-icon" style="background:#fefce8;"><i class="bi bi-check-circle-fill" style="color:#f59e0b;"></i></div>
-                        <span style="font-size:.688rem;font-weight:600;color:#92400e;background:#fefce8;padding:3px 8px;border-radius:6px;">Đang mở</span>
+                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-check-circle-fill"></i></div>
+                        <span style="background:rgba(255,255,255,0.18);color:#fff;font-size:.688rem;font-weight:600;padding:4px 10px;border-radius:20px;">Đang mở</span>
                     </div>
-                    <div>
+                    <div style="position:relative;z-index:1;">
                         <div class="stat-number">@activePOIs</div>
                         <div class="stat-label">Đang hoạt động</div>
                     </div>
