@@ -9,6 +9,7 @@
     var dailyStats = ViewBag.DailyStats as List<dynamic>;
     var geofenceCount = Model.Count(v => v.VisitType == HeriStepAI.API.Models.VisitType.Geofence);
     var manualCount   = Model.Count(v => v.VisitType == HeriStepAI.API.Models.VisitType.MapClick);
+    var userInitial = User.Identity?.Name?.Length > 0 ? User.Identity.Name[0].ToString().ToUpper() : "U";
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -17,92 +18,247 @@
     <title>@ViewData["Title"] - HeriStepAI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
-        body { background: linear-gradient(135deg,#eef2ff 0%,#faf9ff 45%,#ecfdf5 100%); background-attachment: fixed; margin: 0; color: #1e293b; }
+        :root {
+            --amber: #E8A14B;
+            --amber-light: #F2C47E;
+            --amber-dim: rgba(232,161,75,0.13);
+            --dark: #0D0B08;
+            --dark2: #131008;
+            --dark3: #1C1710;
+            --dark4: #231C10;
+            --topbar: #0F0C07;
+            --cream: #F5ECD7;
+            --cream-muted: #9A8A70;
+            --cream-dim: rgba(245,236,215,0.05);
+            --green: #2ECC94;
+            --green-dim: rgba(46,204,148,0.1);
+            --red: #E05252;
+            --blue: #5B9CF0;
+            --blue-dim: rgba(91,156,240,0.1);
+            --border: rgba(232,161,75,0.1);
+            --border-soft: rgba(232,161,75,0.18);
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        * { font-family: 'Be Vietnam Pro', sans-serif; }
+        body { background: var(--dark2); color: var(--cream); margin: 0; min-height: 100vh; }
 
-        /* Navbar */
+        /* Topbar */
         .so-navbar {
-            background: linear-gradient(135deg,#1e1b4b 0%,#312e81 60%,#4c1d95 100%);
-            border-bottom: none;
-            height: 60px;
+            background: var(--topbar);
+            border-bottom: 1px solid var(--border);
+            height: 64px;
             display: flex; align-items: center;
-            padding: 0 24px;
+            padding: 0 32px;
             position: sticky; top: 0; z-index: 100;
             justify-content: space-between;
-            box-shadow: 0 2px 16px rgba(79,70,229,0.25);
         }
-        .so-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-        .so-brand-icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.938rem; }
-        .so-brand-name { font-size: 1rem; font-weight: 700; color: #fff; }
-        .so-right { display: flex; align-items: center; gap: 12px; }
-        .so-user { font-size: 0.813rem; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 6px; }
-        .btn-logout { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); font-size: 0.813rem; font-weight: 500; cursor: pointer; transition: all .15s; }
-        .btn-logout:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.5); color: #fca5a5; }
+        .so-navbar::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--amber), transparent);
+            opacity: 0.2;
+            pointer-events: none;
+        }
+        .so-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .so-brand-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--amber), #B8721A);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--dark); font-size: 1rem;
+            box-shadow: 0 3px 10px rgba(232,161,75,0.3);
+        }
+        .so-brand-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem; font-weight: 700;
+            color: var(--cream); letter-spacing: -0.01em;
+        }
+        .so-brand-name span { color: var(--amber); }
+        .so-right { display: flex; align-items: center; gap: 16px; }
+        .so-user {
+            display: flex; align-items: center; gap: 10px;
+            padding: 6px 14px; border-radius: 8px;
+            border: 1px solid var(--border); background: var(--cream-dim);
+        }
+        .so-user-avatar {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--amber), #B8721A);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.72rem; font-weight: 700; color: var(--dark);
+        }
+        .so-user-name { font-size: 0.82rem; color: var(--cream-muted); }
+        .btn-logout {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; border-radius: 8px;
+            border: 1px solid var(--border-soft); background: transparent;
+            color: var(--cream-muted);
+            font-size: 0.8rem; cursor: pointer; transition: all .2s;
+        }
+        .btn-logout:hover { border-color: rgba(224,82,82,0.4); color: var(--red); }
 
         /* Content */
-        .so-content { max-width: 1300px; margin: 0 auto; padding: 24px; }
+        .so-content { max-width: 1300px; margin: 0 auto; padding: 32px; }
 
         /* Breadcrumb */
         .breadcrumb { font-size: 0.813rem; background: none; padding: 0; margin: 0; }
-        .breadcrumb-item a { color: #64748b; text-decoration: none; }
-        .breadcrumb-item a:hover { color: #4f46e5; }
-        .breadcrumb-item.active { color: #1e293b; font-weight: 500; }
-        .breadcrumb-item + .breadcrumb-item::before { color: #cbd5e1; }
+        .breadcrumb-item a { color: var(--cream-muted); text-decoration: none; transition: color .15s; }
+        .breadcrumb-item a:hover { color: var(--amber); }
+        .breadcrumb-item.active { color: var(--cream); font-weight: 500; }
+        .breadcrumb-item + .breadcrumb-item::before { color: var(--cream-muted); opacity: 0.4; }
 
         /* Stat cards */
-        .stat-card { border: none; border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 12px; transition: box-shadow .2s, transform .2s; color: #fff; position: relative; overflow: hidden; }
-        .stat-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.08); }
-        .stat-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,.18); transform: translateY(-3px); }
-        .stat-card .stat-number { color: #fff; }
-        .stat-card .stat-label  { color: rgba(255,255,255,0.75); }
-        .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .stat-card {
+            border-radius: 14px; padding: 26px;
+            position: relative; overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card.amber { background: linear-gradient(135deg, #2A1E08 0%, #1C1710 100%); border: 1px solid rgba(232,161,75,0.25); }
+        .stat-card.green { background: linear-gradient(135deg, #0A1E14 0%, #0D1710 100%); border: 1px solid rgba(46,204,148,0.2); }
+        .stat-card.blue  { background: linear-gradient(135deg, #0A1422 0%, #0D1219 100%); border: 1px solid rgba(91,156,240,0.2); }
+        .stat-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            border-radius: 14px 14px 0 0;
+        }
+        .stat-card.amber::before { background: linear-gradient(90deg, var(--amber), transparent); }
+        .stat-card.green::before { background: linear-gradient(90deg, var(--green), transparent); }
+        .stat-card.blue::before  { background: linear-gradient(90deg, var(--blue), transparent); }
+        .stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+        .stat-icon { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .stat-card.amber .stat-icon { background: rgba(232,161,75,0.15); color: var(--amber); }
+        .stat-card.green .stat-icon { background: rgba(46,204,148,0.12); color: var(--green); }
+        .stat-card.blue  .stat-icon { background: rgba(91,156,240,0.12); color: var(--blue); }
+        .stat-badge {
+            font-size: 0.68rem; font-weight: 600; padding: 3px 10px;
+            border-radius: 99px; letter-spacing: 0.05em;
+        }
+        .stat-card.amber .stat-badge { background: rgba(232,161,75,0.12); color: var(--amber); }
+        .stat-card.green .stat-badge { background: rgba(46,204,148,0.1); color: var(--green); }
+        .stat-card.blue  .stat-badge { background: rgba(91,156,240,0.1); color: var(--blue); }
+        .stat-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem; font-weight: 700; line-height: 1; margin-bottom: 6px;
+        }
+        .stat-card.amber .stat-value { color: var(--amber-light); }
+        .stat-card.green .stat-value { color: var(--green); }
+        .stat-card.blue  .stat-value { color: var(--blue); }
+        .stat-label { font-size: 0.78rem; color: var(--cream-muted); font-weight: 400; }
 
         /* Cards */
-        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
-        .card-header { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 14px 20px; font-size: 0.875rem; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+        .card { background: var(--dark3); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+        .card-header { background: var(--dark3); border-bottom: 1px solid var(--border); padding: 14px 20px; font-size: 0.875rem; font-weight: 600; color: var(--cream); display: flex; align-items: center; gap: 8px; }
         .card-body { padding: 20px; }
 
-        /* Filter form */
-        .filter-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; }
-        .form-label { font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 4px; }
+        /* Filter card */
+        .filter-card { background: var(--dark3); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; }
+        .form-label { font-size: 0.75rem; font-weight: 600; color: var(--cream-muted); margin-bottom: 4px; display: block; }
         .form-control, .form-select {
-            border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.875rem; color: #1e293b;
+            border: 1px solid var(--border-soft); border-radius: 8px; font-size: 0.875rem; color: var(--cream);
             padding: 8px 12px; transition: border-color .15s, box-shadow .15s;
+            background: var(--dark4); color-scheme: dark;
         }
-        .form-control:focus, .form-select:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.08); outline: none; }
-        .btn-filter { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 8px; background: #4f46e5; color: #fff; border: none; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background .15s; }
-        .btn-filter:hover { background: #4338ca; }
+        .form-control:focus, .form-select:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(232,161,75,0.1); outline: none; }
+        .btn-filter {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 18px; border-radius: 8px;
+            background: linear-gradient(135deg, var(--amber), #B8721A);
+            color: var(--dark); border: none; font-size: 0.875rem; font-weight: 600;
+            cursor: pointer; transition: opacity .15s; width: 100%;
+            justify-content: center;
+        }
+        .btn-filter:hover { opacity: 0.9; }
 
-        /* Table */
-        .table-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
-        .table { margin: 0; }
-        .table thead tr th { background: #f8fafc; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #64748b; border-bottom: 1px solid #e2e8f0; padding: 12px 16px; white-space: nowrap; }
-        .table tbody tr { transition: background .1s; }
-        .table tbody tr:hover { background: #f8fafc; }
-        .table tbody td { padding: 12px 16px; vertical-align: middle; border-color: #f1f5f9; font-size: 0.875rem; }
+        /* Section card */
+        .section-card {
+            background: var(--dark3);
+            border: 1px solid var(--border);
+            border-radius: 14px; overflow: hidden;
+        }
+        .section-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .section-title {
+            font-size: 0.9rem; font-weight: 600; color: var(--cream);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .count-badge {
+            font-size: 0.75rem; font-weight: 600; padding: 3px 12px;
+            border-radius: 99px; background: var(--amber-dim); color: var(--amber);
+            border: 1px solid rgba(232,161,75,0.18);
+        }
 
-        /* Badges */
-        .badge-geo    { background: #f0fdf4; color: #166534; border-radius: 6px; padding: 3px 8px; font-size: .75rem; font-weight: 500; }
-        .badge-manual { background: #eff6ff; color: #1e40af; border-radius: 6px; padding: 3px 8px; font-size: .75rem; font-weight: 500; }
+        /* Table — override Bootstrap 5.3 white-cell defaults */
+        .table {
+            margin: 0; width: 100%;
+            --bs-table-bg: transparent;
+            --bs-table-color: var(--cream);
+            --bs-table-border-color: transparent;
+            --bs-table-striped-bg: transparent;
+            --bs-table-hover-bg: var(--cream-dim);
+            --bs-table-accent-bg: transparent;
+            color: var(--cream);
+        }
+        .table thead tr { border-bottom: 1px solid var(--border); }
+        .table thead tr th {
+            background: transparent !important;
+            padding: 12px 20px;
+            font-size: 0.68rem; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--cream-muted);
+            font-weight: 600; white-space: nowrap;
+            border-bottom: 1px solid var(--border) !important;
+        }
+        .table tbody tr { border-bottom: 1px solid rgba(232,161,75,0.05); transition: background .15s; }
+        .table tbody tr:last-child { border-bottom: none; }
+        .table tbody tr:hover { background: var(--cream-dim) !important; }
+        .table tbody td {
+            padding: 14px 20px; font-size: 0.84rem;
+            color: var(--cream); vertical-align: middle;
+            background-color: transparent !important;
+            border-color: transparent !important;
+        }
+
+        /* Visit type badges */
+        .badge-geo    { background: var(--green-dim); color: var(--green); border: 1px solid rgba(46,204,148,0.2); border-radius: 6px; padding: 3px 10px; font-size: .75rem; font-weight: 600; }
+        .badge-manual { background: var(--blue-dim);  color: var(--blue);  border: 1px solid rgba(91,156,240,0.2);  border-radius: 6px; padding: 3px 10px; font-size: .75rem; font-weight: 600; }
 
         /* Edit button */
-        .btn-edit { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; color: #475569; font-size: 0.813rem; font-weight: 500; text-decoration: none; transition: all .15s; }
-        .btn-edit:hover { background: #eef2ff; border-color: #c7d2fe; color: #4f46e5; }
+        .btn-edit {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 14px; border-radius: 8px;
+            border: 1px solid var(--border-soft); background: transparent;
+            color: var(--cream-muted); font-size: 0.813rem; font-weight: 500;
+            text-decoration: none; transition: all .15s;
+        }
+        .btn-edit:hover { background: var(--amber-dim); border-color: var(--border-soft); color: var(--amber); }
+
+        /* Empty state */
+        .empty-icon {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: var(--amber-dim);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 14px; font-size: 1.5rem; color: var(--amber);
+        }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
+    <!-- Topbar -->
     <nav class="so-navbar">
         <a href="@Url.Action("Dashboard")" class="so-brand">
             <div class="so-brand-icon"><i class="bi bi-geo-alt-fill"></i></div>
-            <span class="so-brand-name">HeriStepAI</span>
+            <span class="so-brand-name">Heri<span>Step</span>AI</span>
         </a>
         <div class="so-right">
-            <span class="so-user d-none d-md-flex">
-                <i class="bi bi-person-circle"></i> @User.Identity?.Name
-            </span>
+            <div class="so-user d-none d-md-flex">
+                <div class="so-user-avatar">@userInitial</div>
+                <span class="so-user-name">@User.Identity?.Name</span>
+            </div>
             <form asp-controller="Auth" asp-action="Logout" method="post" class="mb-0">
                 <button type="submit" class="btn-logout">
                     <i class="bi bi-box-arrow-right"></i>Đăng xuất
@@ -113,8 +269,8 @@
 
     <div class="so-content">
         <!-- Breadcrumb + Header -->
-        <div style="margin-bottom: 20px;">
-            <nav aria-label="breadcrumb" style="margin-bottom: 12px;">
+        <div style="margin-bottom:20px;">
+            <nav aria-label="breadcrumb" style="margin-bottom:12px;">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="@Url.Action("Dashboard")"><i class="bi bi-house"></i> Dashboard</a></li>
                     <li class="breadcrumb-item active">Thống kê: @poi?.Name</li>
@@ -122,12 +278,12 @@
             </nav>
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 style="font-size: 1.375rem; font-weight: 700; margin: 0 0 2px; letter-spacing: -.02em;">Thống kê ghé thăm</h1>
-                    <p style="font-size: 0.813rem; color: #64748b; margin: 0;">
-                        <i class="bi bi-geo-alt me-1"></i>@poi?.Name
+                    <h1 style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;margin:0 0 4px;color:var(--cream);">Thống kê ghé thăm</h1>
+                    <p style="font-size:0.813rem;color:var(--cream-muted);margin:0;display:flex;align-items:center;gap:6px;">
+                        <i class="bi bi-geo-alt"></i>@poi?.Name
                         @if (!string.IsNullOrEmpty(poi?.Address))
                         {
-                            <span class="mx-1" style="color: #cbd5e1;">·</span>
+                            <span style="color:var(--border-soft);">·</span>
                             @poi.Address
                         }
                     </p>
@@ -152,7 +308,7 @@
                            value="@to?.ToString("yyyy-MM-dd")" />
                 </div>
                 <div class="col-md-4">
-                    <button type="submit" class="btn-filter w-100" style="height: 38px;">
+                    <button type="submit" class="btn-filter" style="height:38px;">
                         <i class="bi bi-funnel"></i>Lọc dữ liệu
                     </button>
                 </div>
@@ -162,39 +318,33 @@
         <!-- Stat Cards -->
         <div class="row g-3 mb-4">
             <div class="col-md-4">
-                <div class="stat-card" style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-people-fill"></i></div>
-                        <span style="background:rgba(255,255,255,0.18);color:#fff;font-size:.688rem;font-weight:600;padding:4px 10px;border-radius:20px;">Tổng</span>
+                <div class="stat-card amber">
+                    <div class="stat-top">
+                        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                        <span class="stat-badge">Tổng</span>
                     </div>
-                    <div style="position:relative;z-index:1;">
-                        <div class="stat-number">@totalVisits</div>
-                        <div class="stat-label">Tổng lượt ghé thăm</div>
-                    </div>
+                    <div class="stat-value">@totalVisits</div>
+                    <div class="stat-label">Tổng lượt ghé thăm</div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="stat-card" style="background:linear-gradient(135deg,#059669 0%,#0ea5e9 100%);">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-broadcast"></i></div>
-                        <span style="background:rgba(255,255,255,0.18);color:#fff;font-size:.688rem;font-weight:600;padding:4px 10px;border-radius:20px;">Tự động</span>
+                <div class="stat-card green">
+                    <div class="stat-top">
+                        <div class="stat-icon"><i class="bi bi-broadcast"></i></div>
+                        <span class="stat-badge">Tự động</span>
                     </div>
-                    <div style="position:relative;z-index:1;">
-                        <div class="stat-number">@geofenceCount</div>
-                        <div class="stat-label">Geofence (tự động)</div>
-                    </div>
+                    <div class="stat-value">@geofenceCount</div>
+                    <div class="stat-label">Geofence (tự động)</div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="stat-card" style="background:linear-gradient(135deg,#0284c7 0%,#6366f1 100%);">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-hand-index-thumb"></i></div>
-                        <span style="background:rgba(255,255,255,0.18);color:#fff;font-size:.688rem;font-weight:600;padding:4px 10px;border-radius:20px;">Thủ công</span>
+                <div class="stat-card blue">
+                    <div class="stat-top">
+                        <div class="stat-icon"><i class="bi bi-hand-index-thumb"></i></div>
+                        <span class="stat-badge">Thủ công</span>
                     </div>
-                    <div style="position:relative;z-index:1;">
-                        <div class="stat-number">@manualCount</div>
-                        <div class="stat-label">Manual (thủ công)</div>
-                    </div>
+                    <div class="stat-value">@manualCount</div>
+                    <div class="stat-label">Manual (thủ công)</div>
                 </div>
             </div>
         </div>
@@ -204,21 +354,21 @@
         {
             <div class="card mb-4">
                 <div class="card-header">
-                    <i class="bi bi-graph-up" style="color: #4f46e5;"></i>Biểu đồ theo ngày
+                    <i class="bi bi-graph-up" style="color:var(--amber);"></i>Biểu đồ theo ngày
                 </div>
                 <div class="card-body">
-                    <canvas id="dailyChart" style="height: 280px;"></canvas>
+                    <canvas id="dailyChart" style="height:280px;"></canvas>
                 </div>
             </div>
         }
 
         <!-- Visit Logs Table -->
-        <div class="table-card">
-            <div class="d-flex align-items-center justify-content-between" style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
-                <span style="font-size: .938rem; font-weight: 600; color: #1e293b;">
-                    <i class="bi bi-table me-2" style="color: #4f46e5;"></i>Chi tiết lượt ghé thăm
+        <div class="section-card">
+            <div class="section-header">
+                <span class="section-title">
+                    <i class="bi bi-table" style="color:var(--amber);"></i>Chi tiết lượt ghé thăm
                 </span>
-                <span style="background: #4f46e5; color: #fff; font-size: .75rem; font-weight: 600; padding: 4px 12px; border-radius: 20px;">@Model.Count lượt</span>
+                <span class="count-badge">@Model.Count lượt</span>
             </div>
 
             @if (Model.Any())
@@ -227,19 +377,19 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th style="padding-left: 20px;">Thời gian</th>
-                                <th class="text-center" style="width: 120px;">Loại</th>
+                                <th style="padding-left:24px;">Thời gian</th>
+                                <th class="text-center" style="width:140px;">Loại</th>
                                 <th class="text-center">Tọa độ</th>
-                                <th class="text-center" style="width: 120px;">Khoảng cách</th>
+                                <th class="text-center" style="width:120px;">Khoảng cách</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var visit in Model)
                             {
                                 <tr>
-                                    <td style="padding-left: 20px;">
-                                        <span style="font-weight: 500;">@visit.VisitTime.ToString("dd/MM/yyyy")</span>
-                                        <span style="color: #94a3b8; font-size: .8rem; margin-left: 6px;">@visit.VisitTime.ToString("HH:mm:ss")</span>
+                                    <td style="padding-left:24px;">
+                                        <span style="font-weight:500;color:var(--cream);">@visit.VisitTime.ToString("dd/MM/yyyy")</span>
+                                        <span style="color:var(--cream-muted);font-size:.8rem;margin-left:6px;">@visit.VisitTime.ToString("HH:mm:ss")</span>
                                     </td>
                                     <td class="text-center">
                                         @if (visit.VisitType == HeriStepAI.API.Models.VisitType.Geofence)
@@ -251,7 +401,7 @@
                                             <span class="badge-manual"><i class="bi bi-hand-index-thumb me-1"></i>Manual</span>
                                         }
                                     </td>
-                                    <td class="text-center" style="font-family: monospace; font-size: .8rem; color: #64748b;">
+                                    <td class="text-center" style="font-family:monospace;font-size:.8rem;color:var(--cream-muted);">
                                         @(visit.Latitude?.ToString("F6") ?? "N/A"), @(visit.Longitude?.ToString("F6") ?? "N/A")
                                     </td>
                                     <td class="text-center">
@@ -260,7 +410,7 @@
                                                 ? CalculateDistance(poi.Latitude, poi.Longitude, visit.Latitude.Value, visit.Longitude.Value)
                                                 : 0;
                                         }
-                                        <span style="font-weight: 600; color: #1e293b;">@distance.ToString("F0")m</span>
+                                        <span style="font-weight:600;color:var(--amber);">@distance.ToString("F0")m</span>
                                     </td>
                                 </tr>
                             }
@@ -271,11 +421,9 @@
             else
             {
                 <div class="text-center py-5">
-                    <div style="width: 56px; height: 56px; border-radius: 50%; background: #eef2ff; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
-                        <i class="bi bi-inbox" style="font-size: 1.5rem; color: #4f46e5;"></i>
-                    </div>
-                    <p style="font-weight: 600; margin-bottom: 4px;">Chưa có lượt ghé thăm</p>
-                    <p style="font-size: .813rem; color: #94a3b8; margin: 0;">Không có dữ liệu trong khoảng thời gian này.</p>
+                    <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+                    <p style="font-weight:600;margin-bottom:4px;color:var(--cream);">Chưa có lượt ghé thăm</p>
+                    <p style="font-size:.813rem;color:var(--cream-muted);margin:0;">Không có dữ liệu trong khoảng thời gian này.</p>
                 </div>
             }
         </div>
@@ -294,35 +442,35 @@
                         {
                             label: 'Tổng lượt ghé',
                             data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dailyStats.Select(x => x.TotalVisits))),
-                            borderColor: '#4f46e5',
-                            backgroundColor: 'rgba(79,70,229,0.08)',
+                            borderColor: '#E8A14B',
+                            backgroundColor: 'rgba(232,161,75,0.08)',
                             borderWidth: 2, tension: 0.4, fill: true,
-                            pointRadius: 4, pointBackgroundColor: '#4f46e5'
+                            pointRadius: 4, pointBackgroundColor: '#E8A14B'
                         },
                         {
                             label: 'Geofence',
                             data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dailyStats.Select(x => x.GeofenceVisits))),
-                            borderColor: '#10b981',
-                            backgroundColor: 'rgba(16,185,129,0.08)',
+                            borderColor: '#2ECC94',
+                            backgroundColor: 'rgba(46,204,148,0.08)',
                             borderWidth: 2, tension: 0.4, fill: true,
-                            pointRadius: 4, pointBackgroundColor: '#10b981'
+                            pointRadius: 4, pointBackgroundColor: '#2ECC94'
                         },
                         {
                             label: 'Manual',
                             data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(dailyStats.Select(x => x.ManualVisits))),
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59,130,246,0.08)',
+                            borderColor: '#5B9CF0',
+                            backgroundColor: 'rgba(91,156,240,0.08)',
                             borderWidth: 2, tension: 0.4, fill: true,
-                            pointRadius: 4, pointBackgroundColor: '#3b82f6'
+                            pointRadius: 4, pointBackgroundColor: '#5B9CF0'
                         }
                     ]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: { size: 12 }, color: '#64748b' } } },
+                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: { size: 12 }, color: '#9A8A70' } } },
                     scales: {
-                        y: { beginAtZero: true, ticks: { precision: 0, color: '#94a3b8', font: { size: 11 } }, grid: { color: '#f1f5f9' } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11 } } }
+                        y: { beginAtZero: true, ticks: { precision: 0, color: '#9A8A70', font: { size: 11 } }, grid: { color: 'rgba(232,161,75,0.06)' } },
+                        x: { grid: { display: false }, ticks: { color: '#9A8A70', font: { size: 11 } } }
                     }
                 }
             });
