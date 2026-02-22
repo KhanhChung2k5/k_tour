@@ -6,15 +6,16 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title-text">@Model.Name</h1>
+        <button class="back-link" onclick="history.back()">← Quay lại danh sách</button>
+        <h1 class="page-title-text" style="margin-top:8px;">@Model.Name</h1>
         <p class="page-subtitle-text">Chi tiết địa điểm #@Model.Id</p>
     </div>
-    <div class="d-flex gap-2">
+    <div style="display:flex;gap:10px;align-items:center;">
         <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-primary btn-sm">
-            <i class="bi bi-pencil me-1"></i>Chỉnh sửa
+            <i class="bi bi-pencil"></i>Chỉnh sửa
         </a>
-        <a href="@Url.Action("Index")" class="btn btn-sm" style="background:#f1f5f9;color:#475569;border:none;">
-            <i class="bi bi-arrow-left me-1"></i>Quay lại
+        <a href="@Url.Action("Index")" class="btn btn-ghost btn-sm">
+            <i class="bi bi-arrow-left"></i>Quay lại
         </a>
     </div>
 </div>
@@ -23,15 +24,15 @@
     <!-- Main Info -->
     <div class="col-lg-8">
         <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-shop me-2" style="color:#4f46e5;"></i>Thông tin chính</span>
+            <div class="card-header">
+                <span><i class="bi bi-shop me-2" style="color:var(--amber);"></i>Thông tin chính</span>
                 @if (Model.IsActive)
                 {
-                    <span class="status-pill status-active"><span class="dot-active"></span>Hoạt động</span>
+                    <span class="status-dot active">Hoạt động</span>
                 }
                 else
                 {
-                    <span class="status-pill status-inactive"><span class="dot-inactive"></span>Tạm dừng</span>
+                    <span class="status-dot inactive">Tạm dừng</span>
                 }
             </div>
             <div class="card-body">
@@ -39,7 +40,7 @@
                 {
                     <div class="mb-4">
                         <img src="@Model.ImageUrl" alt="@Model.Name"
-                             style="width:100%;height:220px;object-fit:cover;border-radius:10px;border:1px solid #e2e8f0;" />
+                             style="width:100%;height:220px;object-fit:cover;border-radius:10px;border:1px solid var(--border);" />
                     </div>
                 }
 
@@ -54,7 +55,7 @@
                         <div class="info-field">
                             <div class="info-label">Địa chỉ</div>
                             <div class="info-value">
-                                <i class="bi bi-geo-alt" style="color:#ef4444;"></i>
+                                <i class="bi bi-geo-alt" style="color:var(--red);"></i>
                                 @(Model.Address ?? "Chưa có")
                             </div>
                         </div>
@@ -62,15 +63,15 @@
                     <div class="col-12">
                         <div class="info-field">
                             <div class="info-label">Mô tả</div>
-                            <div class="info-value">@(Model.Description ?? "Chưa có mô tả")</div>
+                            <div class="info-value" style="font-weight:300;line-height:1.7;color:var(--cream-muted);">@(Model.Description ?? "Chưa có mô tả")</div>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="info-field">
                             <div class="info-label">Tọa độ</div>
                             <div class="info-value d-flex flex-column gap-1">
-                                <code style="font-size:0.75rem;background:#f8fafc;padding:2px 6px;border-radius:4px;">Lat: @Model.Latitude.ToString("F6")</code>
-                                <code style="font-size:0.75rem;background:#f8fafc;padding:2px 6px;border-radius:4px;">Lng: @Model.Longitude.ToString("F6")</code>
+                                <code style="font-size:0.75rem;background:var(--dark4);color:var(--blue);padding:3px 8px;border-radius:5px;">Lat: @Model.Latitude.ToString("F6")</code>
+                                <code style="font-size:0.75rem;background:var(--dark4);color:var(--blue);padding:3px 8px;border-radius:5px;">Lng: @Model.Longitude.ToString("F6")</code>
                             </div>
                         </div>
                     </div>
@@ -92,11 +93,11 @@
                             <div class="info-value">
                                 @if (Model.Rating.HasValue)
                                 {
-                                    <span><i class="bi bi-star-fill" style="color:#f59e0b;"></i> @Model.Rating.Value.ToString("F1") <span style="color:#94a3b8;font-size:0.75rem;">(@Model.ReviewCount đánh giá)</span></span>
+                                    <span><i class="bi bi-star-fill" style="color:var(--amber);"></i> @Model.Rating.Value.ToString("F1") <span style="color:var(--cream-muted);font-size:0.75rem;">(@Model.ReviewCount đánh giá)</span></span>
                                 }
                                 else
                                 {
-                                    <span style="color:#94a3b8;">Chưa có đánh giá</span>
+                                    <span style="color:var(--cream-muted);">Chưa có đánh giá</span>
                                 }
                             </div>
                         </div>
@@ -106,7 +107,7 @@
                         <div class="col-md-4">
                             <div class="info-field">
                                 <div class="info-label">Giá</div>
-                                <div class="info-value" style="color:#10b981;font-weight:600;">
+                                <div class="info-value" style="color:var(--amber);font-weight:600;">
                                     @Model.PriceMin.ToString("N0")–@Model.PriceMax.ToString("N0") VND
                                 </div>
                             </div>
@@ -136,9 +137,12 @@
 
                 @if (!string.IsNullOrEmpty(Model.MapLink))
                 {
-                    <div class="mt-3 pt-3" style="border-top:1px solid #f1f5f9;">
-                        <a href="@Model.MapLink" target="_blank" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-map me-1"></i>Xem trên Google Maps
+                    <div class="mt-3 pt-3" style="border-top:1px solid var(--border);">
+                        <a href="@Model.MapLink" target="_blank"
+                           style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--dark4);border:1px solid var(--border);border-radius:9px;color:var(--cream-muted);font-size:0.82rem;text-decoration:none;transition:all 0.2s;"
+                           onmouseover="this.style.borderColor='var(--border-hover)';this.style.color='var(--amber)';"
+                           onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--cream-muted)';">
+                            🗺 Xem trên Google Maps
                         </a>
                     </div>
                 }
@@ -150,7 +154,7 @@
         {
             <div class="card">
                 <div class="card-header">
-                    <i class="bi bi-translate me-2" style="color:#8b5cf6;"></i>Nội dung thuyết minh
+                    <span><i class="bi bi-translate me-2" style="color:var(--blue);"></i>Nội dung thuyết minh</span>
                 </div>
                 <div class="card-body">
                     @{
@@ -177,15 +181,15 @@
                             <div class="tab-pane fade @(lang == firstLang ? "show active" : "")" id="dtab-@lang">
                                 @if (content != null)
                                 {
-                                    <p style="white-space:pre-wrap;font-size:0.875rem;color:#374151;line-height:1.7;">@content.TextContent</p>
+                                    <div style="background:var(--dark4);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:0.88rem;color:var(--cream);line-height:1.7;font-weight:300;min-height:80px;white-space:pre-wrap;">@content.TextContent</div>
                                     @if (!string.IsNullOrEmpty(content.AudioUrl))
                                     {
-                                        <audio controls src="@content.AudioUrl" style="width:100%;border-radius:8px;"></audio>
+                                        <audio controls src="@content.AudioUrl" style="width:100%;border-radius:8px;margin-top:12px;"></audio>
                                     }
                                 }
                                 else
                                 {
-                                    <p style="color:#94a3b8;font-style:italic;font-size:0.875rem;">Chưa có nội dung cho ngôn ngữ này.</p>
+                                    <p style="color:var(--cream-muted);font-style:italic;font-size:0.875rem;">Chưa có nội dung cho ngôn ngữ này.</p>
                                 }
                             </div>
                         }
@@ -200,51 +204,36 @@
         <!-- Technical Info -->
         <div class="card mb-4">
             <div class="card-header">
-                <i class="bi bi-gear me-2" style="color:#64748b;"></i>Thông tin kỹ thuật
+                <span><i class="bi bi-gear me-2" style="color:var(--cream-muted);"></i>Thông tin kỹ thuật</span>
             </div>
-            <div class="card-body d-flex flex-column gap-3">
-                <div class="info-field">
-                    <div class="info-label">Bán kính geofence</div>
-                    <div class="info-value">@Model.Radius m</div>
-                </div>
-                <div class="info-field">
-                    <div class="info-label">Owner ID</div>
-                    <div class="info-value">@(Model.OwnerId?.ToString() ?? "—")</div>
-                </div>
-                <div class="info-field">
-                    <div class="info-label">Tour ID</div>
-                    <div class="info-value">@(Model.TourId?.ToString() ?? "—")</div>
-                </div>
-                <div class="info-field">
-                    <div class="info-label">Ngày tạo</div>
-                    <div class="info-value">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
-                </div>
-                <div class="info-field">
-                    <div class="info-label">Cập nhật lần cuối</div>
-                    <div class="info-value">@Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</div>
-                </div>
+            <div class="card-body" style="padding:0 20px !important;">
+                <div class="detail-row"><span class="detail-label">Bán kính Geofence</span><span class="detail-val">@Model.Radius m</span></div>
+                <div class="detail-row"><span class="detail-label">Owner ID</span><span class="detail-val">@(Model.OwnerId?.ToString() ?? "—")</span></div>
+                <div class="detail-row"><span class="detail-label">Tour ID</span><span class="detail-val" style="color:var(--cream-muted);">@(Model.TourId?.ToString() ?? "—")</span></div>
+                <div class="detail-row"><span class="detail-label">Ngày tạo</span><span class="detail-val">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span></div>
+                <div class="detail-row" style="border-bottom:none;"><span class="detail-label">Cập nhật cuối</span><span class="detail-val">@Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</span></div>
             </div>
         </div>
 
         <!-- Actions -->
         <div class="card">
             <div class="card-header">
-                <i class="bi bi-lightning-charge me-2" style="color:#f59e0b;"></i>Thao tác
+                <span><i class="bi bi-lightning-charge me-2" style="color:var(--amber);"></i>Thao tác</span>
             </div>
             <div class="card-body d-grid gap-2">
-                <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-primary">
-                    <i class="bi bi-pencil me-1"></i>Chỉnh sửa
+                <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-primary" style="justify-content:center;">
+                    <i class="bi bi-pencil"></i>Chỉnh sửa
                 </a>
                 <form method="post" action="@Url.Action("ToggleActive", new { id = Model.Id })">
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="btn w-100" style="background:@(Model.IsActive ? "#fffbeb" : "#f0fdf4");color:@(Model.IsActive ? "#92400e" : "#166534");border:1px solid @(Model.IsActive ? "#fde68a" : "#bbf7d0");">
-                        <i class="bi bi-toggle-@(Model.IsActive ? "off" : "on") me-1"></i>
+                    <button type="submit" class="btn w-100" style="justify-content:center;display:flex;align-items:center;gap:8px;background:@(Model.IsActive ? "rgba(232,161,75,0.12)" : "rgba(46,204,148,0.12)");color:@(Model.IsActive ? "var(--amber)" : "var(--green)");border:1px solid @(Model.IsActive ? "rgba(232,161,75,0.3)" : "rgba(46,204,148,0.3)");">
+                        <i class="bi bi-toggle-@(Model.IsActive ? "off" : "on")"></i>
                         @(Model.IsActive ? "Tạm dừng" : "Kích hoạt")
                     </button>
                 </form>
                 <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#deleteModal"
-                        style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;">
-                    <i class="bi bi-trash me-1"></i>Xóa POI
+                        style="justify-content:center;display:flex;align-items:center;gap:8px;background:var(--red-dim);color:var(--red);border:1px solid rgba(224,82,82,0.3);">
+                    <i class="bi bi-trash"></i>Xóa POI
                 </button>
             </div>
         </div>
@@ -254,22 +243,21 @@
 <!-- Delete Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content" style="border-radius:14px;border:1px solid #e2e8f0;">
+        <div class="modal-content">
             <div class="modal-body p-4 text-center">
-                <div style="width:48px;height:48px;border-radius:12px;background:#fef2f2;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
-                    <i class="bi bi-trash" style="color:#ef4444;font-size:1.25rem;"></i>
+                <div style="width:48px;height:48px;border-radius:12px;background:var(--red-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                    <i class="bi bi-trash" style="color:var(--red);font-size:1.25rem;"></i>
                 </div>
-                <h6 style="font-weight:700;margin-bottom:6px;">Xóa POI?</h6>
-                <p style="font-size:0.813rem;color:#64748b;margin-bottom:20px;">
-                    Xóa <strong>@Model.Name</strong>? Hành động không thể hoàn tác.
+                <h6 style="font-weight:700;margin-bottom:6px;color:var(--cream);">Xóa POI?</h6>
+                <p style="font-size:0.82rem;color:var(--cream-muted);margin-bottom:20px;">
+                    Xóa <strong style="color:var(--cream);">@Model.Name</strong>? Hành động không thể hoàn tác.
                 </p>
                 <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-sm flex-fill" data-bs-dismiss="modal"
-                            style="background:#f1f5f9;color:#475569;border:none;">Hủy</button>
+                    <button type="button" class="btn btn-sm flex-fill btn-ghost" data-bs-dismiss="modal">Hủy</button>
                     <form method="post" action="@Url.Action("Delete", new { id = Model.Id })" class="flex-fill">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-sm w-100"
-                                style="background:#ef4444;color:#fff;border:none;">Xóa vĩnh viễn</button>
+                                style="background:var(--red);color:#fff;border:none;">Xóa vĩnh viễn</button>
                     </form>
                 </div>
             </div>
@@ -279,18 +267,35 @@
 
 @section Styles {
     <style>
-        .info-field { display: flex; flex-direction: column; gap: 3px; }
-        .info-label { font-size: 0.75rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; }
-        .info-value { font-size: 0.875rem; color: #1e293b; }
-        .status-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 0.75rem; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
-        .status-active { background: #f0fdf4; color: #166534; }
-        .status-inactive { background: #f8fafc; color: #64748b; }
-        .dot-active   { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981; }
-        .dot-inactive { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #cbd5e1; }
-        .badge-soft-primary   { background: #eef2ff; color: #4f46e5; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500; }
-        .badge-soft-warning   { background: #fffbeb; color: #92400e; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500; }
-        .badge-soft-info      { background: #eff6ff; color: #2563eb; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500; }
-        .badge-soft-secondary { background: #f1f5f9; color: #475569; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500; }
-        .badge-soft-danger    { background: #fef2f2; color: #dc2626; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 500; }
+        .back-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.8rem; color: var(--cream-muted);
+            cursor: pointer; transition: color 0.2s;
+            border: none; background: none;
+            font-family: 'Be Vietnam Pro', sans-serif; padding: 0;
+        }
+        .back-link:hover { color: var(--amber); }
+
+        .info-field { display: flex; flex-direction: column; gap: 4px; }
+        .info-label  { font-size: 0.68rem; font-weight: 600; color: var(--cream-muted); text-transform: uppercase; letter-spacing: 0.12em; }
+        .info-value  { font-size: 0.9rem; color: var(--cream); font-weight: 400; }
+
+        .status-dot {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.78rem; font-weight: 500;
+            padding: 4px 10px; border-radius: 99px;
+        }
+        .status-dot::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+        .status-dot.active   { background: var(--green-dim); color: var(--green); }
+        .status-dot.inactive { background: var(--cream-dim); color: var(--cream-muted); }
+
+        .detail-row {
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: flex-start;
+            justify-content: space-between; gap: 12px;
+        }
+        .detail-label { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cream-muted); font-weight: 600; flex-shrink: 0; }
+        .detail-val   { font-size: 0.84rem; color: var(--cream); font-weight: 500; text-align: right; }
     </style>
 }

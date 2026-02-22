@@ -9,125 +9,111 @@
     var poiNames = ViewBag.POINames as Dictionary<string, string> ?? new Dictionary<string, string>();
 }
 
-<!-- Page Header -->
 <div class="page-header">
     <div>
         <h1 class="page-title-text">Dashboard</h1>
-        <p class="page-subtitle-text">Tổng quan hệ thống HeriStepAI</p>
+        <p class="page-subtitle-text">Tổng quan hệ thống HeriStepAI — @DateTime.Now.ToString("dd/MM/yyyy")</p>
     </div>
-    <a href="@Url.Action("Index", "POI")" class="btn btn-primary btn-sm">
-        <i class="bi bi-plus-lg me-1"></i>Thêm POI mới
+    <a href="@Url.Action("Create", "POI")" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i>Thêm POI mới
     </a>
 </div>
 
 <!-- Stat Cards -->
 <div class="row g-3 mb-4">
     <div class="col-xl-3 col-md-6">
-        <div class="stat-card" style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);">
-            <div class="d-flex align-items-center justify-content-between">
-                <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-geo-alt-fill"></i></div>
-                <span style="background:rgba(255,255,255,0.18);color:#fff;font-size:0.688rem;font-weight:600;padding:4px 10px;border-radius:20px;">POI</span>
+        <div class="stat-card amber">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                <span class="stat-badge">POI</span>
             </div>
-            <div style="position:relative;z-index:1;">
-                <div class="stat-number">@totalPOIs</div>
-                <div class="stat-label">Tổng số địa điểm</div>
-            </div>
+            <div class="stat-number">@totalPOIs</div>
+            <div class="stat-label">Tổng số địa điểm</div>
         </div>
     </div>
-
     <div class="col-xl-3 col-md-6">
-        <div class="stat-card" style="background:linear-gradient(135deg,#059669 0%,#0ea5e9 100%);">
-            <div class="d-flex align-items-center justify-content-between">
-                <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-people-fill"></i></div>
-                <span style="background:rgba(255,255,255,0.18);color:#fff;font-size:0.688rem;font-weight:600;padding:4px 10px;border-radius:20px;"><i class="bi bi-arrow-up"></i> +12%</span>
+        <div class="stat-card green">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                <span class="stat-badge">↑ +12%</span>
             </div>
-            <div style="position:relative;z-index:1;">
-                <div class="stat-number">@totalVisits</div>
-                <div class="stat-label">Tổng lượt ghé thăm</div>
-            </div>
+            <div class="stat-number">@totalVisits</div>
+            <div class="stat-label">Tổng lượt ghé thăm</div>
         </div>
     </div>
-
     <div class="col-xl-3 col-md-6">
-        <div class="stat-card" style="background:linear-gradient(135deg,#0284c7 0%,#6366f1 100%);">
-            <div class="d-flex align-items-center justify-content-between">
-                <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-broadcast"></i></div>
-                <span style="background:rgba(255,255,255,0.18);color:#fff;font-size:0.688rem;font-weight:600;padding:4px 10px;border-radius:20px;">Geofence</span>
+        <div class="stat-card blue">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="bi bi-broadcast"></i></div>
+                <span class="stat-badge">Geofence</span>
             </div>
-            <div style="position:relative;z-index:1;">
-                <div class="stat-number">@geofenceVisits</div>
-                <div class="stat-label">Tự động nhận diện</div>
-            </div>
+            <div class="stat-number">@geofenceVisits</div>
+            <div class="stat-label">Tự động nhận diện</div>
         </div>
     </div>
-
     <div class="col-xl-3 col-md-6">
-        <div class="stat-card" style="background:linear-gradient(135deg,#d97706 0%,#ef4444 100%);">
-            <div class="d-flex align-items-center justify-content-between">
-                <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-check-circle-fill"></i></div>
-                <span style="background:rgba(255,255,255,0.18);color:#fff;font-size:0.688rem;font-weight:600;padding:4px 10px;border-radius:20px;">Hoạt động</span>
+        <div class="stat-card red">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+                <span class="stat-badge">Hoạt động</span>
             </div>
-            <div style="position:relative;z-index:1;">
-                <div class="stat-number">@activePOIs</div>
-                <div class="stat-label">POI đang mở</div>
-            </div>
+            <div class="stat-number">@activePOIs</div>
+            <div class="stat-label">POI đang mở</div>
         </div>
     </div>
 </div>
 
 <!-- Quick Actions + Chart -->
 <div class="row g-3">
-    <!-- Quick Actions -->
     <div class="col-lg-4">
         <div class="card h-100">
             <div class="card-header">
-                <i class="bi bi-lightning-charge-fill me-2" style="color:#f59e0b;"></i>Truy cập nhanh
+                <span><i class="bi bi-lightning-charge-fill me-2" style="color:var(--amber);"></i>Truy cập nhanh</span>
             </div>
-            <div class="card-body d-flex flex-column gap-3" style="padding:16px 20px !important;">
-                <a href="@Url.Action("Index", "POI")" class="quick-action-link">
-                    <div class="qa-icon" style="background:#eef2ff;">
-                        <i class="bi bi-shop" style="color:#4f46e5;"></i>
+            <div class="card-body d-flex flex-column gap-2" style="padding:16px !important;">
+                <a href="@Url.Action("Index", "POI")" class="quick-link">
+                    <div class="quick-icon" style="background:var(--amber-dim);">
+                        <i class="bi bi-shop" style="color:var(--amber);"></i>
                     </div>
                     <div>
-                        <div class="qa-title">Quản lý POI</div>
-                        <div class="qa-desc">Thêm, sửa, xoá địa điểm</div>
+                        <div class="quick-title">Quản lý POI</div>
+                        <div class="quick-desc">Thêm, sửa, xoá địa điểm</div>
                     </div>
-                    <i class="bi bi-chevron-right ms-auto" style="color:#94a3b8;"></i>
+                    <i class="bi bi-chevron-right ms-auto" style="color:var(--cream-muted);font-size:0.8rem;"></i>
                 </a>
 
-                <a href="@Url.Action("Index", "Analytics")" class="quick-action-link">
-                    <div class="qa-icon" style="background:#f0fdf4;">
-                        <i class="bi bi-bar-chart-fill" style="color:#10b981;"></i>
+                <a href="@Url.Action("Index", "Analytics")" class="quick-link">
+                    <div class="quick-icon" style="background:var(--green-dim);">
+                        <i class="bi bi-bar-chart-fill" style="color:var(--green);"></i>
                     </div>
                     <div>
-                        <div class="qa-title">Analytics</div>
-                        <div class="qa-desc">Thống kê & phân tích</div>
+                        <div class="quick-title">Analytics</div>
+                        <div class="quick-desc">Thống kê &amp; phân tích</div>
                     </div>
-                    <i class="bi bi-chevron-right ms-auto" style="color:#94a3b8;"></i>
+                    <i class="bi bi-chevron-right ms-auto" style="color:var(--cream-muted);font-size:0.8rem;"></i>
                 </a>
 
-                <div class="quick-action-link" style="opacity:0.45;pointer-events:none;">
-                    <div class="qa-icon" style="background:#f1f5f9;">
-                        <i class="bi bi-gear-fill" style="color:#94a3b8;"></i>
+                <div class="quick-link" style="opacity:0.4;pointer-events:none;">
+                    <div class="quick-icon" style="background:var(--cream-dim);">
+                        <i class="bi bi-gear-fill" style="color:var(--cream-muted);"></i>
                     </div>
                     <div>
-                        <div class="qa-title">Cài đặt</div>
-                        <div class="qa-desc">Sắp ra mắt</div>
+                        <div class="quick-title">Cài đặt</div>
+                        <div class="quick-desc">Sắp ra mắt</div>
                     </div>
-                    <span class="ms-auto" style="font-size:0.688rem;background:#f1f5f9;color:#94a3b8;padding:2px 8px;border-radius:4px;font-weight:600;">Soon</span>
+                    <span class="ms-auto" style="font-size:0.65rem;background:var(--cream-dim);color:var(--cream-muted);padding:2px 8px;border-radius:99px;font-weight:600;">Soon</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Chart -->
     <div class="col-lg-8">
         <div class="card h-100">
-            <div class="card-header d-flex align-items-center justify-content-between">
-                <span><i class="bi bi-bar-chart-line me-2" style="color:#4f46e5;"></i>Top địa điểm được ghé thăm</span>
+            <div class="card-header">
+                <span><i class="bi bi-bar-chart-line me-2" style="color:var(--amber);"></i>Top địa điểm được ghé thăm</span>
                 @if (topPOIs.Any())
                 {
-                    <span style="font-size:0.75rem;color:#94a3b8;font-weight:400;">@topPOIs.Count địa điểm</span>
+                    <span style="font-size:0.75rem;color:var(--cream-muted);font-weight:400;">@topPOIs.Count địa điểm</span>
                 }
             </div>
             <div class="card-body">
@@ -138,10 +124,10 @@
                 else
                 {
                     <div class="text-center py-5">
-                        <div style="width:56px;height:56px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
-                            <i class="bi bi-bar-chart" style="font-size:1.5rem;color:#94a3b8;"></i>
+                        <div style="width:56px;height:56px;border-radius:50%;background:var(--dark4);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                            <i class="bi bi-bar-chart" style="font-size:1.5rem;color:var(--cream-muted);"></i>
                         </div>
-                        <p style="color:#94a3b8;font-size:0.875rem;margin:0;">Chưa có dữ liệu lượt thăm</p>
+                        <p style="color:var(--cream-muted);font-size:0.875rem;margin:0;">Chưa có dữ liệu lượt thăm</p>
                     </div>
                 }
             </div>
@@ -151,33 +137,33 @@
 
 @section Styles {
     <style>
-        .quick-action-link {
+        .quick-link {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 14px;
+            gap: 14px;
+            padding: 14px 16px;
             border-radius: 10px;
             text-decoration: none;
-            color: inherit;
-            border: 1px solid #f1f5f9;
-            background: #fafbfc;
-            transition: all 0.15s;
+            color: var(--cream);
+            border: 1px solid var(--border);
+            background: var(--dark4);
+            transition: all 0.2s;
+            cursor: pointer;
         }
-        .quick-action-link:hover {
-            background: #f8fafc;
-            border-color: #e2e8f0;
-            transform: translateX(2px);
-            color: inherit;
+        .quick-link:hover {
+            background: var(--cream-dim);
+            border-color: var(--border-hover);
+            color: var(--cream);
         }
-        .qa-icon {
-            width: 40px; height: 40px;
-            border-radius: 10px;
+        .quick-icon {
+            width: 38px; height: 38px;
+            border-radius: 9px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem;
+            font-size: 1rem;
             flex-shrink: 0;
         }
-        .qa-title { font-size: 0.875rem; font-weight: 600; color: #1e293b; }
-        .qa-desc  { font-size: 0.75rem; color: #64748b; }
+        .quick-title { font-size: 0.88rem; font-weight: 600; color: var(--cream); }
+        .quick-desc  { font-size: 0.75rem; color: var(--cream-muted); margin-top: 2px; }
     </style>
 }
 
@@ -202,10 +188,10 @@
                     datasets: [{
                         label: 'Lượt thăm',
                         data: values,
-                        backgroundColor: '#4f46e5',
-                        borderRadius: 6,
+                        backgroundColor: 'rgba(232,161,75,0.7)',
+                        borderRadius: 4,
                         borderSkipped: false,
-                        barThickness: 32
+                        barThickness: 28
                     }]
                 },
                 options: {
@@ -215,13 +201,14 @@
                     scales: {
                         y: {
                             beginAtZero: true,
-                            ticks: { precision: 0, color: '#94a3b8', font: { size: 11 } },
-                            grid: { color: '#f1f5f9' },
-                            border: { dash: [4, 4], color: 'transparent' }
+                            ticks: { precision: 0, color: '#9E8E75', font: { size: 11 } },
+                            grid: { color: 'rgba(232,161,75,0.06)' },
+                            border: { color: 'transparent' }
                         },
                         x: {
                             grid: { display: false },
-                            ticks: { color: '#64748b', font: { size: 11 }, maxRotation: 30 }
+                            ticks: { color: '#9E8E75', font: { size: 11 }, maxRotation: 30 },
+                            border: { color: 'rgba(232,161,75,0.12)' }
                         }
                     }
                 }

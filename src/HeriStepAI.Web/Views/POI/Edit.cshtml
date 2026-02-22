@@ -9,7 +9,7 @@
         <h1 class="page-title-text">Chỉnh sửa: @Model.Name</h1>
         <p class="page-subtitle-text">Cập nhật thông tin địa điểm</p>
     </div>
-    <a href="@Url.Action("Index")" class="btn btn-sm" style="background:#f1f5f9;color:#475569;border:none;">
+    <a href="@Url.Action("Index")" class="btn btn-ghost btn-sm">
         <i class="bi bi-arrow-left me-1"></i>Quay lại
     </a>
 </div>
@@ -35,7 +35,7 @@
             <!-- Basic Info -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <i class="bi bi-geo-alt-fill me-2" style="color:#4f46e5;"></i>Thông tin cơ bản
+                    <i class="bi bi-geo-alt-fill me-2" style="color:var(--amber);"></i>Thông tin cơ bản
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -70,7 +70,7 @@
             <!-- Narration Content -->
             <div class="card">
                 <div class="card-header">
-                    <i class="bi bi-translate me-2" style="color:#8b5cf6;"></i>Nội dung thuyết minh
+                    <i class="bi bi-translate me-2" style="color:var(--blue);"></i>Nội dung thuyết minh
                 </div>
                 <div class="card-body">
                     <ul class="nav nav-tabs-pill mb-3" role="tablist">
@@ -114,7 +114,7 @@
             <!-- Category & Settings -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <i class="bi bi-tag-fill me-2" style="color:#f59e0b;"></i>Phân loại &amp; Cài đặt
+                    <i class="bi bi-tag-fill me-2" style="color:var(--amber);"></i>Phân loại &amp; Cài đặt
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -168,10 +168,10 @@
                         <label class="form-label">Link Google Maps</label>
                         <input type="url" class="form-control" name="MapLink" value="@Model.MapLink" />
                     </div>
-                    <div class="d-flex align-items-center gap-2 p-3" style="background:#f8fafc;border-radius:8px;">
+                    <div class="d-flex align-items-center gap-2 p-3" style="background:var(--dark4);border-radius:8px;border:1px solid var(--border);">
                         <input class="form-check-input m-0" type="checkbox" name="IsActive" value="true" id="isActiveCheck" style="width:18px;height:18px;" />
                         <label class="form-label m-0" for="isActiveCheck" style="cursor:pointer;">
-                            <i class="bi bi-check-circle-fill me-1" style="color:#10b981;"></i>Kích hoạt
+                            <i class="bi bi-check-circle-fill me-1" style="color:var(--green);"></i>Kích hoạt
                         </label>
                     </div>
                 </div>
@@ -180,23 +180,23 @@
             <!-- Image -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <i class="bi bi-image me-2" style="color:#3b82f6;"></i>Hình ảnh
+                    <i class="bi bi-image me-2" style="color:var(--blue);"></i>Hình ảnh
                 </div>
                 <div class="card-body">
                     <div id="imagePreview" style="@(string.IsNullOrEmpty(Model.ImageUrl) ? "display:none;" : "")margin-bottom:12px;">
                         <img id="previewImg" src="@Model.ImageUrl" alt="Preview"
-                             style="width:100%;height:180px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;" />
+                             style="width:100%;height:180px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" />
                     </div>
                     <input type="file" class="form-control" name="ImageFile" id="imageFileInput" accept="image/*" />
                     <input type="hidden" name="ImageUrl" value="@Model.ImageUrl" />
-                    <div style="font-size:0.75rem;color:#94a3b8;margin-top:6px;">Chọn ảnh mới để thay thế · Để trống nếu giữ ảnh cũ</div>
+                    <div style="font-size:0.75rem;color:var(--cream-muted);margin-top:6px;">Chọn ảnh mới để thay thế · Để trống nếu giữ ảnh cũ</div>
                 </div>
             </div>
 
             <!-- Metadata -->
-            <div class="card mb-4" style="background:#f8fafc !important;">
+            <div class="card mb-4" style="background:var(--dark4) !important;">
                 <div class="card-body" style="padding:14px 16px !important;">
-                    <div style="font-size:0.75rem;color:#94a3b8;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+                    <div style="font-size:0.75rem;color:var(--cream-muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;">
                         <span><i class="bi bi-calendar-plus me-1"></i>Tạo: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
                         <span><i class="bi bi-calendar-check me-1"></i>Cập nhật: @Model.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</span>
                     </div>
@@ -208,8 +208,7 @@
                 <button type="submit" class="btn btn-primary" style="padding:11px;">
                     <i class="bi bi-check2 me-2"></i>Lưu thay đổi
                 </button>
-                <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-sm text-center"
-                   style="background:#f1f5f9;color:#475569;border:none;padding:9px;">
+                <a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-ghost btn-sm text-center" style="padding:9px;">
                     Hủy bỏ
                 </a>
             </div>

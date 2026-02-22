@@ -9,7 +9,7 @@
         <h1 class="page-title-text">Thêm POI &amp; Tài khoản chủ quán</h1>
         <p class="page-subtitle-text">Tạo địa điểm mới và tài khoản quản lý cho chủ quán</p>
     </div>
-    <a href="@Url.Action("Index")" class="btn btn-sm" style="background:#f1f5f9;color:#475569;border:none;">
+    <a href="@Url.Action("Index")" class="btn btn-ghost btn-sm">
         <i class="bi bi-arrow-left me-1"></i>Quay lại
     </a>
 </div>
@@ -32,7 +32,7 @@
             <!-- Basic Info -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <i class="bi bi-geo-alt-fill me-2" style="color:#4f46e5;"></i>Thông tin cơ bản
+                    <i class="bi bi-geo-alt-fill me-2" style="color:var(--amber);"></i>Thông tin cơ bản
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -61,7 +61,7 @@
                     <div class="mb-0">
                         <label class="form-label">Bán kính geofence (m)</label>
                         <input asp-for="Radius" type="number" class="form-control" value="50" />
-                        <div style="font-size:0.75rem;color:#94a3b8;margin-top:4px;">Bán kính kích hoạt thuyết minh tự động</div>
+                        <div style="font-size:0.75rem;color:var(--cream-muted);margin-top:4px;">Bán kính kích hoạt thuyết minh tự động</div>
                     </div>
                 </div>
             </div>
@@ -69,11 +69,11 @@
             <!-- Owner Account -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <i class="bi bi-person-badge me-2" style="color:#10b981;"></i>Tài khoản chủ quán
+                    <i class="bi bi-person-badge me-2" style="color:var(--green);"></i>Tài khoản chủ quán
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info mb-4" style="display:flex;align-items:flex-start;gap:10px;">
-                        <i class="bi bi-info-circle-fill flex-shrink-0" style="color:#3b82f6;margin-top:1px;"></i>
+                        <i class="bi bi-info-circle-fill flex-shrink-0" style="color:var(--blue);margin-top:1px;"></i>
                         <span>Tài khoản sẽ được tạo với quyền <strong>ShopOwner</strong> để quản lý POI này.</span>
                     </div>
                     <div class="row g-3 mb-3">
@@ -89,7 +89,7 @@
                     <div class="mb-3">
                         <label class="form-label">Tên đăng nhập <span class="text-danger">*</span></label>
                         <input asp-for="OwnerUsername" class="form-control" required placeholder="owner_username" />
-                        <div style="font-size:0.75rem;color:#94a3b8;margin-top:4px;">Từ 3–50 ký tự, không có khoảng cách</div>
+                        <div style="font-size:0.75rem;color:var(--cream-muted);margin-top:4px;">Từ 3–50 ký tự, không có khoảng cách</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Email <span class="text-danger">*</span></label>
@@ -105,7 +105,7 @@
             <!-- Narration Content -->
             <div class="card">
                 <div class="card-header">
-                    <i class="bi bi-translate me-2" style="color:#8b5cf6;"></i>Nội dung thuyết minh
+                    <i class="bi bi-translate me-2" style="color:var(--blue);"></i>Nội dung thuyết minh
                 </div>
                 <div class="card-body">
                     <ul class="nav nav-tabs-pill mb-3" role="tablist">
@@ -149,7 +149,7 @@
             <!-- Category & Settings -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <i class="bi bi-tag-fill me-2" style="color:#f59e0b;"></i>Phân loại &amp; Cài đặt
+                    <i class="bi bi-tag-fill me-2" style="color:var(--amber);"></i>Phân loại &amp; Cài đặt
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -203,10 +203,10 @@
                         <label class="form-label">Link Google Maps</label>
                         <input asp-for="MapLink" type="url" class="form-control" placeholder="https://maps.google.com/..." />
                     </div>
-                    <div class="d-flex align-items-center gap-2 p-3" style="background:#f8fafc;border-radius:8px;">
+                    <div class="d-flex align-items-center gap-2 p-3" style="background:var(--dark4);border-radius:8px;border:1px solid var(--border);">
                         <input asp-for="IsActive" class="form-check-input m-0" type="checkbox" value="true" checked style="width:18px;height:18px;" />
                         <label class="form-label m-0" style="cursor:pointer;">
-                            <i class="bi bi-check-circle-fill me-1" style="color:#10b981;"></i>Kích hoạt ngay
+                            <i class="bi bi-check-circle-fill me-1" style="color:var(--green);"></i>Kích hoạt ngay
                         </label>
                     </div>
                 </div>
@@ -215,17 +215,17 @@
             <!-- Image Upload -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <i class="bi bi-image me-2" style="color:#3b82f6;"></i>Hình ảnh
+                    <i class="bi bi-image me-2" style="color:var(--blue);"></i>Hình ảnh
                 </div>
                 <div class="card-body">
                     <div id="imagePreview" class="mb-3" style="display:none;">
                         <img id="previewImg" src="" alt="Preview"
-                             style="width:100%;height:180px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;" />
+                             style="width:100%;height:180px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" />
                     </div>
                     <div class="upload-zone" id="uploadZone" onclick="document.getElementById('imageFileInput').click()">
-                        <i class="bi bi-cloud-upload" style="font-size:1.5rem;color:#94a3b8;margin-bottom:8px;"></i>
-                        <div style="font-size:0.813rem;color:#64748b;font-weight:500;">Nhấn để chọn ảnh</div>
-                        <div style="font-size:0.75rem;color:#94a3b8;">JPG, PNG, WebP · Tối đa 5MB</div>
+                        <i class="bi bi-cloud-upload" style="font-size:1.5rem;color:var(--cream-muted);margin-bottom:8px;"></i>
+                        <div style="font-size:0.813rem;color:var(--cream-muted);font-weight:500;">Nhấn để chọn ảnh</div>
+                        <div style="font-size:0.75rem;color:var(--cream-muted);opacity:0.6;">JPG, PNG, WebP · Tối đa 5MB</div>
                     </div>
                     <input type="file" name="ImageFile" id="imageFileInput" accept="image/*" style="display:none;" />
                 </div>
@@ -236,7 +236,7 @@
                 <button type="submit" class="btn btn-primary" style="padding:11px;">
                     <i class="bi bi-plus-circle me-2"></i>Tạo POI &amp; Tài khoản
                 </button>
-                <a href="@Url.Action("Index")" class="btn btn-sm text-center" style="background:#f1f5f9;color:#475569;border:none;padding:9px;">
+                <a href="@Url.Action("Index")" class="btn btn-ghost btn-sm text-center" style="padding:9px;">
                     Hủy bỏ
                 </a>
             </div>
@@ -247,7 +247,7 @@
 @section Styles {
     <style>
         .upload-zone {
-            border: 2px dashed #e2e8f0;
+            border: 2px dashed var(--border);
             border-radius: 10px;
             padding: 24px;
             text-align: center;
@@ -257,7 +257,7 @@
             align-items: center;
             transition: border-color 0.15s, background 0.15s;
         }
-        .upload-zone:hover { border-color: #4f46e5; background: #f8faff; }
+        .upload-zone:hover { border-color: var(--amber); background: rgba(232,161,75,0.04); }
         textarea.form-control { resize: vertical; min-height: 110px; }
     </style>
 }
