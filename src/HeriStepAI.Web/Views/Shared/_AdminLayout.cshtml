@@ -575,10 +575,20 @@
         overflow: hidden;
     }
 
-    .table { margin: 0; }
+    /* Override Bootstrap 5.3 table CSS vars so cells don't turn white */
+    .table {
+        margin: 0;
+        --bs-table-bg: transparent;
+        --bs-table-color: var(--cream);
+        --bs-table-border-color: transparent;
+        --bs-table-striped-bg: transparent;
+        --bs-table-hover-bg: var(--cream-dim);
+        --bs-table-accent-bg: transparent;
+        color: var(--cream);
+    }
 
     .table thead tr th {
-        background: var(--dark3);
+        background: var(--dark3) !important;
         font-size: 0.72rem;
         font-weight: 600;
         text-transform: uppercase;
@@ -593,17 +603,19 @@
         border-bottom: 1px solid rgba(232,161,75,0.06);
         transition: background 0.15s;
         cursor: pointer;
+        background: transparent;
     }
 
     .table tbody tr:last-child { border-bottom: none; }
-    .table tbody tr:hover { background: var(--cream-dim); }
+    .table tbody tr:hover { background: var(--cream-dim) !important; }
 
     .table tbody td {
         padding: 16px 20px;
         vertical-align: middle;
-        border-color: transparent;
+        border-color: transparent !important;
         font-size: 0.84rem;
         color: var(--cream);
+        background-color: transparent !important;
     }
 
     /* ===== ALERTS ===== */
