@@ -6,140 +6,169 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HeriStepAI - Hệ thống Thuyết minh Tự động</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>HeriStepAI – Thuyết Minh Thông Minh</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
-        body {
-            background: #f8fafc;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .login-wrapper { width: 100%; max-width: 420px; }
-        .login-logo { text-align: center; margin-bottom: 32px; }
-        .logo-icon {
-            width: 52px; height: 52px;
-            border-radius: 14px;
-            background: #4f46e5;
-            display: inline-flex; align-items: center; justify-content: center;
-            color: #fff; font-size: 1.5rem; margin-bottom: 14px;
-        }
-        .login-logo h1 {
-            font-size: 1.5rem; font-weight: 700; color: #1e293b;
-            margin: 0 0 4px; letter-spacing: -0.03em;
-        }
-        .login-logo p { font-size: 0.875rem; color: #64748b; margin: 0; }
-        .login-card {
-            background: #fff; border: 1px solid #e2e8f0;
-            border-radius: 16px; padding: 32px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-        }
-        .login-card h2 { font-size: 1.125rem; font-weight: 700; color: #1e293b; margin: 0 0 6px; }
-        .login-card .subtitle { font-size: 0.813rem; color: #64748b; margin-bottom: 24px; }
-        .form-label { font-size: 0.813rem; font-weight: 600; color: #374151; margin-bottom: 6px; }
-        .form-control {
-            border: 1px solid #e2e8f0; border-radius: 8px;
-            padding: 10px 14px; font-size: 0.875rem; color: #1e293b;
-        }
-        .form-control:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
-        }
-        .input-group .form-control { border-radius: 8px 0 0 8px; }
-        .btn-toggle-pw {
-            border: 1px solid #e2e8f0; border-left: none;
-            background: #f8fafc; color: #64748b;
-            border-radius: 0 8px 8px 0; padding: 10px 14px; cursor: pointer;
-        }
-        .btn-toggle-pw:hover { background: #f1f5f9; }
-        .btn-login {
-            width: 100%; background: #4f46e5; border: none;
-            border-radius: 8px; color: #fff; font-size: 0.875rem;
-            font-weight: 600; padding: 11px; cursor: pointer;
-            transition: background 0.15s, transform 0.1s; margin-top: 8px;
-        }
-        .btn-login:hover { background: #4338ca; transform: translateY(-1px); }
-        .btn-login:disabled { background: #a5b4fc; cursor: not-allowed; transform: none; }
-        .alert-error {
-            background: #fef2f2; border: 1px solid #fecaca;
-            border-radius: 8px; color: #991b1b;
-            font-size: 0.813rem; padding: 10px 14px; margin-bottom: 16px;
-            display: flex; align-items: flex-start; gap: 8px;
-        }
-        .login-footer { text-align: center; margin-top: 20px; font-size: 0.75rem; color: #94a3b8; }
-        .loading-spinner {
-            display: none; width: 16px; height: 16px;
-            border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
-            border-radius: 50%; animation: spin 0.7s linear infinite;
-            vertical-align: middle; margin-right: 6px;
-        }
-        @@keyframes spin { to { transform: rotate(360deg); } }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root { --amber:#E8A14B; --amber-light:#F2C47E; --dark:#0D0B08; --dark2:#1A1610; --dark3:#241E16; --cream:#F5ECD7; --cream-muted:#C4B49A; }
+        body { min-height:100vh; background:var(--dark); font-family:'Be Vietnam Pro',sans-serif; display:flex; overflow:hidden; position:relative; }
+        body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E"); opacity:0.4; pointer-events:none; z-index:100; }
+        .left-panel { flex:1.1; position:relative; background:var(--dark2); display:flex; flex-direction:column; justify-content:center; align-items:center; overflow:hidden; padding:60px; }
+        .left-panel::before { content:''; position:absolute; width:600px; height:600px; background:radial-gradient(circle,rgba(232,161,75,0.18) 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); border-radius:50%; animation:pulse-glow 4s ease-in-out infinite; }
+        @@keyframes pulse-glow { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.8} 50%{transform:translate(-50%,-50%) scale(1.1);opacity:1} }
+        .scene-svg { position:relative; z-index:2; width:340px; animation:float 5s ease-in-out infinite; }
+        @@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+        .brand-text { position:relative; z-index:2; text-align:center; margin-top:36px; }
+        .brand-name { font-family:'Playfair Display',serif; font-size:3rem; font-weight:700; color:var(--amber); letter-spacing:-0.02em; line-height:1; }
+        .brand-name span { color:var(--cream); }
+        .brand-tagline { font-size:0.85rem; color:var(--cream-muted); letter-spacing:0.18em; text-transform:uppercase; margin-top:10px; font-weight:300; }
+        .food-icon { position:absolute; font-size:1.8rem; opacity:0; animation:float-food 6s ease-in-out infinite; }
+        .food-icon:nth-child(1){top:15%;left:10%;animation-delay:0s} .food-icon:nth-child(2){top:25%;right:12%;animation-delay:1s} .food-icon:nth-child(3){bottom:30%;left:8%;animation-delay:2s} .food-icon:nth-child(4){bottom:20%;right:10%;animation-delay:3s} .food-icon:nth-child(5){top:50%;left:5%;animation-delay:1.5s}
+        @@keyframes float-food { 0%{opacity:0;transform:translateY(20px)} 20%{opacity:0.6} 80%{opacity:0.6} 100%{opacity:0;transform:translateY(-20px)} }
+        .sound-wave { display:flex; gap:5px; align-items:center; margin-top:28px; position:relative; z-index:2; }
+        .sound-bar { width:4px; border-radius:4px; background:var(--amber); animation:wave 1.2s ease-in-out infinite; }
+        .sound-bar:nth-child(1){height:20px;animation-delay:0s} .sound-bar:nth-child(2){height:36px;animation-delay:0.1s} .sound-bar:nth-child(3){height:28px;animation-delay:0.2s} .sound-bar:nth-child(4){height:44px;animation-delay:0.15s} .sound-bar:nth-child(5){height:32px;animation-delay:0.25s} .sound-bar:nth-child(6){height:22px;animation-delay:0.05s} .sound-bar:nth-child(7){height:38px;animation-delay:0.3s} .sound-bar:nth-child(8){height:18px;animation-delay:0.12s} .sound-bar:nth-child(9){height:30px;animation-delay:0.22s}
+        @@keyframes wave { 0%,100%{transform:scaleY(0.5);opacity:0.5} 50%{transform:scaleY(1);opacity:1} }
+        .wave-label { font-size:0.72rem; color:var(--cream-muted); letter-spacing:0.12em; text-transform:uppercase; margin-top:10px; position:relative; z-index:2; }
+        .divider-line { position:absolute; right:0; top:0; bottom:0; width:1px; background:linear-gradient(to bottom,transparent,var(--amber),transparent); opacity:0.4; }
+        .right-panel { flex:0.9; display:flex; flex-direction:column; justify-content:center; padding:60px 70px; position:relative; background:var(--dark); overflow-y:auto; }
+        .right-panel::before { content:''; position:absolute; bottom:-100px; right:-100px; width:350px; height:350px; background:radial-gradient(circle,rgba(232,161,75,0.06) 0%,transparent 70%); border-radius:50%; }
+        .login-header { margin-bottom:44px; animation:slide-up 0.7s cubic-bezier(0.22,1,0.36,1) both; }
+        .login-welcome { font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--amber); font-weight:500; margin-bottom:8px; }
+        .login-title { font-family:'Playfair Display',serif; font-size:2.4rem; color:var(--cream); font-weight:700; line-height:1.15; }
+        .login-title em { color:var(--amber); font-style:italic; }
+        .login-subtitle { color:var(--cream-muted); font-size:0.88rem; margin-top:12px; font-weight:300; line-height:1.6; }
+        .form-group { margin-bottom:22px; position:relative; animation:slide-up 0.7s cubic-bezier(0.22,1,0.36,1) both; }
+        .form-group:nth-child(1){animation-delay:0.1s} .form-group:nth-child(2){animation-delay:0.2s}
+        label { display:block; font-size:0.75rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--cream-muted); margin-bottom:10px; font-weight:500; }
+        .input-wrapper { position:relative; }
+        .input-icon { position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--amber); opacity:0.7; font-size:1rem; pointer-events:none; }
+        .pw-toggle { position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--cream-muted); opacity:0.6; cursor:pointer; font-size:1rem; transition:opacity 0.2s; padding:0; }
+        .pw-toggle:hover { opacity:1; }
+        input[type="email"],input[type="password"],input[type="text"] { width:100%; padding:16px 46px; background:var(--dark3); border:1px solid rgba(232,161,75,0.2); border-radius:10px; color:var(--cream); font-family:'Be Vietnam Pro',sans-serif; font-size:0.92rem; outline:none; transition:border-color 0.3s,box-shadow 0.3s; }
+        input::placeholder { color:rgba(196,180,154,0.4); }
+        input:focus { border-color:var(--amber); box-shadow:0 0 0 3px rgba(232,161,75,0.12); }
+        .options-row { display:flex; align-items:center; margin-bottom:28px; animation:slide-up 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s both; }
+        .remember-me { display:flex; align-items:center; gap:8px; cursor:pointer; }
+        .remember-me input[type="checkbox"] { width:16px; height:16px; padding:0; accent-color:var(--amber); cursor:pointer; }
+        .remember-me span { font-size:0.8rem; color:var(--cream-muted); }
+        .btn-login { width:100%; padding:17px; background:linear-gradient(135deg,var(--amber) 0%,#D4873A 100%); border:none; border-radius:10px; color:var(--dark); font-family:'Be Vietnam Pro',sans-serif; font-size:0.95rem; font-weight:600; letter-spacing:0.06em; cursor:pointer; transition:transform 0.2s,box-shadow 0.2s,filter 0.2s; position:relative; overflow:hidden; animation:slide-up 0.7s cubic-bezier(0.22,1,0.36,1) 0.35s both; }
+        .btn-login::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent); transition:left 0.5s; }
+        .btn-login:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(232,161,75,0.35); filter:brightness(1.05); }
+        .btn-login:hover::before { left:100%; }
+        .btn-login:active { transform:translateY(0); }
+        .btn-login:disabled { opacity:0.65; cursor:not-allowed; transform:none; }
+        .spinner { display:inline-block; vertical-align:middle; margin-right:6px; width:15px; height:15px; border:2px solid rgba(13,11,8,0.3); border-top-color:var(--dark); border-radius:50%; animation:spin 0.7s linear infinite; }
+        .login-footer { text-align:center; margin-top:30px; font-size:0.78rem; color:rgba(196,180,154,0.45); animation:slide-up 0.7s cubic-bezier(0.22,1,0.36,1) 0.5s both; }
+        @@keyframes spin { to{transform:rotate(360deg)} }
+        @@keyframes slide-up { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+        @@media (max-width:768px) { body{flex-direction:column;overflow:auto} .left-panel{padding:50px 30px 40px;flex:none} .scene-svg{width:220px} .brand-name{font-size:2.2rem} .right-panel{padding:40px 28px;flex:1} .login-title{font-size:1.9rem} }
     </style>
 </head>
 <body>
-    <div class="login-wrapper">
-        <div class="login-logo">
-            <div class="logo-icon"><i class="bi bi-geo-alt-fill"></i></div>
-            <h1>HeriStepAI</h1>
-            <p>Hệ thống Thuyết minh Du lịch Tự động</p>
-        </div>
-
-        <div class="login-card">
-            <h2>Chào mừng trở lại</h2>
-            <p class="subtitle">Đăng nhập để quản lý hệ thống</p>
-
-            @if (ViewBag.Error != null)
-            {
-                <div class="alert-error">
-                    <i class="bi bi-exclamation-circle-fill flex-shrink-0" style="font-size:0.875rem;"></i>
-                    <span>@ViewBag.Error</span>
-                </div>
-            }
-
-            <form method="post" action="@Url.Action("Login", "Auth")" onsubmit="handleSubmit(this)">
-                <div class="mb-3">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="email" name="email"
-                           placeholder="admin@heristepai.com" required autocomplete="username" />
-                </div>
-                <div class="mb-4">
-                    <label for="password" class="form-label">Mật khẩu</label>
-                    <div class="input-group">
-                        <input type="password" class="form-control" id="password" name="password"
-                               placeholder="••••••••" required autocomplete="current-password" />
-                        <button type="button" class="btn-toggle-pw" onclick="togglePw()" tabindex="-1">
-                            <i class="bi bi-eye" id="pwIcon"></i>
-                        </button>
-                    </div>
-                </div>
-                <button type="submit" class="btn-login" id="loginBtn">
-                    <span class="loading-spinner" id="spinner"></span>
-                    <span id="loginText">Đăng nhập</span>
-                </button>
-            </form>
-        </div>
-
-        <div class="login-footer">&copy; 2026 HeriStepAI &nbsp;·&nbsp; v1.0.0</div>
+<div class="left-panel">
+    <span class="food-icon">🍜</span><span class="food-icon">🥗</span>
+    <span class="food-icon">🍱</span><span class="food-icon">☕</span><span class="food-icon">🎐</span>
+    <svg class="scene-svg" viewBox="0 0 340 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="170" cy="150" r="120" fill="rgba(232,161,75,0.07)"/>
+        <rect x="40" y="100" width="260" height="160" rx="12" fill="#1A1610" stroke="rgba(232,161,75,0.2)" stroke-width="1"/>
+        <path d="M30 100 L170 60 L310 100 Z" fill="#241E16" stroke="rgba(232,161,75,0.3)" stroke-width="1.5"/>
+        <path d="M30 100 L60 85 L90 100 L120 85 L150 100 L180 85 L210 100 L240 85 L270 100 L300 85 L310 100" stroke="rgba(232,161,75,0.5)" stroke-width="1.5" fill="none"/>
+        <ellipse cx="100" cy="75" rx="10" ry="14" fill="#C0392B" opacity="0.9"/>
+        <line x1="100" y1="61" x2="100" y2="55" stroke="rgba(232,161,75,0.5)" stroke-width="1.5"/><line x1="100" y1="89" x2="100" y2="95" stroke="#C0392B" stroke-width="1.5"/>
+        <ellipse cx="170" cy="68" rx="10" ry="14" fill="#E8A14B" opacity="0.9"/>
+        <line x1="170" y1="54" x2="170" y2="48" stroke="rgba(232,161,75,0.5)" stroke-width="1.5"/><line x1="170" y1="82" x2="170" y2="88" stroke="#E8A14B" stroke-width="1.5"/>
+        <ellipse cx="240" cy="75" rx="10" ry="14" fill="#C0392B" opacity="0.9"/>
+        <line x1="240" y1="61" x2="240" y2="55" stroke="rgba(232,161,75,0.5)" stroke-width="1.5"/><line x1="240" y1="89" x2="240" y2="95" stroke="#C0392B" stroke-width="1.5"/>
+        <circle cx="100" cy="75" r="18" fill="rgba(192,57,43,0.12)"/><circle cx="170" cy="68" r="18" fill="rgba(232,161,75,0.15)"/><circle cx="240" cy="75" r="18" fill="rgba(192,57,43,0.12)"/>
+        <rect x="55" y="190" width="230" height="12" rx="4" fill="#2E1E0F" stroke="rgba(232,161,75,0.2)" stroke-width="1"/>
+        <ellipse cx="110" cy="188" rx="28" ry="10" fill="#3D2414" stroke="rgba(232,161,75,0.3)" stroke-width="1"/>
+        <path d="M82 188 Q110 200 138 188" fill="#5C3520"/>
+        <line x1="115" y1="176" x2="118" y2="192" stroke="rgba(232,161,75,0.7)" stroke-width="1.5"/><line x1="108" y1="176" x2="105" y2="192" stroke="rgba(232,161,75,0.7)" stroke-width="1.5"/>
+        <rect x="195" y="175" width="26" height="22" rx="4" fill="#2A1A0A" stroke="rgba(232,161,75,0.3)" stroke-width="1"/>
+        <path d="M221 181 Q230 181 230 187 Q230 193 221 193" fill="none" stroke="rgba(232,161,75,0.3)" stroke-width="1.2"/>
+        <path d="M204 174 Q206 168 204 162" stroke="rgba(232,161,75,0.4)" stroke-width="1" fill="none" stroke-linecap="round"/>
+        <path d="M210 174 Q212 167 210 161" stroke="rgba(232,161,75,0.4)" stroke-width="1" fill="none" stroke-linecap="round"/>
+        <rect x="150" y="120" width="40" height="56" rx="20" fill="#E8A14B"/>
+        <rect x="156" y="126" width="28" height="40" rx="14" fill="#D4873A"/>
+        <line x1="159" y1="135" x2="181" y2="135" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <line x1="159" y1="141" x2="181" y2="141" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <line x1="159" y1="147" x2="181" y2="147" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <line x1="159" y1="153" x2="181" y2="153" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+        <line x1="170" y1="176" x2="170" y2="192" stroke="#E8A14B" stroke-width="3" stroke-linecap="round"/>
+        <line x1="158" y1="192" x2="182" y2="192" stroke="#E8A14B" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="170" cy="148" r="8" fill="rgba(232,161,75,0.2)"/>
+        <text x="167" y="152" font-size="10" fill="#FFF8F0">✦</text>
+        <path d="M130 138 Q120 148 130 158" stroke="#E8A14B" stroke-width="1.5" fill="none" opacity="0.25" stroke-linecap="round"/>
+        <path d="M122 128 Q108 148 122 168" stroke="#E8A14B" stroke-width="1.5" fill="none" opacity="0.15" stroke-linecap="round"/>
+        <path d="M210 138 Q220 148 210 158" stroke="#E8A14B" stroke-width="1.5" fill="none" opacity="0.25" stroke-linecap="round"/>
+        <path d="M218 128 Q232 148 218 168" stroke="#E8A14B" stroke-width="1.5" fill="none" opacity="0.15" stroke-linecap="round"/>
+    </svg>
+    <div class="brand-text">
+        <div class="brand-name">Heri<span>Step</span><span style="color:var(--amber-light)">AI</span></div>
+        <div class="brand-tagline">Thuyết minh hàng quán thông minh</div>
     </div>
-    <script>
-        function togglePw() {
-            const inp = document.getElementById('password');
-            const icon = document.getElementById('pwIcon');
-            inp.type = inp.type === 'password' ? 'text' : 'password';
-            icon.className = inp.type === 'text' ? 'bi bi-eye-slash' : 'bi bi-eye';
-        }
-        function handleSubmit() {
-            const btn = document.getElementById('loginBtn');
-            btn.disabled = true;
-            document.getElementById('spinner').style.display = 'inline-block';
-            document.getElementById('loginText').textContent = 'Đang đăng nhập...';
-        }
-    </script>
+    <div class="sound-wave">
+        <div class="sound-bar"></div><div class="sound-bar"></div><div class="sound-bar"></div>
+        <div class="sound-bar"></div><div class="sound-bar"></div><div class="sound-bar"></div>
+        <div class="sound-bar"></div><div class="sound-bar"></div><div class="sound-bar"></div>
+    </div>
+    <div class="wave-label">AI đang lắng nghe &amp; giới thiệu</div>
+    <div class="divider-line"></div>
+</div>
+
+<div class="right-panel">
+    <div class="login-header">
+        <div class="login-welcome">Chào mừng trở lại</div>
+        <h1 class="login-title">Đăng nhập để<br><em>khám phá</em> ẩm thực</h1>
+        <p class="login-subtitle">Quản lý thuyết minh tự động cho quán của bạn với trí tuệ nhân tạo HeriStepAI.</p>
+    </div>
+
+    <form method="post" action="/Auth/Login" onsubmit="handleSubmit(this)">
+        @Html.AntiForgeryToken()
+        <div class="form-group">
+            <label for="email">Email / Tài khoản</label>
+            <div class="input-wrapper">
+                <span class="input-icon"><i class="bi bi-envelope"></i></span>
+                <input type="email" id="email" name="email" placeholder="admin@heristepai.com" required autocomplete="username" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="password">Mật khẩu</label>
+            <div class="input-wrapper">
+                <span class="input-icon"><i class="bi bi-lock"></i></span>
+                <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password" />
+                <button type="button" class="pw-toggle" onclick="togglePw()" tabindex="-1">
+                    <i class="bi bi-eye" id="pwIcon"></i>
+                </button>
+            </div>
+        </div>
+        <div class="options-row">
+            <label class="remember-me">
+                <input type="checkbox" /> <span>Ghi nhớ đăng nhập</span>
+            </label>
+        </div>
+        <button type="submit" class="btn-login" id="loginBtn">
+            <span id="loginContent">🎙 Đăng Nhập</span>
+        </button>
+    </form>
+
+    <div class="login-footer">&copy; 2026 HeriStepAI &nbsp;·&nbsp; Hệ thống Thuyết minh Du lịch Tự động</div>
+</div>
+
+<script>
+    function togglePw() {
+        const inp = document.getElementById('password');
+        const icon = document.getElementById('pwIcon');
+        if (inp.type === 'password') { inp.type = 'text'; icon.className = 'bi bi-eye-slash'; }
+        else { inp.type = 'password'; icon.className = 'bi bi-eye'; }
+    }
+    function handleSubmit() {
+        const btn = document.getElementById('loginBtn');
+        btn.disabled = true;
+        document.getElementById('loginContent').innerHTML = '<span class="spinner"></span> Đang xác thực...';
+    }
+</script>
 </body>
 </html>
