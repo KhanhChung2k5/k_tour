@@ -13,7 +13,7 @@ public partial class POIListPage : ContentPage
         BindingContext = viewModel;
 
         // Apply responsive padding
-        SearchBar.Padding = ResponsiveHelper.HeaderPadding();
+        SearchTopBar.Padding = ResponsiveHelper.HeaderPadding();
     }
 
     static POIListViewModel GetViewModel() =>

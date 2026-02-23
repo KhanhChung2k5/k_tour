@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <MauiIcon Include="Resources\AppIcon\logo_app.png" />
+    <MauiIcon Include="Resources\AppIcon\icon_scene_final_512.png" />
     <MauiImage Include="Resources\Images\home.svg" />
     <MauiImage Include="Resources\Images\map.svg" />
     <MauiImage Include="Resources\Images\location.svg" />

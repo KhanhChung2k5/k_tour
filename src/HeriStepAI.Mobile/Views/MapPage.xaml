@@ -11,26 +11,29 @@
     <Grid RowDefinitions="Auto,*,Auto">
 
         <!-- Top Bar with Search -->
-        <Frame Grid.Row="0"
-               BackgroundColor="{StaticResource White}"
-               CornerRadius="0"
-               x:Name="TopBar"
-               HasShadow="True"
-               ZIndex="10">
-            <Grid ColumnDefinitions="Auto,*,Auto">
+        <Grid Grid.Row="0"
+              BackgroundColor="{StaticResource White}"
+              x:Name="TopBar"
+              Padding="16,48,16,12"
+              ZIndex="10">
+            <Grid.Shadow>
+                <Shadow Brush="{StaticResource Black}" Offset="0,2" Radius="6" Opacity="0.04" />
+            </Grid.Shadow>
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
                 <!-- Back Button -->
                 <Frame Grid.Column="0"
-                       BackgroundColor="{StaticResource Gray100}"
+                       BackgroundColor="{StaticResource WarmCream}"
                        CornerRadius="16"
-                       WidthRequest="44"
-                       HeightRequest="44"
+                       WidthRequest="40"
+                       HeightRequest="40"
                        Padding="0"
                        HasShadow="False"
-                       Margin="0,0,10,0">
+                       BorderColor="{StaticResource WarmBorder}">
                     <Frame.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding GoBackCommand}" />
                     </Frame.GestureRecognizers>
                     <Label Text="&#x2190;"
+                           TextColor="{StaticResource TextPrimary}"
                            FontSize="16"
                            HorizontalOptions="Center"
                            VerticalOptions="Center" />
@@ -38,13 +41,16 @@
 
                 <!-- Search Entry -->
                 <Frame Grid.Column="1"
-                       BackgroundColor="{StaticResource Gray100}"
+                       BackgroundColor="{StaticResource WarmCream}"
                        CornerRadius="20"
                        Padding="12,0"
-                       HasShadow="False">
+                       HasShadow="False"
+                       BorderColor="{StaticResource WarmBorder}"
+                       HeightRequest="40">
                     <Grid ColumnDefinitions="Auto,*">
                         <Label Text="&#x1F50D;"
                                FontSize="13"
+                               TextColor="{StaticResource TextMuted}"
                                VerticalOptions="Center"
                                Margin="0,0,6,0" />
                         <Entry Grid.Column="1"
@@ -52,6 +58,8 @@
                                Text="{Binding SearchText}"
                                BackgroundColor="Transparent"
                                FontSize="13"
+                               TextColor="{StaticResource TextPrimary}"
+                               PlaceholderColor="{StaticResource TextMuted}"
                                VerticalOptions="Center" />
                     </Grid>
                 </Frame>
@@ -60,11 +68,11 @@
                 <Frame Grid.Column="2"
                        BackgroundColor="{StaticResource Primary}"
                        CornerRadius="16"
-                       WidthRequest="44"
-                       HeightRequest="44"
+                       WidthRequest="40"
+                       HeightRequest="40"
                        Padding="0"
                        HasShadow="False"
-                       Margin="10,0,0,0">
+                       BorderColor="Transparent">
                     <Frame.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding ShowListCommand}" />
                     </Frame.GestureRecognizers>
@@ -76,7 +84,7 @@
                            VerticalOptions="Center" />
                 </Frame>
             </Grid>
-        </Frame>
+        </Grid>
 
         <!-- Map View - spans into Row 2 so map is visible behind collapsed bottom sheet -->
         <WebView Grid.Row="1"
@@ -164,18 +172,19 @@
                    CornerRadius="20"
                    Padding="0"
                    HasShadow="True"
+                   BorderColor="{StaticResource WarmBorder}"
                    IsVisible="{Binding HasSelectedPOI}">
-                <VerticalStackLayout Padding="14,4,14,14" Spacing="8">
+                <VerticalStackLayout Padding="16,4,16,16" Spacing="10">
 
                     <!-- Draggable Handle Bar -->
                     <ContentView HeightRequest="24" Padding="0">
                         <ContentView.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnHandleBarTapped" />
                         </ContentView.GestureRecognizers>
-                        <BoxView Color="{StaticResource Gray300}"
-                                 WidthRequest="40"
-                                 HeightRequest="5"
-                                 CornerRadius="3"
+                        <BoxView Color="{StaticResource WarmBorder}"
+                                 WidthRequest="36"
+                                 HeightRequest="4"
+                                 CornerRadius="2"
                                  HorizontalOptions="Center"
                                  VerticalOptions="Center" />
                     </ContentView>
@@ -184,17 +193,19 @@
                     <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
                         <Label Grid.Column="0"
                                Text="{Binding SelectedPOI.Name}"
-                               Style="{StaticResource TitleLabel}"
-                               FontSize="14" />
+                               TextColor="{StaticResource TextPrimary}"
+                               FontSize="15"
+                               FontAttributes="Bold" />
 
                         <!-- Distance Badge -->
                         <Frame Grid.Column="1"
-                               BackgroundColor="{StaticResource PrimaryLight}"
+                               BackgroundColor="{StaticResource WarmCream}"
                                CornerRadius="10"
-                               Padding="8,3"
-                               HasShadow="False">
+                               Padding="10,4"
+                               HasShadow="False"
+                               BorderColor="{StaticResource WarmBorder}">
                             <Label Text="{Binding SelectedPOI.DistanceText}"
-                                   TextColor="{StaticResource PrimaryDark}"
+                                   TextColor="{StaticResource Primary}"
                                    FontSize="11"
                                    FontAttributes="Bold" />
                         </Frame>
@@ -203,11 +214,11 @@
                         <Label Grid.Row="1"
                                Grid.ColumnSpan="2"
                                Text="{Binding SelectedPOI.Address}"
-                               Style="{StaticResource CaptionLabel}"
+                               TextColor="{StaticResource TextSecondary}"
                                FontSize="11"
                                LineBreakMode="TailTruncation"
                                MaxLines="2"
-                               Margin="0,2,0,0" />
+                               Margin="0,3,0,0" />
                     </Grid>
 
                     <!-- Rating and Time -->
@@ -237,12 +248,19 @@
                         <Button Grid.Column="0"
                                 Text="{Binding LblListenNarration}"
                                 Command="{Binding PlayNarrationCommand}"
-                                BackgroundColor="{StaticResource Primary}"
                                 TextColor="{StaticResource White}"
                                 FontSize="12"
+                                FontAttributes="Bold"
                                 CornerRadius="20"
                                 HeightRequest="44"
-                                Padding="4,0" />
+                                Padding="4,0">
+                            <Button.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Color="#E8943A" Offset="0.0" />
+                                    <GradientStop Color="#C97B28" Offset="1.0" />
+                                </LinearGradientBrush>
+                            </Button.Background>
+                        </Button>
                         <Button Grid.Column="1"
                                 Text="{Binding LblGetDirections}"
                                 Command="{Binding NavigateCommand}"
@@ -263,24 +281,26 @@
                    CornerRadius="20"
                    Padding="0"
                    HasShadow="True"
+                   BorderColor="{StaticResource WarmBorder}"
                    IsVisible="{Binding HasSelectedPOI, Converter={StaticResource InvertBoolConverter}}">
-                <VerticalStackLayout Padding="14,4,14,14" Spacing="6">
+                <VerticalStackLayout Padding="16,4,16,16" Spacing="8">
 
                     <!-- Draggable Handle Bar -->
                     <ContentView HeightRequest="24" Padding="0">
                         <ContentView.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnHandleBarTapped" />
                         </ContentView.GestureRecognizers>
-                        <BoxView Color="{StaticResource Gray300}"
-                                 WidthRequest="40"
-                                 HeightRequest="5"
-                                 CornerRadius="3"
+                        <BoxView Color="{StaticResource WarmBorder}"
+                                 WidthRequest="36"
+                                 HeightRequest="4"
+                                 CornerRadius="2"
                                  HorizontalOptions="Center"
                                  VerticalOptions="Center" />
                     </ContentView>
 
                     <Label Text="{Binding LblNearbyPlaces}"
-                           FontSize="13"
+                           TextColor="{StaticResource TextPrimary}"
+                           FontSize="14"
                            FontAttributes="Bold"
                            Margin="0" />
 
@@ -290,12 +310,15 @@
                                                BindableLayout.ItemsSource="{Binding NearbyPOIs}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:POI">
-                                    <Frame Style="{StaticResource CardFrame}"
+                                    <Frame BackgroundColor="{StaticResource White}"
+                                           CornerRadius="14"
                                            MinimumWidthRequest="120"
                                            WidthRequest="135"
                                            MinimumHeightRequest="100"
                                            HeightRequest="115"
-                                           Padding="0">
+                                           Padding="0"
+                                           HasShadow="True"
+                                           BorderColor="{StaticResource WarmBorder}">
                                         <Frame.GestureRecognizers>
                                             <TapGestureRecognizer
                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MapPageViewModel}}, Path=POISelectedCommand}"

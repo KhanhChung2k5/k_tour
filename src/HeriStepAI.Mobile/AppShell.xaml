@@ -7,7 +7,7 @@
     Shell.FlyoutBehavior="Disabled"
     Shell.TabBarBackgroundColor="{StaticResource White}"
     Shell.TabBarTitleColor="{StaticResource Primary}"
-    Shell.TabBarUnselectedColor="{StaticResource Gray500}">
+    Shell.TabBarUnselectedColor="{StaticResource Gray400}">
 
     <TabBar>
         <ShellContent x:Name="MainTab" Title="Trang chủ" Icon="home" Route="MainPage" />

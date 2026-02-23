@@ -1,43 +1,45 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <?xaml-comp compile="true" ?>
-<ResourceDictionary 
+<ResourceDictionary
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <!-- Primary Theme Colors (Coral/Salmon) -->
-    <Color x:Key="Primary">#E07B4C</Color>
-    <Color x:Key="PrimaryDark">#C96A3E</Color>
-    <Color x:Key="PrimaryLight">#F5A882</Color>
-    
+    <!-- Primary Theme Colors (Amber/Warm) -->
+    <Color x:Key="Primary">#E8943A</Color>
+    <Color x:Key="PrimaryDark">#C97B28</Color>
+    <Color x:Key="PrimaryLight">#F5B566</Color>
+
     <!-- Secondary Theme Colors (Teal/Green) -->
     <Color x:Key="Secondary">#4CAF50</Color>
     <Color x:Key="SecondaryDark">#388E3C</Color>
     <Color x:Key="SecondaryLight">#81C784</Color>
-    
+
     <!-- Accent Colors -->
-    <Color x:Key="Accent">#FF6B35</Color>
-    <Color x:Key="AccentLight">#FF9B6B</Color>
-    
+    <Color x:Key="Accent">#E8943A</Color>
+    <Color x:Key="AccentLight">#F5B566</Color>
+
     <!-- Background Colors -->
-    <Color x:Key="PageBackground">#F8F9FA</Color>
+    <Color x:Key="PageBackground">#F7F2EC</Color>
     <Color x:Key="CardBackground">#FFFFFF</Color>
     <Color x:Key="SurfaceColor">#FFFFFF</Color>
-    
+    <Color x:Key="WarmCream">#FFF8F0</Color>
+    <Color x:Key="WarmBorder">#F0E4D4</Color>
+
     <!-- Text Colors -->
-    <Color x:Key="TextPrimary">#212121</Color>
-    <Color x:Key="TextSecondary">#757575</Color>
+    <Color x:Key="TextPrimary">#1E1612</Color>
+    <Color x:Key="TextSecondary">#7A6A58</Color>
     <Color x:Key="TextLight">#FFFFFF</Color>
-    <Color x:Key="TextMuted">#9E9E9E</Color>
-    
+    <Color x:Key="TextMuted">#9A8A72</Color>
+
     <!-- Status Colors -->
     <Color x:Key="Success">#4CAF50</Color>
     <Color x:Key="Warning">#FFC107</Color>
     <Color x:Key="Error">#F44336</Color>
     <Color x:Key="Info">#2196F3</Color>
-    
+
     <!-- Rating Star Color -->
     <Color x:Key="StarColor">#FFB800</Color>
-    
+
     <!-- Gray Scale -->
     <Color x:Key="Gray50">#FAFAFA</Color>
     <Color x:Key="Gray100">#F5F5F5</Color>
@@ -49,27 +51,34 @@
     <Color x:Key="Gray700">#616161</Color>
     <Color x:Key="Gray800">#424242</Color>
     <Color x:Key="Gray900">#212121</Color>
-    
+
     <!-- Standard Colors -->
     <Color x:Key="White">#FFFFFF</Color>
     <Color x:Key="Black">#000000</Color>
     <Color x:Key="Transparent">Transparent</Color>
 
-    <!-- Gradient Colors for Modern UI -->
-    <Color x:Key="GradientStart">#E07B4C</Color>
-    <Color x:Key="GradientEnd">#FF6B35</Color>
+    <!-- Gradient Colors for Warm Amber UI -->
+    <Color x:Key="GradientStart">#E8943A</Color>
+    <Color x:Key="GradientEnd">#C97B28</Color>
     <Color x:Key="CardGradientStart">#FFFFFF</Color>
-    <Color x:Key="CardGradientEnd">#F8F9FA</Color>
+    <Color x:Key="CardGradientEnd">#FFF8F0</Color>
 
-    <!-- Modern Gradients -->
+    <!-- Primary Gradient (Amber) -->
     <LinearGradientBrush x:Key="PrimaryGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="{StaticResource GradientStart}" Offset="0.0" />
-        <GradientStop Color="{StaticResource GradientEnd}" Offset="1.0" />
+        <GradientStop Color="#E8943A" Offset="0.0" />
+        <GradientStop Color="#C97B28" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <!-- Hero Gradient (Amber warm hero header) -->
+    <LinearGradientBrush x:Key="HeroGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#D4762A" Offset="0.0" />
+        <GradientStop Color="#E8943A" Offset="0.5" />
+        <GradientStop Color="#F5A84E" Offset="1.0" />
     </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="CardGradient" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="{StaticResource CardGradientStart}" Offset="0.0" />
-        <GradientStop Color="{StaticResource CardGradientEnd}" Offset="1.0" />
+        <GradientStop Color="#FFFFFF" Offset="0.0" />
+        <GradientStop Color="#FFF8F0" Offset="1.0" />
     </LinearGradientBrush>
 
 </ResourceDictionary>

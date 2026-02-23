@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <?xaml-comp compile="true" ?>
-<ResourceDictionary 
+<ResourceDictionary
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
@@ -52,8 +52,8 @@
     <!-- Chip Button (for voice selection) -->
     <Style x:Key="ChipButton" TargetType="Button">
         <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
-        <Setter Property="BackgroundColor" Value="{StaticResource Gray200}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="BackgroundColor" Value="{StaticResource WarmBorder}" />
+        <Setter Property="FontSize" Value="13" />
         <Setter Property="CornerRadius" Value="18" />
         <Setter Property="Padding" Value="16,8" />
         <Setter Property="HeightRequest" Value="36" />
@@ -62,7 +62,7 @@
     <Style x:Key="ChipButtonSelected" TargetType="Button">
         <Setter Property="TextColor" Value="{StaticResource White}" />
         <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="13" />
         <Setter Property="CornerRadius" Value="18" />
         <Setter Property="Padding" Value="16,8" />
         <Setter Property="HeightRequest" Value="36" />
@@ -72,7 +72,7 @@
     <Style x:Key="TabButton" TargetType="Button">
         <Setter Property="TextColor" Value="{StaticResource TextSecondary}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="13" />
         <Setter Property="CornerRadius" Value="0" />
         <Setter Property="Padding" Value="12,8" />
     </Style>
@@ -80,7 +80,7 @@
     <Style x:Key="TabButtonSelected" TargetType="Button">
         <Setter Property="TextColor" Value="{StaticResource Primary}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="13" />
         <Setter Property="FontAttributes" Value="Bold" />
         <Setter Property="CornerRadius" Value="0" />
         <Setter Property="Padding" Value="12,8" />
@@ -89,35 +89,35 @@
     <!-- Card Frame -->
     <Style x:Key="CardFrame" TargetType="Frame">
         <Setter Property="BackgroundColor" Value="{StaticResource White}" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="16" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="HasShadow" Value="True" />
-        <Setter Property="BorderColor" Value="Transparent" />
+        <Setter Property="BorderColor" Value="{StaticResource WarmBorder}" />
     </Style>
 
     <!-- Modern Card with Elevated Shadow -->
     <Style x:Key="ElevatedCard" TargetType="Frame">
         <Setter Property="BackgroundColor" Value="{StaticResource White}" />
         <Setter Property="CornerRadius" Value="16" />
-        <Setter Property="Padding" Value="12" />
+        <Setter Property="Padding" Value="14" />
         <Setter Property="HasShadow" Value="True" />
-        <Setter Property="BorderColor" Value="{StaticResource Gray100}" />
+        <Setter Property="BorderColor" Value="{StaticResource WarmBorder}" />
         <Setter Property="Margin" Value="0,6" />
     </Style>
 
     <!-- Stat Card Style -->
     <Style x:Key="StatCard" TargetType="Frame">
         <Setter Property="BackgroundColor" Value="{StaticResource White}" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="14" />
         <Setter Property="Padding" Value="12,10" />
         <Setter Property="HasShadow" Value="True" />
-        <Setter Property="BorderColor" Value="Transparent" />
+        <Setter Property="BorderColor" Value="{StaticResource WarmBorder}" />
     </Style>
 
     <!-- Search Entry -->
     <Style x:Key="SearchEntry" TargetType="Entry">
-        <Setter Property="BackgroundColor" Value="{StaticResource Gray100}" />
-        <Setter Property="PlaceholderColor" Value="{StaticResource Gray500}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource WarmCream}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource TextMuted}" />
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="FontSize" Value="14" />
     </Style>
@@ -158,7 +158,7 @@
     <!-- Section Header -->
     <Style x:Key="SectionHeader" TargetType="Label">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
-        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontSize" Value="16" />
         <Setter Property="FontAttributes" Value="Bold" />
         <Setter Property="Margin" Value="0,12,0,6" />
     </Style>
@@ -170,7 +170,7 @@
         <Setter Property="Shell.TitleColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="Shell.TabBarBackgroundColor" Value="{StaticResource White}" />
         <Setter Property="Shell.TabBarTitleColor" Value="{StaticResource Primary}" />
-        <Setter Property="Shell.TabBarUnselectedColor" Value="{StaticResource Gray500}" />
+        <Setter Property="Shell.TabBarUnselectedColor" Value="{StaticResource Gray400}" />
     </Style>
 
     <!-- Page Background -->
@@ -181,7 +181,7 @@
     <!-- Entry -->
     <Style TargetType="Entry">
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
-        <Setter Property="PlaceholderColor" Value="{StaticResource Gray500}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource TextMuted}" />
         <Setter Property="BackgroundColor" Value="{StaticResource White}" />
     </Style>
 
@@ -193,10 +193,11 @@
 
     <!-- Distance Badge -->
     <Style x:Key="DistanceBadge" TargetType="Frame">
-        <Setter Property="BackgroundColor" Value="{StaticResource PrimaryLight}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource WarmCream}" />
         <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="8,4" />
         <Setter Property="HasShadow" Value="False" />
+        <Setter Property="BorderColor" Value="{StaticResource WarmBorder}" />
     </Style>
 
 </ResourceDictionary>

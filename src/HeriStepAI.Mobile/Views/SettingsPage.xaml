@@ -10,125 +10,158 @@
     <ScrollView>
         <VerticalStackLayout Padding="0" Spacing="0">
 
-            <!-- Header -->
-            <Frame BackgroundColor="{StaticResource Primary}"
-                   CornerRadius="0"
-                   x:Name="SettingsHeader"
-                   HasShadow="False">
-                <VerticalStackLayout Spacing="2">
+            <!-- Hero Header with Amber Gradient -->
+            <Grid x:Name="SettingsHeader" Padding="16,48,16,22">
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#C97B28" Offset="0.0" />
+                        <GradientStop Color="#E8943A" Offset="0.6" />
+                        <GradientStop Color="#F5A84E" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Grid.Background>
+                <VerticalStackLayout Spacing="3">
                     <Label Text="{Binding LblSettingsTitle}"
                            TextColor="{StaticResource White}"
-                           FontSize="20"
+                           FontSize="22"
                            FontAttributes="Bold" />
                     <Label Text="{Binding LblSettingsSubtitle}"
                            TextColor="{StaticResource White}"
                            FontSize="12"
-                           Opacity="0.9" />
+                           Opacity="0.85" />
                 </VerticalStackLayout>
-            </Frame>
+            </Grid>
 
-            <VerticalStackLayout Padding="14,14" Spacing="12">
+            <VerticalStackLayout Padding="16,14" Spacing="12">
 
-                <!-- Language Section -->
+                <!-- Narration Section Header -->
                 <Label Text="{Binding LblNarration}"
-                       Style="{StaticResource SectionHeader}" />
+                       TextColor="{StaticResource TextPrimary}"
+                       FontSize="15"
+                       FontAttributes="Bold"
+                       Margin="0,0,0,2" />
 
-                <Frame Style="{StaticResource CardFrame}" Padding="12">
+                <!-- Language Setting -->
+                <Frame BackgroundColor="{StaticResource White}"
+                       CornerRadius="16"
+                       Padding="14"
+                       HasShadow="True"
+                       BorderColor="{StaticResource WarmBorder}">
                     <Grid RowDefinitions="Auto,Auto" RowSpacing="12">
                         <Grid ColumnDefinitions="Auto,*,Auto">
-                            <Frame BackgroundColor="{StaticResource PrimaryLight}"
-                                   CornerRadius="10"
-                                   WidthRequest="36"
-                                   HeightRequest="36"
+                            <Frame BackgroundColor="{StaticResource WarmCream}"
+                                   CornerRadius="12"
+                                   WidthRequest="40"
+                                   HeightRequest="40"
                                    Padding="0"
-                                   HasShadow="False">
+                                   HasShadow="False"
+                                   BorderColor="{StaticResource WarmBorder}">
                                 <Label Text="🗣️"
-                                       FontSize="16"
+                                       FontSize="18"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center" />
                             </Frame>
-                            <VerticalStackLayout Grid.Column="1" Margin="10,0" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
                                 <Label Text="{Binding LblNarrationLanguage}"
                                        FontSize="13"
-                                       FontAttributes="Bold" />
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" />
                                 <Label Text="{Binding LblNarrationLanguageHint}"
-                                       Style="{StaticResource CaptionLabel}"
-                                       FontSize="11" />
+                                       FontSize="11"
+                                       TextColor="{StaticResource TextMuted}" />
                             </VerticalStackLayout>
                             <Picker Grid.Column="2"
                                     ItemsSource="{Binding AvailableLanguages}"
                                     SelectedItem="{Binding SelectedLanguage}"
                                     HorizontalOptions="End"
-                                    MinimumWidthRequest="90" />
+                                    MinimumWidthRequest="90"
+                                    TextColor="{StaticResource TextPrimary}" />
                         </Grid>
 
                         <BoxView Grid.Row="1"
-                                 Color="{StaticResource Gray200}"
+                                 Color="{StaticResource WarmBorder}"
                                  HeightRequest="1"
-                                 Margin="-12,0" />
+                                 Margin="-14,0" />
                     </Grid>
                 </Frame>
 
-                <!-- Voice Gender Section -->
-                <Frame Style="{StaticResource CardFrame}" Padding="12" Margin="0,4">
+                <!-- Voice Gender Setting -->
+                <Frame BackgroundColor="{StaticResource White}"
+                       CornerRadius="16"
+                       Padding="14"
+                       HasShadow="True"
+                       BorderColor="{StaticResource WarmBorder}">
                     <Grid ColumnDefinitions="Auto,*,Auto">
-                        <Frame BackgroundColor="{StaticResource Secondary}"
-                               CornerRadius="10"
-                               WidthRequest="36"
-                               HeightRequest="36"
+                        <Frame BackgroundColor="#E8F5E9"
+                               CornerRadius="12"
+                               WidthRequest="40"
+                               HeightRequest="40"
                                Padding="0"
-                               HasShadow="False">
+                               HasShadow="False"
+                               BorderColor="#C8E6C9">
                             <Label Text="🎙️"
-                                   FontSize="16"
+                                   FontSize="18"
                                    HorizontalOptions="Center"
                                    VerticalOptions="Center" />
                         </Frame>
-                        <VerticalStackLayout Grid.Column="1" Margin="10,0" VerticalOptions="Center">
+                        <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
                             <Label Text="{Binding LblVoiceGender}"
                                    FontSize="13"
-                                   FontAttributes="Bold" />
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}" />
                             <Label Text="{Binding LblVoiceGenderHint}"
-                                   Style="{StaticResource CaptionLabel}"
-                                   FontSize="11" />
+                                   FontSize="11"
+                                   TextColor="{StaticResource TextMuted}" />
                         </VerticalStackLayout>
                         <Picker Grid.Column="2"
                                 ItemsSource="{Binding AvailableVoiceGenders}"
                                 SelectedItem="{Binding SelectedVoiceGender}"
                                 HorizontalOptions="End"
-                                MinimumWidthRequest="90" />
+                                MinimumWidthRequest="90"
+                                TextColor="{StaticResource TextPrimary}" />
                     </Grid>
                 </Frame>
 
-                <!-- GPS Section -->
+                <!-- Location Section Header -->
                 <Label Text="{Binding LblLocation}"
-                       Style="{StaticResource SectionHeader}" />
+                       TextColor="{StaticResource TextPrimary}"
+                       FontSize="15"
+                       FontAttributes="Bold"
+                       Margin="0,4,0,2" />
 
-                <Frame Style="{StaticResource CardFrame}" Padding="12">
+                <!-- GPS Status -->
+                <Frame BackgroundColor="{StaticResource White}"
+                       CornerRadius="16"
+                       Padding="14"
+                       HasShadow="True"
+                       BorderColor="{StaticResource WarmBorder}">
                     <Grid ColumnDefinitions="Auto,*,Auto">
                         <Frame BackgroundColor="{Binding IsLocationEnabled, Converter={StaticResource BoolToColorConverter}}"
-                               CornerRadius="10"
-                               WidthRequest="36"
-                               HeightRequest="36"
+                               CornerRadius="12"
+                               WidthRequest="40"
+                               HeightRequest="40"
                                Padding="0"
-                               HasShadow="False">
+                               HasShadow="False"
+                               BorderColor="Transparent">
                             <Label Text="📍"
-                                   FontSize="16"
+                                   FontSize="18"
                                    HorizontalOptions="Center"
                                    VerticalOptions="Center" />
                         </Frame>
-                        <VerticalStackLayout Grid.Column="1" Margin="10,0" VerticalOptions="Center">
+                        <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
                             <Label Text="{Binding LblGpsStatus}"
                                    FontSize="13"
-                                   FontAttributes="Bold" />
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextPrimary}" />
                             <Label Text="{Binding GpsStatusText}"
-                                   Style="{StaticResource CaptionLabel}"
-                                   FontSize="11" />
+                                   FontSize="11"
+                                   TextColor="{StaticResource TextMuted}" />
                         </VerticalStackLayout>
                         <Frame Grid.Column="2"
                                BackgroundColor="{Binding IsLocationEnabled, Converter={StaticResource BoolToColorConverter}}"
-                               CornerRadius="8"
-                               Padding="8,4"
-                               HasShadow="False">
+                               CornerRadius="10"
+                               Padding="10,5"
+                               HasShadow="False"
+                               BorderColor="Transparent">
                             <Label Text="{Binding IsLocationEnabled, Converter={StaticResource BoolToStatusConverter}}"
                                    TextColor="{StaticResource White}"
                                    FontSize="11"
@@ -137,62 +170,77 @@
                     </Grid>
                 </Frame>
 
-                <!-- About Section -->
+                <!-- About Section Header -->
                 <Label Text="{Binding LblInfo}"
-                       Style="{StaticResource SectionHeader}" />
+                       TextColor="{StaticResource TextPrimary}"
+                       FontSize="15"
+                       FontAttributes="Bold"
+                       Margin="0,4,0,2" />
 
-                <Frame Style="{StaticResource CardFrame}" Padding="12">
-                    <VerticalStackLayout Spacing="12">
+                <!-- App Info Card -->
+                <Frame BackgroundColor="{StaticResource White}"
+                       CornerRadius="16"
+                       Padding="14"
+                       HasShadow="True"
+                       BorderColor="{StaticResource WarmBorder}">
+                    <VerticalStackLayout Spacing="14">
+                        <!-- Version Row -->
                         <Grid ColumnDefinitions="Auto,*,Auto">
-                            <Frame BackgroundColor="{StaticResource SecondaryLight}"
-                                   CornerRadius="10"
-                                   WidthRequest="36"
-                                   HeightRequest="36"
+                            <Frame BackgroundColor="#EDE7F6"
+                                   CornerRadius="12"
+                                   WidthRequest="40"
+                                   HeightRequest="40"
                                    Padding="0"
-                                   HasShadow="False">
+                                   HasShadow="False"
+                                   BorderColor="#D1C4E9">
                                 <Label Text="ℹ️"
-                                       FontSize="16"
+                                       FontSize="18"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center" />
                             </Frame>
-                            <VerticalStackLayout Grid.Column="1" Margin="10,0" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
                                 <Label Text="{Binding LblVersion}"
                                        FontSize="13"
-                                       FontAttributes="Bold" />
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" />
                                 <Label Text="HeriStepAI Mobile"
-                                       Style="{StaticResource CaptionLabel}"
-                                       FontSize="11" />
+                                       FontSize="11"
+                                       TextColor="{StaticResource TextMuted}" />
                             </VerticalStackLayout>
                             <Label Grid.Column="2"
-                                   Text="1.0.0"
+                                   Text="1.0.3"
                                    FontSize="12"
-                                   TextColor="{StaticResource TextSecondary}"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Primary}"
                                    VerticalOptions="Center" />
                         </Grid>
 
-                        <BoxView Color="{StaticResource Gray200}"
+                        <BoxView Color="{StaticResource WarmBorder}"
                                  HeightRequest="1"
-                                 Margin="-12,0" />
+                                 Margin="-14,0" />
 
+                        <!-- Contact Row -->
                         <Grid ColumnDefinitions="Auto,*">
-                            <Frame BackgroundColor="{StaticResource Gray100}"
-                                   CornerRadius="10"
-                                   WidthRequest="36"
-                                   HeightRequest="36"
+                            <Frame BackgroundColor="#E3F2FD"
+                                   CornerRadius="12"
+                                   WidthRequest="40"
+                                   HeightRequest="40"
                                    Padding="0"
-                                   HasShadow="False">
+                                   HasShadow="False"
+                                   BorderColor="#BBDEFB">
                                 <Label Text="📧"
-                                       FontSize="16"
+                                       FontSize="18"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center" />
                             </Frame>
-                            <VerticalStackLayout Grid.Column="1" Margin="10,0" VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
                                 <Label Text="{Binding LblContactSupport}"
                                        FontSize="13"
-                                       FontAttributes="Bold" />
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" />
                                 <Label Text="support@heristepai.com"
-                                       Style="{StaticResource CaptionLabel}"
-                                       FontSize="11" />
+                                       FontSize="11"
+                                       TextColor="{StaticResource TextMuted}" />
                             </VerticalStackLayout>
                         </Grid>
                     </VerticalStackLayout>
@@ -201,13 +249,19 @@
                 <!-- Sync Button -->
                 <Button Text="{Binding LblSyncData}"
                         Command="{Binding SyncDataCommand}"
-                        BackgroundColor="{StaticResource Primary}"
                         TextColor="{StaticResource White}"
                         FontSize="14"
                         FontAttributes="Bold"
                         CornerRadius="24"
-                        HeightRequest="46"
-                        Margin="0,12,0,0" />
+                        HeightRequest="48"
+                        Margin="0,8,0,0">
+                    <Button.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#E8943A" Offset="0.0" />
+                            <GradientStop Color="#C97B28" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Button.Background>
+                </Button>
 
             </VerticalStackLayout>
         </VerticalStackLayout>

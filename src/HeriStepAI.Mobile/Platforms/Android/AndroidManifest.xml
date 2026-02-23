@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <application android:allowBackup="true" android:icon="@mipmap/logo_app" android:roundIcon="@mipmap/logo_app_round" android:supportsRtl="true" android:usesCleartextTraffic="true" android:networkSecurityConfig="@xml/network_security_config" android:hardwareAccelerated="true">
+    <application android:allowBackup="true" android:icon="@mipmap/icon_scene_final_512" android:roundIcon="@mipmap/icon_scene_final_512_round" android:supportsRtl="true" android:usesCleartextTraffic="true" android:networkSecurityConfig="@xml/network_security_config" android:hardwareAccelerated="true">
         <!-- MainActivity do MAUI sinh tự động với CRC đúng - KHÔNG hardcode tên ở đây -->
     </application>
 </manifest>

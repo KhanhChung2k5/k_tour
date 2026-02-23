@@ -10,26 +10,36 @@
     <Grid RowDefinitions="Auto,*,Auto">
 
         <!-- Header with POI Image -->
-        <Grid Grid.Row="0" x:Name="HeaderGrid" MinimumHeightRequest="220">
+        <Grid Grid.Row="0" x:Name="HeaderGrid" MinimumHeightRequest="230">
             <Image Source="{Binding SelectedPoi.ImageUrl}"
                    Aspect="AspectFill" />
-            <BoxView Color="{StaticResource Black}" Opacity="0.4" />
+            <!-- Dark warm overlay -->
+            <Grid>
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#44000000" Offset="0.0" />
+                        <GradientStop Color="#DD1A1208" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Grid.Background>
+            </Grid>
 
             <!-- Header Overlay -->
-            <Grid RowDefinitions="Auto,*" x:Name="HeaderOverlay" Padding="14,10,14,14">
+            <Grid RowDefinitions="Auto,*" x:Name="HeaderOverlay" Padding="16,48,16,16">
                 <!-- Back Button -->
                 <Frame Grid.Row="0"
-                       BackgroundColor="{StaticResource White}"
+                       BackgroundColor="#33FFFFFF"
                        CornerRadius="16"
-                       WidthRequest="44"
-                       HeightRequest="44"
+                       WidthRequest="40"
+                       HeightRequest="40"
                        Padding="0"
                        HasShadow="False"
+                       BorderColor="Transparent"
                        HorizontalOptions="Start">
                     <Frame.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding GoBackCommand}" />
                     </Frame.GestureRecognizers>
                     <Label Text="←"
+                           TextColor="{StaticResource White}"
                            FontSize="18"
                            HorizontalOptions="Center"
                            VerticalOptions="Center" />
@@ -40,83 +50,110 @@
                        VerticalOptions="End"
                        Text="{Binding SelectedPoi.Name}"
                        TextColor="{StaticResource White}"
-                       FontSize="18"
+                       FontSize="20"
                        FontAttributes="Bold" />
             </Grid>
         </Grid>
 
         <!-- Content -->
         <ScrollView Grid.Row="1">
-            <VerticalStackLayout x:Name="ContentStack" Spacing="10" Padding="14,10">
+            <VerticalStackLayout x:Name="ContentStack" Spacing="10" Padding="16,14">
 
                 <!-- Rating and Category -->
                 <HorizontalStackLayout Spacing="10">
-                    <HorizontalStackLayout Spacing="3">
+                    <HorizontalStackLayout Spacing="3" VerticalOptions="Center">
                         <Label Text="⭐" FontSize="14" VerticalOptions="Center" />
                         <Label Text="{Binding SelectedPoi.RatingText}"
                                FontSize="14"
                                FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}"
                                VerticalOptions="Center" />
                     </HorizontalStackLayout>
 
-                    <Frame BackgroundColor="{StaticResource Primary}"
-                           CornerRadius="8"
-                           Padding="10,4"
-                           HasShadow="False">
+                    <Frame BackgroundColor="{StaticResource WarmCream}"
+                           CornerRadius="10"
+                           Padding="12,5"
+                           HasShadow="False"
+                           BorderColor="{StaticResource WarmBorder}">
                         <Label Text="{Binding SelectedPoi.CategoryText}"
-                               TextColor="{StaticResource White}"
+                               TextColor="{StaticResource Primary}"
                                FontSize="11"
                                FontAttributes="Bold" />
                     </Frame>
                 </HorizontalStackLayout>
 
-                <!-- Address -->
-                <Frame Style="{StaticResource CardFrame}" Padding="12">
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                        <Label Text="📍"
-                               FontSize="16"
-                               VerticalOptions="Start" />
-                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                <!-- Address Card -->
+                <Frame BackgroundColor="{StaticResource White}"
+                       CornerRadius="16"
+                       Padding="14"
+                       HasShadow="True"
+                       BorderColor="{StaticResource WarmBorder}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Frame BackgroundColor="{StaticResource WarmCream}"
+                               CornerRadius="10"
+                               WidthRequest="36"
+                               HeightRequest="36"
+                               Padding="0"
+                               HasShadow="False"
+                               BorderColor="{StaticResource WarmBorder}"
+                               VerticalOptions="Start">
+                            <Label Text="📍"
+                                   FontSize="16"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                        </Frame>
+                        <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
                             <Label Text="{Binding LblAddress}"
-                                   Style="{StaticResource TitleLabel}"
-                                   FontSize="13" />
-                            <Label Text="{Binding SelectedPoi.Address}"
-                                   Style="{StaticResource BodyLabel}"
                                    FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextMuted}" />
+                            <Label Text="{Binding SelectedPoi.Address}"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   FontSize="13"
                                    LineBreakMode="WordWrap" />
                         </VerticalStackLayout>
                     </Grid>
                 </Frame>
 
-                <!-- Food Type and Price -->
+                <!-- Food Type and Price Info Grid -->
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                    <Frame Style="{StaticResource CardFrame}" Padding="12">
-                        <VerticalStackLayout Spacing="2">
-                            <Label Text="🍽️" FontSize="18" HorizontalOptions="Center" />
+                    <Frame BackgroundColor="{StaticResource White}"
+                           CornerRadius="16"
+                           Padding="12"
+                           HasShadow="True"
+                           BorderColor="{StaticResource WarmBorder}">
+                        <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                            <Label Text="🍽️" FontSize="20" HorizontalOptions="Center" />
                             <Label Text="{Binding LblFoodType}"
-                                   Style="{StaticResource CaptionLabel}"
+                                   TextColor="{StaticResource TextMuted}"
                                    FontSize="10"
                                    HorizontalOptions="Center" />
                             <Label Text="{Binding SelectedPoi.FoodTypeText}"
-                                   Style="{StaticResource TitleLabel}"
+                                   TextColor="{StaticResource TextPrimary}"
                                    FontSize="12"
+                                   FontAttributes="Bold"
                                    HorizontalOptions="Center"
                                    LineBreakMode="WordWrap"
                                    MaxLines="2" />
                         </VerticalStackLayout>
                     </Frame>
 
-                    <Frame Grid.Column="1" Style="{StaticResource CardFrame}" Padding="12">
-                        <VerticalStackLayout Spacing="2">
-                            <Label Text="💰" FontSize="18" HorizontalOptions="Center" />
+                    <Frame Grid.Column="1"
+                           BackgroundColor="{StaticResource White}"
+                           CornerRadius="16"
+                           Padding="12"
+                           HasShadow="True"
+                           BorderColor="{StaticResource WarmBorder}">
+                        <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                            <Label Text="💰" FontSize="20" HorizontalOptions="Center" />
                             <Label Text="{Binding LblPrice}"
-                                   Style="{StaticResource CaptionLabel}"
+                                   TextColor="{StaticResource TextMuted}"
                                    FontSize="10"
                                    HorizontalOptions="Center" />
                             <Label Text="{Binding SelectedPoi.PriceRangeText}"
-                                   Style="{StaticResource TitleLabel}"
+                                   TextColor="{StaticResource Success}"
                                    FontSize="12"
-                                   TextColor="{StaticResource Secondary}"
+                                   FontAttributes="Bold"
                                    HorizontalOptions="Center"
                                    LineBreakMode="WordWrap"
                                    MaxLines="2" />
@@ -124,32 +161,52 @@
                     </Frame>
                 </Grid>
 
-                <!-- Visit Time -->
-                <Frame Style="{StaticResource CardFrame}" Padding="12">
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                        <Label Text="⏱"
-                               FontSize="16"
-                               VerticalOptions="Center" />
-                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                <!-- Visit Time Card -->
+                <Frame BackgroundColor="{StaticResource White}"
+                       CornerRadius="16"
+                       Padding="14"
+                       HasShadow="True"
+                       BorderColor="{StaticResource WarmBorder}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Frame BackgroundColor="{StaticResource WarmCream}"
+                               CornerRadius="10"
+                               WidthRequest="36"
+                               HeightRequest="36"
+                               Padding="0"
+                               HasShadow="False"
+                               BorderColor="{StaticResource WarmBorder}"
+                               VerticalOptions="Center">
+                            <Label Text="⏱"
+                                   FontSize="16"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+                        </Frame>
+                        <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
                             <Label Text="{Binding LblVisitTime}"
-                                   Style="{StaticResource TitleLabel}"
-                                   FontSize="13" />
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource TextMuted}" />
                             <Label Text="{Binding SelectedPoi.EstimatedTimeText}"
-                                   Style="{StaticResource BodyLabel}"
-                                   FontSize="12" />
+                                   TextColor="{StaticResource TextPrimary}"
+                                   FontSize="13" />
                         </VerticalStackLayout>
                     </Grid>
                 </Frame>
 
-                <!-- Description -->
-                <Frame Style="{StaticResource CardFrame}" Padding="12">
-                    <VerticalStackLayout Spacing="6">
+                <!-- Description Card -->
+                <Frame BackgroundColor="{StaticResource White}"
+                       CornerRadius="16"
+                       Padding="14"
+                       HasShadow="True"
+                       BorderColor="{StaticResource WarmBorder}">
+                    <VerticalStackLayout Spacing="8">
                         <Label Text="{Binding LblDescription}"
-                               Style="{StaticResource TitleLabel}"
-                               FontSize="14" />
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}" />
                         <Label Text="{Binding SelectedPoi.Description}"
-                               Style="{StaticResource BodyLabel}"
-                               FontSize="12"
+                               TextColor="{StaticResource TextSecondary}"
+                               FontSize="13"
                                LineBreakMode="WordWrap" />
                     </VerticalStackLayout>
                 </Frame>
@@ -158,21 +215,31 @@
         </ScrollView>
 
         <!-- Bottom Action Bar -->
-        <Frame Grid.Row="2"
-               BackgroundColor="{StaticResource White}"
-               CornerRadius="0"
-               Padding="14,10,14,14"
-               HasShadow="True">
+        <Grid Grid.Row="2"
+              BackgroundColor="{StaticResource White}"
+              Padding="16,10,16,14">
+            <Grid.Shadow>
+                <Shadow Brush="{StaticResource Black}" Offset="0,-2" Radius="8" Opacity="0.06" />
+            </Grid.Shadow>
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <!-- Listen Button (amber gradient) -->
                 <Button Grid.Column="0"
                         Text="{Binding LblListenNarration}"
                         Command="{Binding PlayNarrationCommand}"
-                        BackgroundColor="{StaticResource Primary}"
                         TextColor="{StaticResource White}"
                         FontSize="12"
+                        FontAttributes="Bold"
                         CornerRadius="22"
-                        HeightRequest="44"
-                        Padding="4,0" />
+                        HeightRequest="46"
+                        Padding="4,0">
+                    <Button.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#E8943A" Offset="0.0" />
+                            <GradientStop Color="#C97B28" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Button.Background>
+                </Button>
+                <!-- Navigate Button (outline) -->
                 <Button Grid.Column="1"
                         Text="{Binding LblGetDirections}"
                         Command="{Binding NavigateCommand}"
@@ -182,10 +249,10 @@
                         BorderWidth="1.5"
                         FontSize="12"
                         CornerRadius="22"
-                        HeightRequest="44"
+                        HeightRequest="46"
                         Padding="4,0" />
             </Grid>
-        </Frame>
+        </Grid>
     </Grid>
 
 </ContentPage>

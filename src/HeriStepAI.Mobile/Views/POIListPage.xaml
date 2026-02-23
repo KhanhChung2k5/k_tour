@@ -11,25 +11,28 @@
     <Grid RowDefinitions="Auto,Auto,*">
 
         <!-- Search Bar Section -->
-        <Frame Grid.Row="0"
-               BackgroundColor="{StaticResource White}"
-               CornerRadius="0"
-               x:Name="SearchBar"
-               HasShadow="True">
-            <Grid ColumnDefinitions="Auto,*">
+        <Grid Grid.Row="0"
+              x:Name="SearchTopBar"
+              BackgroundColor="{StaticResource White}"
+              Padding="16,48,16,12">
+            <Grid.Shadow>
+                <Shadow Brush="{StaticResource Black}" Offset="0,2" Radius="6" Opacity="0.04" />
+            </Grid.Shadow>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                 <!-- Back Button -->
                 <Frame Grid.Column="0"
-                       BackgroundColor="{StaticResource Gray100}"
+                       BackgroundColor="{StaticResource WarmCream}"
                        CornerRadius="16"
-                       WidthRequest="44"
-                       HeightRequest="44"
+                       WidthRequest="40"
+                       HeightRequest="40"
                        Padding="0"
                        HasShadow="False"
-                       Margin="0,0,10,0">
+                       BorderColor="{StaticResource WarmBorder}">
                     <Frame.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding GoBackCommand}" />
                     </Frame.GestureRecognizers>
                     <Label Text="←"
+                           TextColor="{StaticResource TextPrimary}"
                            FontSize="16"
                            HorizontalOptions="Center"
                            VerticalOptions="Center" />
@@ -37,66 +40,71 @@
 
                 <!-- Search Entry -->
                 <Frame Grid.Column="1"
-                       BackgroundColor="{StaticResource Gray100}"
+                       BackgroundColor="{StaticResource WarmCream}"
                        CornerRadius="20"
                        Padding="12,0"
-                       HasShadow="False">
+                       HasShadow="False"
+                       BorderColor="{StaticResource WarmBorder}"
+                       HeightRequest="40">
                     <Grid ColumnDefinitions="Auto,*">
                         <Label Text="🔍"
                                FontSize="13"
                                VerticalOptions="Center"
+                               TextColor="{StaticResource TextMuted}"
                                Margin="0,0,6,0" />
                         <Entry Grid.Column="1"
                                Placeholder="{Binding LblSearchPlaces}"
                                Text="{Binding SearchText}"
                                BackgroundColor="Transparent"
                                FontSize="13"
-                               VerticalOptions="Center" />
+                               VerticalOptions="Center"
+                               PlaceholderColor="{StaticResource TextMuted}"
+                               TextColor="{StaticResource TextPrimary}" />
                     </Grid>
                 </Frame>
             </Grid>
-        </Frame>
+        </Grid>
 
-        <!-- Category Tabs -->
+        <!-- Category Filter Tabs -->
         <ScrollView Grid.Row="1"
                     Orientation="Horizontal"
                     HorizontalScrollBarVisibility="Never"
                     BackgroundColor="{StaticResource White}">
-            <HorizontalStackLayout Padding="14,6" Spacing="6">
+            <HorizontalStackLayout Padding="16,8,16,10" Spacing="8">
                 <Button Text="{Binding LblCatAll}"
                         Command="{Binding SelectCategoryCommand}"
                         CommandParameter="0"
                         FontSize="12"
-                        HeightRequest="30"
-                        CornerRadius="15"
-                        Padding="12,0"
+                        HeightRequest="32"
+                        CornerRadius="16"
+                        Padding="14,0"
                         BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='0'}"
                         TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='0'}" />
                 <Button Text="{Binding LblCatSightseeing}"
                         Command="{Binding SelectCategoryCommand}"
                         CommandParameter="1"
                         FontSize="12"
-                        HeightRequest="30"
-                        CornerRadius="15"
-                        Padding="12,0"
+                        HeightRequest="32"
+                        CornerRadius="16"
+                        Padding="14,0"
                         BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='1'}"
                         TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='1'}" />
                 <Button Text="{Binding LblCatFood}"
                         Command="{Binding SelectCategoryCommand}"
                         CommandParameter="2"
                         FontSize="12"
-                        HeightRequest="30"
-                        CornerRadius="15"
-                        Padding="12,0"
+                        HeightRequest="32"
+                        CornerRadius="16"
+                        Padding="14,0"
                         BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='2'}"
                         TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='2'}" />
                 <Button Text="{Binding LblCatAccommodation}"
                         Command="{Binding SelectCategoryCommand}"
                         CommandParameter="3"
                         FontSize="12"
-                        HeightRequest="30"
-                        CornerRadius="15"
-                        Padding="12,0"
+                        HeightRequest="32"
+                        CornerRadius="16"
+                        Padding="14,0"
                         BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='3'}"
                         TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='3'}" />
             </HorizontalStackLayout>
@@ -108,15 +116,15 @@
                      IsRefreshing="{Binding IsRefreshing}">
             <CollectionView ItemsSource="{Binding FilteredPOIs}"
                             SelectionMode="None"
-                            Margin="14,6">
+                            Margin="16,8">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:POI">
                         <Frame BackgroundColor="{StaticResource White}"
-                               CornerRadius="12"
+                               CornerRadius="16"
                                Padding="0"
-                               Margin="0,0,0,8"
+                               Margin="0,0,0,10"
                                HasShadow="True"
-                               BorderColor="{StaticResource Gray200}"
+                               BorderColor="{StaticResource WarmBorder}"
                                IsClippedToBounds="True">
                             <Frame.GestureRecognizers>
                                 <TapGestureRecognizer
@@ -124,7 +132,7 @@
                                     CommandParameter="{Binding .}" />
                             </Frame.GestureRecognizers>
 
-                            <Grid ColumnDefinitions="95,*" MinimumHeightRequest="85">
+                            <Grid ColumnDefinitions="95,*" MinimumHeightRequest="88">
                                 <!-- POI Image -->
                                 <Image Grid.Column="0"
                                        Source="{Binding ImageUrl}"
@@ -132,17 +140,15 @@
                                        HorizontalOptions="FillAndExpand"
                                        VerticalOptions="FillAndExpand">
                                     <Image.Clip>
-                                        <RoundRectangleGeometry Rect="0,0,95,85" CornerRadius="12,0,0,12" />
+                                        <RoundRectangleGeometry Rect="0,0,95,88" CornerRadius="16,0,0,16" />
                                     </Image.Clip>
                                 </Image>
 
                                 <!-- POI Info -->
                                 <VerticalStackLayout Grid.Column="1"
-                                                     Padding="12,8"
-                                                     Spacing="4"
-                                                     VerticalOptions="Center"
-                                                     HorizontalOptions="FillAndExpand">
-                                    <!-- Name -->
+                                                     Padding="12,10"
+                                                     Spacing="5"
+                                                     VerticalOptions="Center">
                                     <Label Text="{Binding Name}"
                                            FontSize="13"
                                            FontAttributes="Bold"
@@ -150,7 +156,6 @@
                                            LineBreakMode="TailTruncation"
                                            MaxLines="2" />
 
-                                    <!-- Rating -->
                                     <HorizontalStackLayout Spacing="3">
                                         <Label Text="⭐"
                                                FontSize="10"
@@ -163,7 +168,6 @@
                                                TextColor="{StaticResource TextMuted}" />
                                     </HorizontalStackLayout>
 
-                                    <!-- Time and Distance -->
                                     <HorizontalStackLayout Spacing="10">
                                         <HorizontalStackLayout Spacing="3">
                                             <Label Text="⏱"
@@ -192,16 +196,19 @@
                 <CollectionView.EmptyView>
                     <VerticalStackLayout VerticalOptions="Center"
                                          HorizontalOptions="Center"
-                                         Spacing="8"
+                                         Spacing="10"
                                          Padding="40">
                         <Label Text="📍"
-                               FontSize="36"
+                               FontSize="40"
                                HorizontalOptions="Center" />
                         <Label Text="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.LblNoPlacesFound}"
-                               Style="{StaticResource TitleLabel}"
+                               TextColor="{StaticResource TextPrimary}"
+                               FontSize="15"
+                               FontAttributes="Bold"
                                HorizontalOptions="Center" />
                         <Label Text="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.LblTryDifferentSearch}"
-                               Style="{StaticResource BodyLabel}"
+                               TextColor="{StaticResource TextSecondary}"
+                               FontSize="13"
                                HorizontalOptions="Center"
                                HorizontalTextAlignment="Center" />
                     </VerticalStackLayout>
@@ -211,10 +218,10 @@
 
         <!-- Loading Overlay -->
         <Grid Grid.RowSpan="3"
-              BackgroundColor="#80000000"
+              BackgroundColor="#80F7F2EC"
               IsVisible="{Binding IsLoading}">
             <ActivityIndicator IsRunning="{Binding IsLoading}"
-                               Color="{StaticResource White}"
+                               Color="{StaticResource Primary}"
                                HorizontalOptions="Center"
                                VerticalOptions="Center"
                                WidthRequest="44"

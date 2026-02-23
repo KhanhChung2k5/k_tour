@@ -27,7 +27,7 @@ public class LocationForegroundService : Service
         var notification = new NotificationCompat.Builder(this, ChannelId)
             .SetContentTitle("HeriStepAI đang hoạt động")
             .SetContentText("Đang theo dõi vị trí để thuyết minh tự động")
-            .SetSmallIcon(Resource.Mipmap.logo_app)
+            .SetSmallIcon(Resource.Mipmap.icon_scene_final_512)
             .SetOngoing(true)
             .SetPriority(NotificationCompat.PriorityLow)
             .Build();
