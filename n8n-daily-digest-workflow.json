@@ -1,0 +1,97 @@
+{
+  "name": "HeriStepAI - Daily Tourism Digest (Email)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 16 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Cron 23:00 (UTC+7)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "notes": "Chạy lúc 23:00 giờ VN (16:00 UTC)"
+    },
+    {
+      "parameters": {
+        "url": "https://heristep.onrender.com/api/analytics/daily-report",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "heristepai-report-2026"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "fetch-report",
+      "name": "Fetch Daily Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst date = d.date;\nconst totalToday = d.totalVisitsToday;\nconst totalYesterday = d.totalVisitsYesterday;\nconst growth = d.growthPercent;\nconst topPOIs = d.topPOIs || [];\nconst zeroPOIs = d.zeroPOIs || [];\nconst byType = d.visitsByType || {};\nconst peak = d.hourlyPeak;\nconst totalActive = d.totalActivePOIs;\n\nconst trendArrow = growth > 0 ? '▲' : growth < 0 ? '▼' : '─';\nconst trendText = growth > 0 ? `+${growth}%` : `${growth}%`;\nconst trendColor = growth > 0 ? '#10b981' : growth < 0 ? '#ef4444' : '#64748b';\n\nconst medals = ['🥇', '🥈', '🥉', '4.', '5.'];\nconst topPOIsRows = topPOIs.length > 0\n  ? topPOIs.map((p, i) => `<tr><td style=\"padding:8px 12px\">${medals[i]} ${p.name}</td><td style=\"padding:8px 12px;text-align:center\"><strong>${p.visits}</strong></td><td style=\"padding:8px 12px;text-align:center;color:#64748b\">${p.geofence}/${p.mapClick}/${p.qrCode}</td></tr>`).join('')\n  : '<tr><td colspan=\"3\" style=\"padding:12px;color:#64748b;text-align:center\">Chưa có dữ liệu</td></tr>';\n\nconst zeroPOIsText = zeroPOIs.length > 0\n  ? zeroPOIs.slice(0, 5).map(n => `<li>${n}</li>`).join('') + (zeroPOIs.length > 5 ? `<li style=\"color:#64748b\">...và ${zeroPOIs.length - 5} địa điểm khác</li>` : '')\n  : '<li style=\"color:#10b981\">✅ Tất cả địa điểm đều có khách!</li>';\n\nconst peakHtml = peak ? `<p>⏰ <strong>Giờ cao điểm:</strong> ${peak.hour}:00 – ${peak.hour+1}:00 (${peak.visits} lượt)</p>` : '';\n\nconst subject = `[HeriStepAI] Báo cáo du lịch ${date} — ${totalToday} lượt tham quan`;\n\nconst html = `<!DOCTYPE html>\n<html><head><meta charset=\"UTF-8\"></head>\n<body style=\"margin:0;padding:0;background:#f8fafc;font-family:Arial,sans-serif\">\n<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f8fafc;padding:24px 0\">\n<tr><td align=\"center\">\n<table width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08)\">\n\n<!-- Header -->\n<tr><td style=\"background:linear-gradient(135deg,#C97B28,#E8943A);padding:28px 32px\">\n  <h1 style=\"margin:0;color:#fff;font-size:22px\">🏛 Báo Cáo Du Lịch Hàng Ngày</h1>\n  <p style=\"margin:6px 0 0;color:rgba(255,255,255,0.85);font-size:14px\">HeriStepAI · Đà Nẵng · ${date}</p>\n</td></tr>\n\n<!-- Stats Row -->\n<tr><td style=\"padding:24px 32px\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n  <tr>\n    <td width=\"33%\" style=\"text-align:center;padding:16px;background:#fef9f0;border-radius:10px;margin:4px\">\n      <div style=\"font-size:28px;font-weight:700;color:#E8943A\">${totalToday}</div>\n      <div style=\"font-size:12px;color:#64748b;margin-top:4px\">Lượt hôm nay</div>\n    </td>\n    <td width=\"4px\"></td>\n    <td width=\"33%\" style=\"text-align:center;padding:16px;background:#f8fafc;border-radius:10px\">\n      <div style=\"font-size:28px;font-weight:700;color:#64748b\">${totalYesterday}</div>\n      <div style=\"font-size:12px;color:#64748b;margin-top:4px\">Lượt hôm qua</div>\n    </td>\n    <td width=\"4px\"></td>\n    <td width=\"33%\" style=\"text-align:center;padding:16px;background:#f0fdf4;border-radius:10px\">\n      <div style=\"font-size:28px;font-weight:700;color:${trendColor}\">${trendArrow} ${trendText}</div>\n      <div style=\"font-size:12px;color:#64748b;margin-top:4px\">So với hôm qua</div>\n    </td>\n  </tr>\n  </table>\n</td></tr>\n\n<!-- Visit Types -->\n<tr><td style=\"padding:0 32px 20px\">\n  <h3 style=\"margin:0 0 12px;font-size:15px;color:#1e293b\">📱 Theo hình thức</h3>\n  <table width=\"100%\" style=\"background:#f8fafc;border-radius:8px;padding:4px\" cellpadding=\"0\" cellspacing=\"0\">\n  <tr>\n    <td style=\"padding:12px 16px;text-align:center\">📍 Geofence<br><strong style=\"font-size:18px\">${byType.geofence||0}</strong></td>\n    <td style=\"padding:12px 16px;text-align:center\">🗺 Map Click<br><strong style=\"font-size:18px\">${byType.mapClick||0}</strong></td>\n    <td style=\"padding:12px 16px;text-align:center\">📷 QR Code<br><strong style=\"font-size:18px\">${byType.qrCode||0}</strong></td>\n  </tr>\n  </table>\n  ${peakHtml}\n</td></tr>\n\n<!-- Top POIs Table -->\n<tr><td style=\"padding:0 32px 20px\">\n  <h3 style=\"margin:0 0 12px;font-size:15px;color:#1e293b\">🏆 Top 5 Địa điểm hôm nay</h3>\n  <table width=\"100%\" style=\"border-collapse:collapse;border-radius:8px;overflow:hidden\">\n  <thead><tr style=\"background:#fef9f0\">\n    <th style=\"padding:10px 12px;text-align:left;font-size:13px;color:#64748b\">Địa điểm</th>\n    <th style=\"padding:10px 12px;text-align:center;font-size:13px;color:#64748b\">Lượt</th>\n    <th style=\"padding:10px 12px;text-align:center;font-size:13px;color:#64748b\">Geo/Map/QR</th>\n  </tr></thead>\n  <tbody>${topPOIsRows}</tbody>\n  </table>\n</td></tr>\n\n<!-- Zero Visit POIs -->\n<tr><td style=\"padding:0 32px 24px\">\n  <h3 style=\"margin:0 0 12px;font-size:15px;color:#1e293b\">⚠️ Chưa có khách hôm nay (${zeroPOIs.length}/${totalActive})</h3>\n  <ul style=\"margin:0;padding:0 0 0 20px;color:#475569;font-size:14px;line-height:1.8\">${zeroPOIsText}</ul>\n</td></tr>\n\n<!-- Footer -->\n<tr><td style=\"background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0\">\n  <p style=\"margin:0;font-size:12px;color:#94a3b8;text-align:center\">\n    🤖 Tự động gửi bởi HeriStepAI Analytics n8n Workflow · ${new Date().toLocaleString('vi-VN', {timeZone:'Asia/Ho_Chi_Minh'})}\n  </p>\n</td></tr>\n\n</table>\n</td></tr></table>\n</body></html>`;\n\nreturn [{ json: { subject, html } }];"
+      },
+      "id": "format-email",
+      "name": "Format Email HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "your-gmail@gmail.com",
+        "toEmail": "admin@heristepai.com",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "id": "send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [900, 300],
+      "credentials": {
+        "smtp": {
+          "id": "gmail-smtp-credentials",
+          "name": "Gmail SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cron 23:00 (UTC+7)": {
+      "main": [
+        [{ "node": "Fetch Daily Report", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch Daily Report": {
+      "main": [
+        [{ "node": "Format Email HTML", "type": "main", "index": 0 }]
+      ]
+    },
+    "Format Email HTML": {
+      "main": [
+        [{ "node": "Send Email", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": ["heristepai", "analytics", "daily-report", "email"]
+}

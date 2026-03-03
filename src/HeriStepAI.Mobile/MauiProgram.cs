@@ -22,6 +22,7 @@ public static class MauiProgram
             // });
 
         // Services
+        builder.Services.AddSingleton<IAuthService, MobileAuthService>();
         builder.Services.AddSingleton<IVoicePreferenceService, VoicePreferenceService>();
         builder.Services.AddSingleton<ILocationSimulatorService, LocationSimulatorService>();
         builder.Services.AddSingleton<ILocationService, LocationService>();
@@ -34,6 +35,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<ITourGeneratorService, TourGeneratorService>();
 
         // ViewModels
+        builder.Services.AddSingleton<LoginPageViewModel>();
+        builder.Services.AddSingleton<RegisterPageViewModel>();
         builder.Services.AddTransient<MainPageViewModel>();
         builder.Services.AddTransient<MapPageViewModel>();
         builder.Services.AddTransient<POIListViewModel>();
@@ -43,6 +46,8 @@ public static class MauiProgram
 
         // Shell & Views
         builder.Services.AddSingleton<AppShell>();
+        builder.Services.AddSingleton<LoginPage>();
+        builder.Services.AddSingleton<RegisterPage>();
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<MapPage>();
         builder.Services.AddTransient<POIListPage>();

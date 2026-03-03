@@ -7,15 +7,17 @@ namespace HeriStepAI.Mobile.Services;
 public class ApiService : IApiService
 {
     private readonly HttpClient _httpClient;
-    private static readonly string _baseUrl = 
+    private readonly IAuthService _authService;
+    private static readonly string _baseUrl =
 #if DEBUG
         "http://10.0.2.2:5000/api/"; // Emulator local API
 #else
         "https://heristep.onrender.com/api/"; // Production
 #endif
 
-    public ApiService()
+    public ApiService(IAuthService authService)
     {
+        _authService = authService;
         try
         {
             _httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate })
@@ -74,7 +76,7 @@ public class ApiService : IApiService
             var visitLog = new
             {
                 POId = poiId,
-                UserId = (string?)null,
+                UserId = _authService.CurrentUser?.Id.ToString(),
                 Latitude = latitude,
                 Longitude = longitude,
                 VisitType = (int)visitType
