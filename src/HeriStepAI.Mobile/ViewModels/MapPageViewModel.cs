@@ -144,64 +144,60 @@ public partial class MapPageViewModel : ObservableObject
 
     /// <summary>
     /// Called when location changes (both real GPS and simulated).
-    /// Checks geofence and updates map marker position.
+    /// Marshal to main thread: UI binding + geofence + map update.
     /// </summary>
     private void OnLocationChanged(object? sender, Location location)
     {
-        CurrentLocation = location;
-
-        // Check geofence for auto-trigger
-        _geofenceService.CheckGeofence(location);
-
-        // Notify map to move the marker during test mode
-        if (IsTestMode)
+        MainThread.BeginInvokeOnMainThread(() =>
         {
-            SimulatedLocationChanged?.Invoke(this, location);
-        }
+            CurrentLocation = location;
+            _geofenceService.CheckGeofence(location);
+            if (IsTestMode)
+                SimulatedLocationChanged?.Invoke(this, location);
+        });
     }
 
     /// <summary>
     /// Called when geofence detects user entered a POI zone.
-    /// Triggers auto-narration and logs the visit.
+    /// UI + map update ngay; log + narration chạy nền để tránh block main thread (ANR).
     /// </summary>
-    private async void OnGeofencePOIEntered(object? sender, POI poi)
+    private void OnGeofencePOIEntered(object? sender, POI poi)
     {
         AppLog.Info($"📍 Geofence triggered: {poi.Name} (ID={poi.Id})");
 
-        // Update test mode status
         if (IsTestMode)
         {
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                TestModeStatus = $"🔊 {poi.Name}";
-                TestModeCurrentPOIName = poi.Name;
-            });
+            TestModeStatus = $"🔊 {poi.Name}";
+            TestModeCurrentPOIName = poi.Name;
         }
 
-        // Notify map to highlight the triggered POI
         GeofenceTriggered?.Invoke(this, poi);
 
-        // Log visit as Geofence type
-        try
+        // Chạy log + narration nền, không await — tránh ANR
+        var lang = _localizationService.CurrentLanguage;
+        _ = Task.Run(async () =>
         {
-            await _apiService.LogVisitAsync(poi.Id, poi.Latitude, poi.Longitude, VisitType.Geofence);
-            AppLog.Info($"✅ Logged geofence visit for {poi.Name}");
-        }
-        catch (Exception ex)
-        {
-            AppLog.Error($"Failed to log geofence visit: {ex.Message}");
-        }
+            try
+            {
+                await _apiService.LogVisitAsync(poi.Id, poi.Latitude, poi.Longitude, VisitType.Geofence);
+                AppLog.Info($"✅ Logged geofence visit for {poi.Name}");
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"Failed to log geofence visit: {ex.Message}");
+            }
 
-        // Auto-play narration (forcePlay=false to respect cooldown)
-        try
-        {
-            await _narrationService.PlayNarrationAsync(poi, _localizationService.CurrentLanguage, forcePlay: false);
-            AppLog.Info($"🔊 Auto-narration started for {poi.Name}");
-        }
-        catch (Exception ex)
-        {
-            AppLog.Error($"Failed to play narration: {ex.Message}");
-        }
+            try
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                    _narrationService.PlayNarrationAsync(poi, lang, forcePlay: false));
+                AppLog.Info($"🔊 Auto-narration started for {poi.Name}");
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"Failed to play narration: {ex.Message}");
+            }
+        });
     }
 
     private async Task LoadPOIsAsync()

@@ -16,6 +16,8 @@ public partial class AuthViewModel : ObservableObject
     [ObservableProperty] private bool isLoading;
     [ObservableProperty] private string errorMessage = "";
     [ObservableProperty] private bool hasError;
+    [ObservableProperty] private bool hasSuccess;
+    [ObservableProperty] private string successMessage = "";
 
     // --- Login fields ---
     [ObservableProperty] private string loginEmail = "";
@@ -36,6 +38,7 @@ public partial class AuthViewModel : ObservableObject
     private void GoToRegister()
     {
         HasError = false;
+        HasSuccess = false;
         ErrorMessage = "";
         ShowLogin = false;
         ShowRegister = true;
@@ -109,7 +112,10 @@ public partial class AuthViewModel : ObservableObject
 
         if (success)
         {
-            Application.Current!.MainPage = IPlatformApplication.Current!.Services.GetRequiredService<AppShell>();
+            HasError = false;
+            HasSuccess = true;
+            SuccessMessage = "Đăng ký thành công. Vui lòng đăng nhập.";
+            GoToLogin();
         }
         else
         {

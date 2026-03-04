@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HeriStepAI.Mobile.Services;
+using HeriStepAI.Mobile.Views;
 
 namespace HeriStepAI.Mobile.ViewModels;
 
@@ -10,6 +11,7 @@ public partial class SettingsPageViewModel : ObservableObject
     private readonly ILocationService _locationService;
     private readonly ILocalizationService _localizationService;
     private readonly IVoicePreferenceService _voicePreference;
+    private readonly IAuthService _authService;
 
     [ObservableProperty]
     private string selectedLanguage = "Tiếng Việt";
@@ -40,17 +42,24 @@ public partial class SettingsPageViewModel : ObservableObject
     public string LblVersion => _localizationService.GetString("Version");
     public string LblContactSupport => _localizationService.GetString("ContactSupport");
     public string LblSyncData => _localizationService.GetString("SyncData");
+    public string LblAccount => _localizationService.GetString("Account");
+    public string LblLogout => _localizationService.GetString("Logout");
+
+    public string AccountDisplayName => _authService.CurrentUser?.FullName ?? _authService.CurrentUser?.Username ?? "—";
+    public string AccountEmail => _authService.CurrentUser?.Email ?? "—";
 
     public SettingsPageViewModel(
         IPOIService poiService,
         ILocationService locationService,
         ILocalizationService localizationService,
-        IVoicePreferenceService voicePreference)
+        IVoicePreferenceService voicePreference,
+        IAuthService authService)
     {
         _poiService = poiService;
         _locationService = locationService;
         _localizationService = localizationService;
         _voicePreference = voicePreference;
+        _authService = authService;
 
         _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
 
@@ -78,6 +87,10 @@ public partial class SettingsPageViewModel : ObservableObject
             OnPropertyChanged(nameof(LblVersion));
             OnPropertyChanged(nameof(LblContactSupport));
             OnPropertyChanged(nameof(LblSyncData));
+            OnPropertyChanged(nameof(LblAccount));
+            OnPropertyChanged(nameof(LblLogout));
+            OnPropertyChanged(nameof(AccountDisplayName));
+            OnPropertyChanged(nameof(AccountEmail));
             // Refresh voice gender picker
             OnPropertyChanged(nameof(AvailableVoiceGenders));
             UpdateGpsStatus();
@@ -137,6 +150,18 @@ public partial class SettingsPageViewModel : ObservableObject
         "fr" => "Français",
         _ => "Tiếng Việt",
     };
+
+    [RelayCommand]
+    private async Task Logout()
+    {
+        await _authService.LogoutAsync();
+        if (Application.Current != null && Application.Current.MainPage != null)
+        {
+            var authPage = IPlatformApplication.Current?.Services?.GetRequiredService<AuthPage>();
+            if (authPage != null)
+                Application.Current.MainPage = authPage;
+        }
+    }
 
     [RelayCommand]
     private async Task SyncData()

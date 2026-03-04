@@ -1,5 +1,6 @@
 using HeriStepAI.Mobile.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System.Text;
 
 namespace HeriStepAI.Mobile.Services;
@@ -42,6 +43,8 @@ public class ApiService : IApiService
         {
             try
             {
+                if (_authService.GetToken() is { } token)
+                    _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
                 AppLog.Info($"ApiService GET poi (attempt {attempt}/{maxRetries})");
                 var response = await _httpClient.GetAsync("poi");
                 AppLog.Info($"ApiService GET poi -> {response.StatusCode}");
@@ -73,18 +76,29 @@ public class ApiService : IApiService
     {
         try
         {
+            var userId = _authService.CurrentUser?.Id.ToString();
             var visitLog = new
             {
                 POId = poiId,
-                UserId = _authService.CurrentUser?.Id.ToString(),
+                UserId = userId,
                 Latitude = latitude,
                 Longitude = longitude,
                 VisitType = (int)visitType
             };
 
-            var json = JsonConvert.SerializeObject(visitLog);
+            var json = JsonConvert.SerializeObject(visitLog, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Include,
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            await _httpClient.PostAsync("analytics/visit", content);
+
+            if (_authService.GetToken() is { } token)
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _httpClient.PostAsync("analytics/visit", content);
+            if (!response.IsSuccessStatusCode)
+                AppLog.Error($"LogVisit failed: {response.StatusCode}");
         }
         catch (Exception ex)
         {

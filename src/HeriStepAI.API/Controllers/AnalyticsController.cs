@@ -31,9 +31,13 @@ public class AnalyticsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> LogVisit([FromBody] VisitLogRequest request)
     {
+        var userId = request.UserId;
+        if (string.IsNullOrWhiteSpace(userId) && User.Identity?.IsAuthenticated == true)
+            userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
         await _analyticsService.LogVisitAsync(
             request.POId,
-            request.UserId,
+            userId,
             request.Latitude,
             request.Longitude,
             request.VisitType

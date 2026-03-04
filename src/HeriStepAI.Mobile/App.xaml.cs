@@ -31,8 +31,34 @@ public partial class App : Application
                 BackgroundColor = Color.FromArgb("#E8943A")
             };
 
-            LogToDebug($"App: Starting InitializeAsync...");
-            _ = Task.Run(() => InitializeAsync(authService, serviceProvider));
+            // has_session = 1 chỉ khi user đã đăng nhập thành công lần trước.
+            // Không có → luôn hiển thị Đăng ký/Đăng nhập, không tin TryRestoreSession để tránh bỏ qua Auth.
+            var hasSessionHint = Preferences.Default.Get("has_session", "");
+            LogToDebug($"App: has_session = '{hasSessionHint}'");
+
+            if (!string.IsNullOrEmpty(hasSessionHint))
+            {
+                LogToDebug("App: Fast path — restore session, then show AppShell or Auth.");
+                _ = Task.Run(() => InitializeAsync(authService, serviceProvider, fromLoggedInHint: true));
+            }
+            else
+            {
+                LogToDebug("App: First launch / no session — show AuthPage, never skip to AppShell from restore.");
+                _ = Task.Run(() => InitializeAsync(authService, serviceProvider, fromLoggedInHint: false));
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    await Task.Delay(350);
+                    if (MainPage is ContentPage)
+                    {
+                        await Task.Yield();
+                        if (MainPage is ContentPage)
+                        {
+                            MainPage = serviceProvider.GetRequiredService<AuthPage>();
+                            LogToDebug("App: AuthPage shown (first launch).");
+                        }
+                    }
+                });
+            }
         }
         catch (Exception ex)
         {
@@ -42,50 +68,52 @@ public partial class App : Application
         }
     }
 
-    private async Task InitializeAsync(IAuthService authService, IServiceProvider serviceProvider)
+    private async Task InitializeAsync(IAuthService authService, IServiceProvider serviceProvider, bool fromLoggedInHint)
     {
         try
         {
-            // Restore saved session (reads from SecureStorage — async, ~1s)
             var isLoggedIn = await authService.TryRestoreSessionAsync();
-            LogToDebug($"App: Session restored = {isLoggedIn}");
+            LogToDebug($"App: Session restored = {isLoggedIn}, fromLoggedInHint = {fromLoggedInHint}");
 
-            if (isLoggedIn)
+            // Chỉ chuyển sang AppShell khi (1) có hint đã đăng nhập VÀ (2) restore session thành công.
+            // Khi không có has_session (first launch) thì không bao giờ skip Auth dù TryRestoreSession = true.
+            if (fromLoggedInHint && isLoggedIn)
             {
-                MainThread.BeginInvokeOnMainThread(async () =>
+                MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    await Task.Yield(); // tránh ANR: cho main thread vẽ trước
                     MainPage = serviceProvider.GetRequiredService<AppShell>();
+                    LogToDebug("App: AppShell shown (session restored).");
                 });
             }
-            else
+            else if (fromLoggedInHint && !isLoggedIn)
             {
-                // Session invalid/expired — clear the hint flag
                 Preferences.Default.Remove("has_session");
-
-                // If still on splash (fast-path was used but session actually expired),
-                // show AuthPage now
-                MainThread.BeginInvokeOnMainThread(async () =>
+                MainThread.BeginInvokeOnMainThread(() =>
                 {
                     if (MainPage is ContentPage)
                     {
-                        await Task.Yield();
-                        if (MainPage is ContentPage)
-                        {
-                            var authPage = serviceProvider.GetRequiredService<AuthPage>();
-                            MainPage = authPage;
-                            LogToDebug("App: AuthPage shown (session expired)");
-                        }
+                        MainPage = serviceProvider.GetRequiredService<AuthPage>();
+                        LogToDebug("App: AuthPage shown (session expired).");
                     }
                 });
             }
 
-            // Trigger initial POI sync in background regardless of login state
+            // POI sync chạy nền, không chờ — tránh trì hoãn hiển thị Đăng nhập (API có thể timeout 2–3 phút)
             var poiService = serviceProvider.GetService<IPOIService>();
             if (poiService != null)
             {
-                await poiService.SyncPOIsFromServerAsync();
-                LogToDebug("App: Initial POI sync completed");
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await poiService.SyncPOIsFromServerAsync();
+                        LogToDebug("App: Initial POI sync completed");
+                    }
+                    catch (Exception ex)
+                    {
+                        LogToDebug($"App: Initial POI sync failed: {ex.Message}");
+                    }
+                });
             }
         }
         catch (Exception ex)
@@ -97,5 +125,6 @@ public partial class App : Application
     private static void LogToDebug(string message)
     {
         System.Diagnostics.Debug.WriteLine($"[{LogTag}] {message}");
+        AppLog.Info(message);
     }
 }

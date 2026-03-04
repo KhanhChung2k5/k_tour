@@ -47,6 +47,12 @@
                             <Label Text="{Binding ErrorMessage}" TextColor="#DC2626" FontSize="13" />
                         </Frame>
 
+                        <!-- Success (e.g. after register) -->
+                        <Frame BackgroundColor="#ECFDF5" BorderColor="#A7F3D0" CornerRadius="10"
+                               Padding="12,10" HasShadow="False" IsVisible="{Binding HasSuccess}">
+                            <Label Text="{Binding SuccessMessage}" TextColor="#059669" FontSize="13" />
+                        </Frame>
+
                         <!-- Email -->
                         <VerticalStackLayout Spacing="6">
                             <Label Text="Email" TextColor="{StaticResource TextSecondary}"

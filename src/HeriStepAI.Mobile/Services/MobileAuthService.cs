@@ -25,15 +25,24 @@ public class MobileAuthService : IAuthService
         {
             var token = await SecureStorage.Default.GetAsync(TokenKey);
             var userJson = await SecureStorage.Default.GetAsync(UserKey);
-            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(userJson))
+            if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(userJson))
+                return false;
+            if (token.Length < 10) // JWT/ Bearer token tối thiểu
                 return false;
 
             CurrentUser = JsonConvert.DeserializeObject<UserSession>(userJson);
+            if (CurrentUser == null || CurrentUser.Id <= 0)
+            {
+                CurrentUser = null;
+                return false;
+            }
+
             SetToken(token);
-            return CurrentUser != null;
+            return true;
         }
         catch
         {
+            CurrentUser = null;
             return false;
         }
     }
@@ -83,7 +92,8 @@ public class MobileAuthService : IAuthService
             }
 
             var result = JsonConvert.DeserializeObject<AuthResponse>(body)!;
-            await SaveSessionAsync(result);
+            // Không lưu session khi đăng ký — user cần đăng nhập để vào app.
+            // await SaveSessionAsync(result);
             return (true, "");
         }
         catch (TaskCanceledException)

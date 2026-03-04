@@ -12,6 +12,7 @@ public interface IAuthService
 {
     bool IsLoggedIn { get; }
     UserSession? CurrentUser { get; }
+    string? GetToken();
 
     Task<(bool success, string error)> LoginAsync(string email, string password);
     Task<(bool success, string error)> RegisterAsync(string email, string password, string fullName);

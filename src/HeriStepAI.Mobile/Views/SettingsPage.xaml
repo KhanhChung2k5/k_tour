@@ -33,6 +33,56 @@
 
             <VerticalStackLayout Padding="16,14" Spacing="12">
 
+                <!-- Tài khoản Section -->
+                <Label Text="{Binding LblAccount}"
+                       TextColor="{StaticResource TextPrimary}"
+                       FontSize="15"
+                       FontAttributes="Bold"
+                       Margin="0,0,0,2" />
+
+                <Frame BackgroundColor="{StaticResource White}"
+                       CornerRadius="16"
+                       Padding="14"
+                       HasShadow="True"
+                       BorderColor="{StaticResource WarmBorder}">
+                    <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Frame BackgroundColor="{StaticResource WarmCream}"
+                                   CornerRadius="12"
+                                   WidthRequest="40"
+                                   HeightRequest="40"
+                                   Padding="0"
+                                   HasShadow="False"
+                                   BorderColor="{StaticResource WarmBorder}">
+                                <Label Text="👤"
+                                       FontSize="18"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                            </Frame>
+                            <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
+                                <Label Text="{Binding AccountDisplayName}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="{Binding AccountEmail}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource TextMuted}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                        <BoxView Color="{StaticResource WarmBorder}" HeightRequest="1" Margin="-14,0" />
+                        <Button Text="{Binding LblLogout}"
+                                Command="{Binding LogoutCommand}"
+                                TextColor="#DC2626"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                BackgroundColor="Transparent"
+                                BorderColor="#FECACA"
+                                BorderWidth="1"
+                                CornerRadius="12"
+                                HeightRequest="44" />
+                    </VerticalStackLayout>
+                </Frame>
+
                 <!-- Narration Section Header -->
                 <Label Text="{Binding LblNarration}"
                        TextColor="{StaticResource TextPrimary}"
