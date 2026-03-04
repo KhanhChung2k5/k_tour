@@ -32,10 +32,9 @@ public class AnalyticsController : ControllerBase
 
     [HttpPost("visit")]
     [AllowAnonymous]
-    public async Task<IActionResult> LogVisit([FromBody] VisitLogRequest request)
+    public IActionResult LogVisit([FromBody] VisitLogRequest request)
     {
         // Always prefer JWT claims when authenticated (prevents client spoofing UserId=0).
-        // Fall back to request body only for anonymous visits.
         string? userId = null;
         if (User.Identity?.IsAuthenticated == true)
             userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -43,33 +42,38 @@ public class AnalyticsController : ControllerBase
             userId = request.UserId;
 
         _logger.LogInformation(
-            "[LogVisit] Received: POId={POId}, UserId={UserId}, VisitType={VisitType}, Lat={Lat}, Lon={Lon} | JWT={JwtAuth}",
-            request.POId, userId, request.VisitType, request.Latitude, request.Longitude,
-            User.Identity?.IsAuthenticated);
+            "[LogVisit] Received: POId={POId}, UserId={UserId}, VisitType={VisitType} | JWT={JwtAuth}",
+            request.POId, userId, request.VisitType, User.Identity?.IsAuthenticated);
 
         if (request.POId <= 0)
         {
-            _logger.LogWarning("[LogVisit] REJECTED: POId={POId} is invalid (<=0). Raw userId from body={BodyUserId}", request.POId, request.UserId);
-            return BadRequest(new { Error = "Invalid POId", ReceivedPOId = request.POId });
+            _logger.LogWarning("[LogVisit] REJECTED: POId={POId} invalid", request.POId);
+            return BadRequest(new { Error = "Invalid POId" });
         }
 
-        try
+        // Fire-and-forget: respond immediately so mobile never times out.
+        // DB write happens in background; use a scoped service factory to avoid DbContext threading issues.
+        var poiId = request.POId;
+        var lat = request.Latitude;
+        var lon = request.Longitude;
+        var visitType = request.VisitType;
+        var services = HttpContext.RequestServices;
+        _ = Task.Run(async () =>
         {
-            await _analyticsService.LogVisitAsync(
-                request.POId,
-                userId,
-                request.Latitude,
-                request.Longitude,
-                request.VisitType
-            );
-            _logger.LogInformation("[LogVisit] SUCCESS: POId={POId}, UserId={UserId}", request.POId, userId);
-            return Ok(new { Message = "Visit logged" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[LogVisit] FAILED to insert VisitLog: POId={POId}, UserId={UserId}", request.POId, userId);
-            return StatusCode(500, new { Error = "Failed to log visit", Detail = ex.Message });
-        }
+            try
+            {
+                using var scope = services.CreateScope();
+                var svc = scope.ServiceProvider.GetRequiredService<IAnalyticsService>();
+                await svc.LogVisitAsync(poiId, userId, lat, lon, visitType);
+                _logger.LogInformation("[LogVisit] DB write OK: POId={POId}, UserId={UserId}", poiId, userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[LogVisit] DB write FAILED: POId={POId}, UserId={UserId}", poiId, userId);
+            }
+        });
+
+        return Accepted(new { Message = "Visit queued" });
     }
 
     [HttpGet("top-pois")]
