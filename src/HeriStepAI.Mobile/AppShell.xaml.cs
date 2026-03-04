@@ -19,32 +19,19 @@ public partial class AppShell : Shell
         _localizationService.LanguageChanged += (_, _) =>
             MainThread.BeginInvokeOnMainThread(UpdateTabTitles);
 
-        // Chỉ tạo tab đầu tiên để tránh ANR; các tab còn lại tạo khi user chọn lần đầu
-        MainTab.Content = CreatePageSafe(_serviceProvider, "MainPage", () => _serviceProvider.GetRequiredService<MainPage>());
-
-        Navigated += OnShellNavigated;
+        // Use ContentTemplate (NOT Content) for ALL tabs.
+        // MAUI calls the factory lazily when each tab is first rendered, which:
+        //   1. Fixes the CRASH: "No Content found for ShellContent" — the old Navigated-based
+        //      lazy approach fired AFTER Android Fragment.OnCreateView already needed the content.
+        //      ContentTemplate is read by GetOrCreateContent() synchronously, so it is always ready.
+        //   2. Reduces startup blocking: no heavy InitializeComponent() in AppShell constructor.
+        MainTab.ContentTemplate     = new DataTemplate(() => CreatePageSafe(_serviceProvider, "MainPage",    () => _serviceProvider.GetRequiredService<MainPage>()));
+        MapTab.ContentTemplate      = new DataTemplate(() => CreatePageSafe(_serviceProvider, "MapPage",     () => _serviceProvider.GetRequiredService<MapPage>()));
+        POIListTab.ContentTemplate  = new DataTemplate(() => CreatePageSafe(_serviceProvider, "POIListPage", () => _serviceProvider.GetRequiredService<POIListPage>()));
+        SettingsTab.ContentTemplate = new DataTemplate(() => CreatePageSafe(_serviceProvider, "SettingsPage",() => _serviceProvider.GetRequiredService<SettingsPage>()));
 
         Routing.RegisterRoute("TourDetailPage", typeof(TourDetailPage));
         Routing.RegisterRoute("POIDetailPage", typeof(POIDetailPage));
-    }
-
-    private void OnShellNavigated(object? sender, ShellNavigatedEventArgs e)
-    {
-        EnsureCurrentTabContent();
-    }
-
-    private void EnsureCurrentTabContent()
-    {
-        var content = CurrentItem?.CurrentItem?.CurrentItem as ShellContent;
-        if (content == null) return;
-        if (content.Content != null) return;
-
-        if (content == MapTab)
-            content.Content = CreatePageSafe(_serviceProvider, "MapPage", () => _serviceProvider.GetRequiredService<MapPage>());
-        else if (content == POIListTab)
-            content.Content = CreatePageSafe(_serviceProvider, "POIListPage", () => _serviceProvider.GetRequiredService<POIListPage>());
-        else if (content == SettingsTab)
-            content.Content = CreatePageSafe(_serviceProvider, "SettingsPage", () => _serviceProvider.GetRequiredService<SettingsPage>());
     }
 
     private void UpdateTabTitles()
