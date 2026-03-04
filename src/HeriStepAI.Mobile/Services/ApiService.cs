@@ -10,10 +10,10 @@ public class ApiService : IApiService
     private readonly HttpClient _httpClient;
     private readonly IAuthService _authService;
     private static readonly string _baseUrl =
-#if DEBUG
-        "http://10.0.2.2:5000/api/"; // Emulator local API
+#if DEBUG && EMULATOR
+        "http://10.0.2.2:5000/api/"; // Emulator local API only
 #else
-        "https://heristep.onrender.com/api/"; // Production
+        "https://heristep.onrender.com/api/"; // Production (real device or release)
 #endif
 
     public ApiService(IAuthService authService)
@@ -78,7 +78,7 @@ public class ApiService : IApiService
         {
             var userId = _authService.CurrentUser?.Id.ToString();
             var hasToken = _authService.GetToken() is { };
-            AppLog.Info($"LogVisit: POI={poiId}, UserId={userId ?? "null"}, HasToken={hasToken}");
+            AppLog.Info($"LogVisit: POI={poiId}, UserId={userId ?? "null"}, HasToken={hasToken}, URL={_httpClient.BaseAddress}analytics/visit");
 
             var visitLog = new
             {
