@@ -73,6 +73,7 @@
             transform: translate(-50%, -50%);
             border-radius: 50%;
             animation: pulse-glow 4s ease-in-out infinite;
+            pointer-events: none;
         }
 
         @@keyframes pulse-glow {
@@ -168,6 +169,7 @@
             width: 1px;
             background: linear-gradient(to bottom, transparent, var(--amber), transparent);
             opacity: 0.4;
+            pointer-events: none;
         }
 
         /* ===== RIGHT PANEL ===== */
@@ -187,6 +189,7 @@
             width: 350px; height: 350px;
             background: radial-gradient(circle, rgba(232,161,75,0.06) 0%, transparent 70%);
             border-radius: 50%;
+            pointer-events: none;
         }
 
         .login-header {

@@ -291,8 +291,13 @@ public partial class MapPage : ContentPage
     {
         await Task.Delay(1000); // Wait for WebView handler and POIs to load
 
-        System.Diagnostics.Debug.WriteLine($"[MapPage] 🗺️ Generating map HTML for {_viewModel.POIs.Count} POIs");
-        var html = GenerateMapHtml(_viewModel.POIs, _viewModel.CurrentLocation);
+        // Snapshot POI list and location on main thread (ObservableCollection not thread-safe)
+        var poiSnapshot = _viewModel.POIs.ToList();
+        var locationSnapshot = _viewModel.CurrentLocation;
+
+        System.Diagnostics.Debug.WriteLine($"[MapPage] 🗺️ Generating map HTML for {poiSnapshot.Count} POIs");
+        // Generate HTML on background thread to avoid blocking main thread (~89s ANR)
+        var html = await Task.Run(() => GenerateMapHtml(poiSnapshot, locationSnapshot));
         System.Diagnostics.Debug.WriteLine($"[MapPage] ✅ HTML generated ({html.Length} chars)");
 
         // Log first 500 chars of HTML for debugging
