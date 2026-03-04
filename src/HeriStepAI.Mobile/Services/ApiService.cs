@@ -100,7 +100,20 @@ public class ApiService : IApiService
             if (_authService.GetToken() is { } token)
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            var response = await _httpClient.PostAsync("analytics/visit", content);
+            HttpResponseMessage response;
+            try
+            {
+                response = await _httpClient.PostAsync("analytics/visit", content);
+            }
+            catch (Exception connEx) when (connEx is HttpRequestException or TaskCanceledException)
+            {
+                // Server cold start (Render free tier) — retry once after 5s
+                AppLog.Info($"LogVisit retry after: {connEx.Message}");
+                await Task.Delay(5000);
+                var retryContent = new StringContent(json, Encoding.UTF8, "application/json");
+                response = await _httpClient.PostAsync("analytics/visit", retryContent);
+            }
+
             var responseBody = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
             {

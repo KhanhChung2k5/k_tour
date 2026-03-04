@@ -223,13 +223,7 @@ public partial class MainPageViewModel : ObservableObject
     private async void OnPOIEntered(object? sender, POI poi)
     {
         CurrentPOI = poi;
-        
-        // Log visit
-        var location = await _locationService.GetCurrentLocationAsync();
-        if (location != null)
-        {
-            await _apiService.LogVisitAsync(poi.Id, location.Latitude, location.Longitude, Services.VisitType.Geofence);
-        }
+        // Note: LogVisitAsync is handled by MapPageViewModel.OnGeofencePOIEntered (avoids duplicate log)
 
         // Play narration - dùng ngôn ngữ app
         await _narrationService.PlayNarrationAsync(poi, NarrationLanguage);
