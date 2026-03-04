@@ -16,6 +16,13 @@ public partial class SettingsPage : ContentPage
         SettingsHeader.Padding = ResponsiveHelper.HeaderPadding();
     }
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        if (BindingContext is SettingsPageViewModel vm)
+            vm.RefreshAccountInfo();
+    }
+
     static SettingsPageViewModel GetViewModel() =>
         App.Services?.GetService<SettingsPageViewModel>()
         ?? throw new InvalidOperationException("SettingsPageViewModel not found. Check DI.");

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using HeriStepAI.API.Data;
 using HeriStepAI.API.Models;
 using HeriStepAI.API.Services;
@@ -31,9 +32,13 @@ public class AnalyticsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> LogVisit([FromBody] VisitLogRequest request)
     {
-        var userId = request.UserId;
-        if (string.IsNullOrWhiteSpace(userId) && User.Identity?.IsAuthenticated == true)
+        // Always prefer JWT claims when authenticated (prevents client spoofing UserId=0).
+        // Fall back to request body only for anonymous visits.
+        string? userId = null;
+        if (User.Identity?.IsAuthenticated == true)
             userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrWhiteSpace(userId))
+            userId = request.UserId;
 
         await _analyticsService.LogVisitAsync(
             request.POId,
@@ -230,9 +235,14 @@ public class AnalyticsController : ControllerBase
 
 public class VisitLogRequest
 {
+    [JsonPropertyName("poiId")]
     public int POId { get; set; }
+    [JsonPropertyName("userId")]
     public string? UserId { get; set; }
+    [JsonPropertyName("latitude")]
     public double? Latitude { get; set; }
+    [JsonPropertyName("longitude")]
     public double? Longitude { get; set; }
+    [JsonPropertyName("visitType")]
     public VisitType VisitType { get; set; }
 }

@@ -77,6 +77,9 @@ public class ApiService : IApiService
         try
         {
             var userId = _authService.CurrentUser?.Id.ToString();
+            var hasToken = _authService.GetToken() is { };
+            AppLog.Info($"LogVisit: POI={poiId}, UserId={userId ?? "null"}, HasToken={hasToken}");
+
             var visitLog = new
             {
                 POId = poiId,
@@ -98,11 +101,14 @@ public class ApiService : IApiService
 
             var response = await _httpClient.PostAsync("analytics/visit", content);
             if (!response.IsSuccessStatusCode)
-                AppLog.Error($"LogVisit failed: {response.StatusCode}");
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                AppLog.Error($"LogVisit failed: {response.StatusCode} - {body}");
+            }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error logging visit: {ex.Message}");
+            AppLog.Error($"LogVisit error: {ex.Message}");
         }
     }
 }

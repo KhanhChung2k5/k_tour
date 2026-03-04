@@ -6,7 +6,11 @@ public partial class AuthPage : ContentPage
 {
     public AuthPage(AuthViewModel viewModel)
     {
+        var t0 = System.Diagnostics.Stopwatch.GetTimestamp();
+        System.Diagnostics.Debug.WriteLine("[AuthPage] InitializeComponent START");
         InitializeComponent();
+        var ms = (System.Diagnostics.Stopwatch.GetTimestamp() - t0) * 1000 / System.Diagnostics.Stopwatch.Frequency;
+        System.Diagnostics.Debug.WriteLine($"[AuthPage] InitializeComponent DONE in {ms}ms");
         BindingContext = viewModel;
     }
 

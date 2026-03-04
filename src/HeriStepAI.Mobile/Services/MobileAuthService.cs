@@ -16,6 +16,8 @@ public class MobileAuthService : IAuthService
         Timeout = TimeSpan.FromSeconds(60)
     };
 
+    public event EventHandler? UserProfileUpdated;
+
     public bool IsLoggedIn => CurrentUser != null;
     public UserSession? CurrentUser { get; private set; }
 
@@ -38,6 +40,14 @@ public class MobileAuthService : IAuthService
             }
 
             SetToken(token);
+
+            // If stored session is missing name/email (from old login before API fix),
+            // refresh from /api/auth/me in background.
+            if (string.IsNullOrWhiteSpace(CurrentUser.Email) || string.IsNullOrWhiteSpace(CurrentUser.FullName))
+            {
+                _ = Task.Run(RefreshUserProfileAsync);
+            }
+
             return true;
         }
         catch
@@ -45,6 +55,43 @@ public class MobileAuthService : IAuthService
             CurrentUser = null;
             return false;
         }
+    }
+
+    private async Task RefreshUserProfileAsync()
+    {
+        try
+        {
+            var response = await _http.GetAsync("auth/me");
+            if (!response.IsSuccessStatusCode) return;
+
+            var body = await response.Content.ReadAsStringAsync();
+            var profile = JsonConvert.DeserializeObject<UserProfileResponse>(body);
+            if (profile == null || profile.Id <= 0) return;
+
+            CurrentUser = new UserSession
+            {
+                Id = profile.Id,
+                Username = profile.Username ?? CurrentUser?.Username ?? "",
+                Email = profile.Email ?? CurrentUser?.Email ?? "",
+                FullName = profile.FullName ?? CurrentUser?.FullName ?? ""
+            };
+            // Update cached session and notify listeners (e.g. SettingsPage)
+            await SecureStorage.Default.SetAsync(UserKey, JsonConvert.SerializeObject(CurrentUser));
+            MainThread.BeginInvokeOnMainThread(() => UserProfileUpdated?.Invoke(this, EventArgs.Empty));
+        }
+        catch { /* Background refresh — swallow errors silently */ }
+    }
+
+    private class UserProfileResponse
+    {
+        [JsonProperty("id")]
+        public int Id { get; set; }
+        [JsonProperty("username")]
+        public string? Username { get; set; }
+        [JsonProperty("email")]
+        public string? Email { get; set; }
+        [JsonProperty("fullName")]
+        public string? FullName { get; set; }
     }
 
     public async Task<(bool success, string error)> LoginAsync(string email, string password)

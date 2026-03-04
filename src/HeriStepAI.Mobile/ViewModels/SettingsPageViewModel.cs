@@ -45,8 +45,11 @@ public partial class SettingsPageViewModel : ObservableObject
     public string LblAccount => _localizationService.GetString("Account");
     public string LblLogout => _localizationService.GetString("Logout");
 
-    public string AccountDisplayName => _authService.CurrentUser?.FullName ?? _authService.CurrentUser?.Username ?? "—";
-    public string AccountEmail => _authService.CurrentUser?.Email ?? "—";
+    [ObservableProperty]
+    private string accountDisplayName = "";
+
+    [ObservableProperty]
+    private string accountEmail = "";
 
     public SettingsPageViewModel(
         IPOIService poiService,
@@ -62,12 +65,34 @@ public partial class SettingsPageViewModel : ObservableObject
         _authService = authService;
 
         _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
+        _authService.UserProfileUpdated += (_, _) => MainThread.BeginInvokeOnMainThread(RefreshAccountInfo);
 
         SelectedLanguage = LanguageCodeToDisplay(_localizationService.CurrentLanguage);
         SelectedVoiceGender = _voicePreference.VoiceGender == VoiceGender.Male
             ? _localizationService.GetString("Male")
             : _localizationService.GetString("Female");
         UpdateGpsStatus();
+        RefreshAccountInfo();
+    }
+
+    /// <summary>Gọi khi màn Cài đặt hiển thị để load lại tên/email từ session.</summary>
+    public void RefreshAccountInfo()
+    {
+        var user = _authService.CurrentUser;
+        if (user != null)
+        {
+            AccountDisplayName = !string.IsNullOrWhiteSpace(user.FullName)
+                ? user.FullName
+                : !string.IsNullOrWhiteSpace(user.Username)
+                    ? user.Username
+                    : _localizationService.GetString("LoggedIn"); // "Đã đăng nhập"
+            AccountEmail = !string.IsNullOrWhiteSpace(user.Email) ? user.Email : "—";
+        }
+        else
+        {
+            AccountDisplayName = "—";
+            AccountEmail = "—";
+        }
     }
 
     private void RefreshTranslations()
@@ -89,8 +114,7 @@ public partial class SettingsPageViewModel : ObservableObject
             OnPropertyChanged(nameof(LblSyncData));
             OnPropertyChanged(nameof(LblAccount));
             OnPropertyChanged(nameof(LblLogout));
-            OnPropertyChanged(nameof(AccountDisplayName));
-            OnPropertyChanged(nameof(AccountEmail));
+            RefreshAccountInfo();
             // Refresh voice gender picker
             OnPropertyChanged(nameof(AvailableVoiceGenders));
             UpdateGpsStatus();

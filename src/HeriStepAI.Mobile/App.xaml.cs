@@ -15,8 +15,11 @@ public partial class App : Application
         try
         {
             Services = serviceProvider;
-            LogToDebug("App: InitializeComponent...");
+            LogToDebug("App: InitializeComponent START");
+            var _t0 = System.Diagnostics.Stopwatch.GetTimestamp();
             InitializeComponent();
+            var _ms = (System.Diagnostics.Stopwatch.GetTimestamp() - _t0) * 1000 / System.Diagnostics.Stopwatch.Frequency;
+            LogToDebug($"App: InitializeComponent DONE in {_ms}ms");
 
             // Initialize responsive helper for adaptive layouts
             ResponsiveHelper.Initialize();
@@ -43,21 +46,11 @@ public partial class App : Application
             }
             else
             {
-                LogToDebug("App: First launch / no session — show AuthPage, never skip to AppShell from restore.");
+                // No session hint → first launch or explicit logout.
+                // InitializeAsync will show AuthPage after TryRestoreSessionAsync completes (~1-2s).
+                // Never eagerly create AuthPage here — InitializeComponent() blocks main thread 100+ seconds.
+                LogToDebug("App: First launch / no session — waiting for InitializeAsync to show AuthPage.");
                 _ = Task.Run(() => InitializeAsync(authService, serviceProvider, fromLoggedInHint: false));
-                MainThread.BeginInvokeOnMainThread(async () =>
-                {
-                    await Task.Delay(350);
-                    if (MainPage is ContentPage)
-                    {
-                        await Task.Yield();
-                        if (MainPage is ContentPage)
-                        {
-                            MainPage = serviceProvider.GetRequiredService<AuthPage>();
-                            LogToDebug("App: AuthPage shown (first launch).");
-                        }
-                    }
-                });
             }
         }
         catch (Exception ex)
@@ -75,8 +68,8 @@ public partial class App : Application
             var isLoggedIn = await authService.TryRestoreSessionAsync();
             LogToDebug($"App: Session restored = {isLoggedIn}, fromLoggedInHint = {fromLoggedInHint}");
 
-            // Chỉ chuyển sang AppShell khi (1) có hint đã đăng nhập VÀ (2) restore session thành công.
-            // Khi không có has_session (first launch) thì không bao giờ skip Auth dù TryRestoreSession = true.
+            // Show AppShell ONLY when: (1) user was previously logged in AND (2) session restored OK.
+            // All other cases → AuthPage. Never skip Auth when has_session is absent.
             if (fromLoggedInHint && isLoggedIn)
             {
                 MainThread.BeginInvokeOnMainThread(() =>
@@ -85,15 +78,19 @@ public partial class App : Application
                     LogToDebug("App: AppShell shown (session restored).");
                 });
             }
-            else if (fromLoggedInHint && !isLoggedIn)
+            else
             {
-                Preferences.Default.Remove("has_session");
+                // Covers: expired session (hint=true, login=false), first launch, explicit logout.
+                if (fromLoggedInHint) Preferences.Default.Remove("has_session");
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     if (MainPage is ContentPage)
                     {
+                        LogToDebug("App: Creating AuthPage on main thread...");
+                        var t0 = System.Diagnostics.Stopwatch.GetTimestamp();
                         MainPage = serviceProvider.GetRequiredService<AuthPage>();
-                        LogToDebug("App: AuthPage shown (session expired).");
+                        var ms = (System.Diagnostics.Stopwatch.GetTimestamp() - t0) * 1000 / System.Diagnostics.Stopwatch.Frequency;
+                        LogToDebug($"App: AuthPage shown in {ms}ms (fromHint={fromLoggedInHint}, loggedIn={isLoggedIn}).");
                     }
                 });
             }

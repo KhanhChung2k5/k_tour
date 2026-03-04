@@ -102,6 +102,7 @@ public class LocalizationService : ILocalizationService
         ["Refresh"] = new() { ["vi"]="Làm mới", ["en"]="Refresh", ["ko"]="새로고침", ["zh"]="刷新", ["ja"]="更新", ["th"]="รีเฟรช", ["fr"]="Actualiser" },
         ["Account"] = new() { ["vi"]="Tài khoản", ["en"]="Account", ["ko"]="계정", ["zh"]="账户", ["ja"]="アカウント", ["th"]="บัญชี", ["fr"]="Compte" },
         ["Logout"] = new() { ["vi"]="Đăng xuất", ["en"]="Log out", ["ko"]="로그아웃", ["zh"]="退出登录", ["ja"]="ログアウト", ["th"]="ออกจากระบบ", ["fr"]="Déconnexion" },
+        ["LoggedIn"] = new() { ["vi"]="Đã đăng nhập", ["en"]="Logged in", ["ko"]="로그인됨", ["zh"]="已登录", ["ja"]="ログイン済み", ["th"]="เข้าสู่ระบบแล้ว", ["fr"]="Connecté" },
         ["RegisterSuccessMessage"] = new() { ["vi"]="Đăng ký thành công. Vui lòng đăng nhập.", ["en"]="Registration successful. Please log in.", ["ko"]="가입이 완료되었습니다. 로그인해 주세요.", ["zh"]="注册成功，请登录。", ["ja"]="登録完了。ログインしてください。", ["th"]="ลงทะเบียนสำเร็จ กรุณาเข้าสู่ระบบ", ["fr"]="Inscription réussie. Veuillez vous connecter." },
 
         // ── Status & Errors ──

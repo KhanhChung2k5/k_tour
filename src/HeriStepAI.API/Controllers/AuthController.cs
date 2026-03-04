@@ -3,6 +3,7 @@ using HeriStepAI.API.Models;
 using HeriStepAI.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace HeriStepAI.API.Controllers;
 
@@ -41,7 +42,15 @@ public class AuthController : ControllerBase
         try
         {
             var token = await _authService.LoginAsync(request.Email, request.Password ?? "");
-            return Ok(new { Token = token });
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
+            return Ok(new
+            {
+                Token = token,
+                UserId = user!.Id,
+                Username = user.Username,
+                Email = user.Email,
+                FullName = user.FullName
+            });
         }
         catch (UnauthorizedAccessException)
         {

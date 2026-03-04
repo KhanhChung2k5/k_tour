@@ -14,6 +14,9 @@ public interface IAuthService
     UserSession? CurrentUser { get; }
     string? GetToken();
 
+    /// <summary>Fired when CurrentUser is updated (e.g. background profile refresh).</summary>
+    event EventHandler? UserProfileUpdated;
+
     Task<(bool success, string error)> LoginAsync(string email, string password);
     Task<(bool success, string error)> RegisterAsync(string email, string password, string fullName);
     Task LogoutAsync();
