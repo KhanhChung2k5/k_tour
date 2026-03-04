@@ -54,7 +54,14 @@ public partial class RegisterPageViewModel : ObservableObject
 
         if (success)
         {
-            Application.Current!.MainPage = IPlatformApplication.Current!.Services.GetRequiredService<AppShell>();
+            // Go back to LoginPage with success message (session not saved, user must log in)
+            var loginPage = IPlatformApplication.Current!.Services.GetRequiredService<LoginPage>();
+            if (loginPage.BindingContext is LoginPageViewModel loginVm)
+            {
+                loginVm.SuccessMessage = "Đăng ký thành công! Vui lòng đăng nhập.";
+                loginVm.HasSuccess = true;
+            }
+            Application.Current!.MainPage = loginPage;
         }
         else
         {

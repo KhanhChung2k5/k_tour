@@ -14,6 +14,8 @@ public partial class LoginPageViewModel : ObservableObject
     [ObservableProperty] private bool isLoading;
     [ObservableProperty] private string errorMessage = "";
     [ObservableProperty] private bool hasError;
+    [ObservableProperty] private string successMessage = "";
+    [ObservableProperty] private bool hasSuccess;
 
     public LoginPageViewModel(IAuthService authService)
     {

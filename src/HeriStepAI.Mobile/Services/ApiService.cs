@@ -82,11 +82,11 @@ public class ApiService : IApiService
 
             var visitLog = new
             {
-                POId = poiId,
-                UserId = userId,
-                Latitude = latitude,
-                Longitude = longitude,
-                VisitType = (int)visitType
+                poiId = poiId,
+                userId = userId,
+                latitude = latitude,
+                longitude = longitude,
+                visitType = (int)visitType
             };
 
             var json = JsonConvert.SerializeObject(visitLog, new JsonSerializerSettings
@@ -94,16 +94,21 @@ public class ApiService : IApiService
                 NullValueHandling = NullValueHandling.Include,
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             });
+            AppLog.Info($"LogVisit JSON: {json}");
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             if (_authService.GetToken() is { } token)
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
             var response = await _httpClient.PostAsync("analytics/visit", content);
+            var responseBody = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
             {
-                var body = await response.Content.ReadAsStringAsync();
-                AppLog.Error($"LogVisit failed: {response.StatusCode} - {body}");
+                AppLog.Error($"LogVisit failed: {response.StatusCode} - {responseBody}");
+            }
+            else
+            {
+                AppLog.Info($"LogVisit success: {response.StatusCode} - {responseBody}");
             }
         }
         catch (Exception ex)

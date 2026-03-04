@@ -27,7 +27,7 @@ public partial class App : Application
 
             // Show an instant amber splash — zero cost, no XAML to parse.
             // InitializeAsync will exclusively decide what page to show next.
-            // Do NOT eagerly create AuthPage here — AuthPage.InitializeComponent()
+            // Do NOT eagerly create LoginPage here — LoginPage.InitializeComponent()
             // is very heavy and would block the main thread causing ANR.
             MainPage = new ContentPage
             {
@@ -47,9 +47,9 @@ public partial class App : Application
             else
             {
                 // No session hint → first launch or explicit logout.
-                // InitializeAsync will show AuthPage after TryRestoreSessionAsync completes (~1-2s).
-                // Never eagerly create AuthPage here — InitializeComponent() blocks main thread 100+ seconds.
-                LogToDebug("App: First launch / no session — waiting for InitializeAsync to show AuthPage.");
+                // InitializeAsync will show LoginPage after TryRestoreSessionAsync completes (~1-2s).
+                // Never eagerly create LoginPage here — InitializeComponent() blocks main thread 100+ seconds.
+                LogToDebug("App: First launch / no session — waiting for InitializeAsync to show LoginPage.");
                 _ = Task.Run(() => InitializeAsync(authService, serviceProvider, fromLoggedInHint: false));
             }
         }
@@ -69,7 +69,7 @@ public partial class App : Application
             LogToDebug($"App: Session restored = {isLoggedIn}, fromLoggedInHint = {fromLoggedInHint}");
 
             // Show AppShell ONLY when: (1) user was previously logged in AND (2) session restored OK.
-            // All other cases → AuthPage. Never skip Auth when has_session is absent.
+            // All other cases → LoginPage. Never skip Auth when has_session is absent.
             if (fromLoggedInHint && isLoggedIn)
             {
                 MainThread.BeginInvokeOnMainThread(() =>
@@ -86,11 +86,11 @@ public partial class App : Application
                 {
                     if (MainPage is ContentPage)
                     {
-                        LogToDebug("App: Creating AuthPage on main thread...");
+                        LogToDebug("App: Creating LoginPage on main thread...");
                         var t0 = System.Diagnostics.Stopwatch.GetTimestamp();
-                        MainPage = serviceProvider.GetRequiredService<AuthPage>();
+                        MainPage = serviceProvider.GetRequiredService<LoginPage>();
                         var ms = (System.Diagnostics.Stopwatch.GetTimestamp() - t0) * 1000 / System.Diagnostics.Stopwatch.Frequency;
-                        LogToDebug($"App: AuthPage shown in {ms}ms (fromHint={fromLoggedInHint}, loggedIn={isLoggedIn}).");
+                        LogToDebug($"App: LoginPage shown in {ms}ms (fromHint={fromLoggedInHint}, loggedIn={isLoggedIn}).");
                     }
                 });
             }

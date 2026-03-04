@@ -20,17 +20,17 @@
                 </Grid.Background>
 
                 <!-- Back button -->
-                <Frame BackgroundColor="#33FFFFFF" CornerRadius="18"
-                       WidthRequest="36" HeightRequest="36" Padding="0"
-                       HasShadow="False" BorderColor="Transparent"
-                       HorizontalOptions="Start" VerticalOptions="Start"
-                       Margin="16,48,0,0">
-                    <Frame.GestureRecognizers>
+                <Border BackgroundColor="#33FFFFFF" StrokeShape="RoundRectangle 18"
+                        WidthRequest="36" HeightRequest="36" Padding="0"
+                        Stroke="Transparent"
+                        HorizontalOptions="Start" VerticalOptions="Start"
+                        Margin="16,48,0,0">
+                    <Border.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding GoBackCommand}" />
-                    </Frame.GestureRecognizers>
+                    </Border.GestureRecognizers>
                     <Label Text="←" TextColor="{StaticResource White}" FontSize="18"
                            HorizontalOptions="Center" VerticalOptions="Center" />
-                </Frame>
+                </Border>
 
                 <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="6" Padding="24">
                     <Label Text="Tạo tài khoản mới" TextColor="{StaticResource White}"
@@ -42,95 +42,92 @@
             </Grid>
 
             <!-- Register Card -->
-            <Frame Grid.Row="1" BackgroundColor="{StaticResource White}" CornerRadius="28"
-                   Padding="28,28" Margin="0,-24,0,0" HasShadow="True" BorderColor="Transparent">
+            <Border Grid.Row="1" BackgroundColor="{StaticResource White}" StrokeShape="RoundRectangle 28"
+                    Padding="28,28" Margin="0,-24,0,0" Stroke="Transparent">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="0,2" Radius="12" Opacity="0.08" />
+                </Border.Shadow>
                 <VerticalStackLayout Spacing="14">
 
                     <!-- Error -->
-                    <Frame BackgroundColor="#FEF2F2" BorderColor="#FECACA" CornerRadius="10"
-                           Padding="12,10" HasShadow="False" IsVisible="{Binding HasError}">
+                    <Border BackgroundColor="#FEF2F2" Stroke="#FECACA" StrokeShape="RoundRectangle 10"
+                            Padding="12,10" IsVisible="{Binding HasError}">
                         <Label Text="{Binding ErrorMessage}" TextColor="#DC2626" FontSize="13" />
-                    </Frame>
+                    </Border>
 
                     <!-- Full Name -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="Họ và tên" TextColor="{StaticResource TextSecondary}"
                                FontSize="13" FontAttributes="Bold" />
-                        <Frame BackgroundColor="{StaticResource WarmCream}" BorderColor="{StaticResource WarmBorder}"
-                               CornerRadius="12" Padding="4,0" HasShadow="False">
+                        <Border BackgroundColor="{StaticResource WarmCream}" Stroke="{StaticResource WarmBorder}"
+                                StrokeShape="RoundRectangle 12" Padding="4,0">
                             <Entry Text="{Binding FullName}" Placeholder="Nguyễn Văn A"
                                    PlaceholderColor="{StaticResource TextMuted}"
                                    TextColor="{StaticResource TextPrimary}"
                                    BackgroundColor="Transparent" FontSize="15" Margin="8,0" />
-                        </Frame>
+                        </Border>
                     </VerticalStackLayout>
 
                     <!-- Email -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="Email" TextColor="{StaticResource TextSecondary}"
                                FontSize="13" FontAttributes="Bold" />
-                        <Frame BackgroundColor="{StaticResource WarmCream}" BorderColor="{StaticResource WarmBorder}"
-                               CornerRadius="12" Padding="4,0" HasShadow="False">
+                        <Border BackgroundColor="{StaticResource WarmCream}" Stroke="{StaticResource WarmBorder}"
+                                StrokeShape="RoundRectangle 12" Padding="4,0">
                             <Entry Text="{Binding Email}" Placeholder="your@email.com"
                                    PlaceholderColor="{StaticResource TextMuted}"
                                    TextColor="{StaticResource TextPrimary}"
                                    BackgroundColor="Transparent" Keyboard="Email"
                                    FontSize="15" Margin="8,0" />
-                        </Frame>
+                        </Border>
                     </VerticalStackLayout>
 
                     <!-- Password -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="Mật khẩu" TextColor="{StaticResource TextSecondary}"
                                FontSize="13" FontAttributes="Bold" />
-                        <Frame BackgroundColor="{StaticResource WarmCream}" BorderColor="{StaticResource WarmBorder}"
-                               CornerRadius="12" Padding="4,0" HasShadow="False">
+                        <Border BackgroundColor="{StaticResource WarmCream}" Stroke="{StaticResource WarmBorder}"
+                                StrokeShape="RoundRectangle 12" Padding="4,0">
                             <Entry Text="{Binding Password}" Placeholder="Tối thiểu 6 ký tự"
                                    PlaceholderColor="{StaticResource TextMuted}"
                                    TextColor="{StaticResource TextPrimary}"
                                    BackgroundColor="Transparent" IsPassword="True"
                                    FontSize="15" Margin="8,0" />
-                        </Frame>
+                        </Border>
                     </VerticalStackLayout>
 
                     <!-- Confirm Password -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="Xác nhận mật khẩu" TextColor="{StaticResource TextSecondary}"
                                FontSize="13" FontAttributes="Bold" />
-                        <Frame BackgroundColor="{StaticResource WarmCream}" BorderColor="{StaticResource WarmBorder}"
-                               CornerRadius="12" Padding="4,0" HasShadow="False">
+                        <Border BackgroundColor="{StaticResource WarmCream}" Stroke="{StaticResource WarmBorder}"
+                                StrokeShape="RoundRectangle 12" Padding="4,0">
                             <Entry Text="{Binding ConfirmPassword}" Placeholder="Nhập lại mật khẩu"
                                    PlaceholderColor="{StaticResource TextMuted}"
                                    TextColor="{StaticResource TextPrimary}"
                                    BackgroundColor="Transparent" IsPassword="True"
                                    FontSize="15" ReturnType="Done"
                                    ReturnCommand="{Binding RegisterCommand}" Margin="8,0" />
-                        </Frame>
+                        </Border>
                     </VerticalStackLayout>
 
                     <!-- Certificate note -->
-                    <Frame BackgroundColor="#FFF8F0" BorderColor="{StaticResource WarmBorder}"
-                           CornerRadius="10" Padding="12,10" HasShadow="False">
+                    <Border BackgroundColor="#FFF8F0" Stroke="{StaticResource WarmBorder}"
+                            StrokeShape="RoundRectangle 10" Padding="12,10">
                         <HorizontalStackLayout Spacing="8">
                             <Label Text="🎁" FontSize="16" VerticalOptions="Center" />
                             <Label Text="Sau mỗi ngày tham quan, bạn sẽ nhận email tổng kết hành trình!"
                                    TextColor="{StaticResource TextSecondary}" FontSize="12"
                                    LineBreakMode="WordWrap" VerticalOptions="Center" />
                         </HorizontalStackLayout>
-                    </Frame>
+                    </Border>
 
                     <!-- Register Button -->
                     <Button Command="{Binding RegisterCommand}" CornerRadius="14" HeightRequest="52"
                             FontSize="16" FontAttributes="Bold" TextColor="{StaticResource White}"
+                            BackgroundColor="{StaticResource Primary}"
                             IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}"
-                            Text="Tạo tài khoản" Margin="0,4,0,0">
-                        <Button.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#E8943A" Offset="0.0" />
-                                <GradientStop Color="#C97B28" Offset="1.0" />
-                            </LinearGradientBrush>
-                        </Button.Background>
-                    </Button>
+                            Text="Tạo tài khoản" Margin="0,4,0,0" />
 
                     <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}"
                                        Color="{StaticResource Primary}" HorizontalOptions="Center" />
@@ -147,7 +144,7 @@
 
                     <BoxView HeightRequest="16" Color="Transparent" />
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
 
         </Grid>
     </ScrollView>

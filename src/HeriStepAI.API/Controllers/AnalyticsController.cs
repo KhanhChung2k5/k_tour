@@ -18,14 +18,16 @@ public class AnalyticsController : ControllerBase
     private readonly IPOIService _poiService;
     private readonly ApplicationDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AnalyticsController> _logger;
 
     public AnalyticsController(IAnalyticsService analyticsService, IPOIService poiService,
-        ApplicationDbContext context, IConfiguration configuration)
+        ApplicationDbContext context, IConfiguration configuration, ILogger<AnalyticsController> logger)
     {
         _analyticsService = analyticsService;
         _poiService = poiService;
         _context = context;
         _configuration = configuration;
+        _logger = logger;
     }
 
     [HttpPost("visit")]
@@ -40,14 +42,34 @@ public class AnalyticsController : ControllerBase
         if (string.IsNullOrWhiteSpace(userId))
             userId = request.UserId;
 
-        await _analyticsService.LogVisitAsync(
-            request.POId,
-            userId,
-            request.Latitude,
-            request.Longitude,
-            request.VisitType
-        );
-        return Ok(new { Message = "Visit logged" });
+        _logger.LogInformation(
+            "[LogVisit] Received: POId={POId}, UserId={UserId}, VisitType={VisitType}, Lat={Lat}, Lon={Lon} | JWT={JwtAuth}",
+            request.POId, userId, request.VisitType, request.Latitude, request.Longitude,
+            User.Identity?.IsAuthenticated);
+
+        if (request.POId <= 0)
+        {
+            _logger.LogWarning("[LogVisit] REJECTED: POId={POId} is invalid (<=0). Raw userId from body={BodyUserId}", request.POId, request.UserId);
+            return BadRequest(new { Error = "Invalid POId", ReceivedPOId = request.POId });
+        }
+
+        try
+        {
+            await _analyticsService.LogVisitAsync(
+                request.POId,
+                userId,
+                request.Latitude,
+                request.Longitude,
+                request.VisitType
+            );
+            _logger.LogInformation("[LogVisit] SUCCESS: POId={POId}, UserId={UserId}", request.POId, userId);
+            return Ok(new { Message = "Visit logged" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[LogVisit] FAILED to insert VisitLog: POId={POId}, UserId={UserId}", request.POId, userId);
+            return StatusCode(500, new { Error = "Failed to log visit", Detail = ex.Message });
+        }
     }
 
     [HttpGet("top-pois")]
