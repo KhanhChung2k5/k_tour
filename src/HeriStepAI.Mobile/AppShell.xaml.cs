@@ -7,29 +7,44 @@ namespace HeriStepAI.Mobile;
 public partial class AppShell : Shell
 {
     private readonly ILocalizationService _localizationService;
+    private readonly IServiceProvider _serviceProvider;
 
     public AppShell(IServiceProvider serviceProvider)
     {
         InitializeComponent();
-
+        _serviceProvider = serviceProvider;
         _localizationService = serviceProvider.GetRequiredService<ILocalizationService>();
 
-        // Set initial tab titles
         UpdateTabTitles();
-
-        // Subscribe to language changes
         _localizationService.LanguageChanged += (_, _) =>
             MainThread.BeginInvokeOnMainThread(UpdateTabTitles);
 
-        // Tạo trang qua DI - bắt lỗi từng trang để tránh crash
-        MainTab.Content = CreatePageSafe(serviceProvider, "MainPage", () => serviceProvider.GetRequiredService<MainPage>());
-        MapTab.Content = CreatePageSafe(serviceProvider, "MapPage", () => serviceProvider.GetRequiredService<MapPage>());
-        POIListTab.Content = CreatePageSafe(serviceProvider, "POIListPage", () => serviceProvider.GetRequiredService<POIListPage>());
-        SettingsTab.Content = CreatePageSafe(serviceProvider, "SettingsPage", () => serviceProvider.GetRequiredService<SettingsPage>());
+        // Chỉ tạo tab đầu tiên để tránh ANR; các tab còn lại tạo khi user chọn lần đầu
+        MainTab.Content = CreatePageSafe(_serviceProvider, "MainPage", () => _serviceProvider.GetRequiredService<MainPage>());
 
-        // Register navigation routes
+        Navigated += OnShellNavigated;
+
         Routing.RegisterRoute("TourDetailPage", typeof(TourDetailPage));
         Routing.RegisterRoute("POIDetailPage", typeof(POIDetailPage));
+    }
+
+    private void OnShellNavigated(object? sender, ShellNavigatedEventArgs e)
+    {
+        EnsureCurrentTabContent();
+    }
+
+    private void EnsureCurrentTabContent()
+    {
+        var content = CurrentItem?.CurrentItem?.CurrentItem as ShellContent;
+        if (content == null) return;
+        if (content.Content != null) return;
+
+        if (content == MapTab)
+            content.Content = CreatePageSafe(_serviceProvider, "MapPage", () => _serviceProvider.GetRequiredService<MapPage>());
+        else if (content == POIListTab)
+            content.Content = CreatePageSafe(_serviceProvider, "POIListPage", () => _serviceProvider.GetRequiredService<POIListPage>());
+        else if (content == SettingsTab)
+            content.Content = CreatePageSafe(_serviceProvider, "SettingsPage", () => _serviceProvider.GetRequiredService<SettingsPage>());
     }
 
     private void UpdateTabTitles()

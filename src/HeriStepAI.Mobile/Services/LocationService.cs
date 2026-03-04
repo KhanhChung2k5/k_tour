@@ -63,7 +63,7 @@ public class LocationService : ILocationService
             var request = new GeolocationRequest
             {
                 DesiredAccuracy = accuracy,
-                Timeout = TimeSpan.FromSeconds(10)
+                Timeout = TimeSpan.FromSeconds(5)
             };
 
             var location = await Geolocation.Default.GetLocationAsync(request);

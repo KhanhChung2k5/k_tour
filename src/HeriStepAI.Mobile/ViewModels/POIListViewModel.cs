@@ -78,11 +78,10 @@ public partial class POIListViewModel : ObservableObject
     {
         try
         {
-            IsLoading = true;
+            await MainThread.InvokeOnMainThreadAsync(() => { IsLoading = true; });
 
-            // Get current location (main thread for permission on Android)
-            _currentLocation = await MainThread.InvokeOnMainThreadAsync(
-                async () => await _locationService.GetCurrentLocationAsync());
+            // Chạy trên background để tránh ANR; không gọi GetLocationAsync trên main thread
+            _currentLocation = await _locationService.GetCurrentLocationAsync();
 
             // Sync từ API trước để luôn có dữ liệu mới nhất (kể cả khi đã cập nhật Category trên server)
             await _poiService.SyncPOIsFromServerAsync();
@@ -127,7 +126,7 @@ public partial class POIListViewModel : ObservableObject
         }
         finally
         {
-            IsLoading = false;
+            MainThread.BeginInvokeOnMainThread(() => { IsLoading = false; });
         }
     }
 

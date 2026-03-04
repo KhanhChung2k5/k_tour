@@ -100,6 +100,7 @@ public class MobileAuthService : IAuthService
     {
         CurrentUser = null;
         _http.DefaultRequestHeaders.Authorization = null;
+        Preferences.Default.Remove("has_session"); // clear quick-login flag
         try
         {
             SecureStorage.Default.Remove(TokenKey);
@@ -138,6 +139,7 @@ public class MobileAuthService : IAuthService
         };
         SetToken(auth.Token!);
 
+        Preferences.Default.Set("has_session", "1"); // quick-login flag (sync, 0ms)
         await SecureStorage.Default.SetAsync(TokenKey, auth.Token!);
         await SecureStorage.Default.SetAsync(UserKey, JsonConvert.SerializeObject(CurrentUser));
     }
