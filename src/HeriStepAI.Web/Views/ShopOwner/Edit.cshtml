@@ -13,36 +13,37 @@
     <title>@ViewData["Title"] - HeriStepAI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --amber: #E8A14B;
-            --amber-light: #F2C47E;
-            --amber-dim: rgba(232,161,75,0.13);
-            --dark: #0D0B08;
-            --dark2: #131008;
-            --dark3: #1C1710;
-            --dark4: #231C10;
-            --topbar: #0F0C07;
-            --cream: #F5ECD7;
-            --cream-muted: #9A8A70;
-            --cream-dim: rgba(245,236,215,0.05);
-            --green: #2ECC94;
-            --green-dim: rgba(46,204,148,0.1);
-            --red: #E05252;
-            --red-dim: rgba(224,82,82,0.1);
-            --blue: #5B9CF0;
-            --blue-dim: rgba(91,156,240,0.1);
-            --border: rgba(232,161,75,0.1);
-            --border-soft: rgba(232,161,75,0.18);
+            --accent:       #4f46e5;
+            --accent-light: #818cf8;
+            --accent-dim:   #eef2ff;
+            --page-bg:      #f8fafc;
+            --card-bg:      #ffffff;
+            --input-bg:     #f8fafc;
+            --text-primary: #1e293b;
+            --text-muted:   #64748b;
+            --green:        #10b981;
+            --green-dim:    rgba(16,185,129,0.1);
+            --red:          #ef4444;
+            --red-dim:      rgba(239,68,68,0.1);
+            --blue:         #3b82f6;
+            --blue-dim:     rgba(59,130,246,0.1);
+            --amber:        #f59e0b;
+            --amber-dim:    rgba(245,158,11,0.1);
+            --border:       #e2e8f0;
+            --border-hover: #94a3b8;
         }
         *, *::before, *::after { box-sizing: border-box; }
-        * { font-family: 'Be Vietnam Pro', sans-serif; }
-        body { background: var(--dark2); color: var(--cream); margin: 0; min-height: 100vh; }
+        * { font-family: 'Inter', Arial, sans-serif; }
+        body { background: var(--page-bg); color: var(--text-primary); margin: 0; min-height: 100vh; }
 
         /* Topbar */
         .so-navbar {
-            background: var(--topbar);
+            background: #ffffff;
             border-bottom: 1px solid var(--border);
             height: 64px;
             display: flex; align-items: center;
@@ -50,132 +51,156 @@
             position: sticky; top: 0; z-index: 100;
             justify-content: space-between;
         }
-        .so-navbar::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--amber), transparent);
-            opacity: 0.2;
-            pointer-events: none;
-        }
-        .so-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .so-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
         .so-brand-icon {
-            width: 36px; height: 36px;
-            background: linear-gradient(135deg, var(--amber), #B8721A);
+            width: 34px; height: 34px;
+            background: var(--accent);
             border-radius: 9px;
             display: flex; align-items: center; justify-content: center;
-            color: var(--dark); font-size: 1rem;
-            box-shadow: 0 3px 10px rgba(232,161,75,0.3);
+            color: #fff; font-size: 0.95rem;
+            box-shadow: 0 2px 8px rgba(79,70,229,0.25);
         }
-        .so-brand-name {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.2rem; font-weight: 700;
-            color: var(--cream); letter-spacing: -0.01em;
-        }
-        .so-brand-name span { color: var(--amber); }
-        .so-right { display: flex; align-items: center; gap: 16px; }
+        .so-brand-name { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+        .so-brand-name span { color: var(--accent); }
+        .so-right { display: flex; align-items: center; gap: 12px; }
         .so-user {
-            display: flex; align-items: center; gap: 10px;
-            padding: 6px 14px; border-radius: 8px;
-            border: 1px solid var(--border); background: var(--cream-dim);
+            display: flex; align-items: center; gap: 8px;
+            padding: 5px 12px; border-radius: 8px;
+            border: 1px solid var(--border); background: var(--page-bg);
         }
         .so-user-avatar {
-            width: 28px; height: 28px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--amber), #B8721A);
+            width: 26px; height: 26px; border-radius: 50%;
+            background: var(--accent-dim);
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.72rem; font-weight: 700; color: var(--dark);
+            font-size: 0.72rem; font-weight: 700; color: var(--accent);
         }
-        .so-user-name { font-size: 0.82rem; color: var(--cream-muted); }
+        .so-user-name { font-size: 0.82rem; color: var(--text-muted); }
         .btn-logout {
             display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 16px; border-radius: 8px;
-            border: 1px solid var(--border-soft); background: transparent;
-            color: var(--cream-muted);
-            font-size: 0.8rem; cursor: pointer; transition: all .2s;
+            padding: 7px 14px; border-radius: 8px;
+            border: 1px solid var(--border); background: transparent;
+            color: var(--text-muted); font-size: 0.8rem; cursor: pointer; transition: all .2s;
         }
-        .btn-logout:hover { border-color: rgba(224,82,82,0.4); color: var(--red); }
+        .btn-logout:hover { border-color: rgba(239,68,68,0.35); color: var(--red); background: rgba(239,68,68,0.04); }
 
         /* Content */
         .so-content { max-width: 1100px; margin: 0 auto; padding: 32px; }
 
         /* Breadcrumb */
         .breadcrumb { font-size: 0.813rem; background: none; padding: 0; margin: 0; }
-        .breadcrumb-item a { color: var(--cream-muted); text-decoration: none; transition: color .15s; }
-        .breadcrumb-item a:hover { color: var(--amber); }
-        .breadcrumb-item.active { color: var(--cream); font-weight: 500; }
-        .breadcrumb-item + .breadcrumb-item::before { color: var(--cream-muted); opacity: 0.4; }
+        .breadcrumb-item a { color: var(--text-muted); text-decoration: none; transition: color .15s; }
+        .breadcrumb-item a:hover { color: var(--accent); }
+        .breadcrumb-item.active { color: var(--text-primary); font-weight: 500; }
+        .breadcrumb-item + .breadcrumb-item::before { color: var(--text-muted); opacity: 0.5; }
 
         /* Cards */
-        .card { background: var(--dark3); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 20px; }
-        .card-header { background: var(--dark3); border-bottom: 1px solid var(--border); padding: 14px 20px; font-size: 0.875rem; font-weight: 600; color: var(--cream); display: flex; align-items: center; gap: 8px; }
+        .card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 12px; overflow: hidden; margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .card-header {
+            background: var(--card-bg); border-bottom: 1px solid var(--border);
+            padding: 14px 20px; font-size: 0.875rem; font-weight: 600;
+            color: var(--text-primary); display: flex; align-items: center; gap: 8px;
+        }
         .card-body { padding: 20px; }
 
         /* Form */
-        .form-label { font-size: 0.813rem; font-weight: 600; color: var(--cream-muted); margin-bottom: 5px; display: block; }
+        .form-label { font-size: 0.813rem; font-weight: 500; color: var(--text-muted); margin-bottom: 5px; display: block; }
         .form-control, .form-select {
-            border: 1px solid var(--border-soft); border-radius: 8px; font-size: 0.875rem; color: var(--cream);
-            padding: 8px 12px; width: 100%; transition: border-color .15s, box-shadow .15s;
-            background: var(--dark4);
+            border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem;
+            color: var(--text-primary); padding: 8px 12px; width: 100%;
+            transition: border-color .15s, box-shadow .15s;
+            background: var(--input-bg);
         }
-        .form-control:focus, .form-select:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(232,161,75,0.1); outline: none; }
-        .form-select option { background: var(--dark4); color: var(--cream); }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.12); outline: none;
+            background: #ffffff;
+        }
         textarea.form-control { resize: vertical; min-height: 90px; }
         .input-group .form-control { border-radius: 8px 0 0 8px; }
-        .input-group-text { border: 1px solid var(--border-soft); border-left: none; border-radius: 0 8px 8px 0; background: var(--dark3); font-size: 0.813rem; color: var(--cream-muted); padding: 8px 12px; }
+        .input-group-text {
+            border: 1px solid var(--border); border-left: none;
+            border-radius: 0 8px 8px 0; background: var(--page-bg);
+            font-size: 0.813rem; color: var(--text-muted); padding: 8px 12px;
+        }
         .mb-form { margin-bottom: 16px; }
 
         /* Image upload zone */
         .upload-zone {
-            border: 2px dashed var(--border-soft); border-radius: 12px; padding: 28px 20px;
-            text-align: center; cursor: pointer; transition: all .2s; background: var(--dark4);
+            border: 2px dashed var(--border); border-radius: 12px; padding: 28px 20px;
+            text-align: center; cursor: pointer; transition: all .2s; background: var(--input-bg);
         }
-        .upload-zone:hover { border-color: var(--border-soft); background: rgba(232,161,75,0.04); }
-        .upload-zone.has-image { border-style: solid; border-color: var(--border-soft); padding: 8px; }
+        .upload-zone:hover { border-color: var(--accent); background: rgba(79,70,229,0.04); }
+        .upload-zone.has-image { border-style: solid; border-color: var(--border); padding: 8px; }
 
         /* Submit buttons */
         .btn-save {
             display: block; width: 100%; padding: 11px; border-radius: 8px;
-            background: linear-gradient(135deg, var(--amber), #B8721A);
-            color: var(--dark); border: none; font-size: 0.875rem; font-weight: 700;
-            cursor: pointer; transition: opacity .15s; text-align: center;
+            background: var(--accent); color: #fff; border: none;
+            font-size: 0.875rem; font-weight: 600; cursor: pointer;
+            transition: background .15s, box-shadow .15s; text-align: center;
         }
-        .btn-save:hover { opacity: 0.9; }
+        .btn-save:hover { background: #4338ca; box-shadow: 0 4px 14px rgba(79,70,229,0.35); }
         .btn-back {
             display: block; width: 100%; padding: 9px; border-radius: 8px;
-            border: 1px solid var(--border-soft); background: transparent;
-            color: var(--cream-muted); font-size: 0.875rem; font-weight: 500;
+            border: 1px solid var(--border); background: transparent;
+            color: var(--text-muted); font-size: 0.875rem; font-weight: 500;
             text-decoration: none; text-align: center; transition: all .15s;
         }
-        .btn-back:hover { background: var(--cream-dim); border-color: var(--border-soft); color: var(--cream); }
+        .btn-back:hover { background: var(--page-bg); border-color: var(--border-hover); color: var(--text-primary); }
 
         /* Content cards */
-        .content-card { border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; background: var(--dark4); transition: border-color .15s; }
-        .content-card:hover { border-color: var(--border-soft); }
-        .content-num { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, var(--amber), #B8721A); color: var(--dark); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
-        .btn-add-content { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; background: linear-gradient(135deg, var(--amber), #B8721A); color: var(--dark); border: none; font-size: 0.813rem; font-weight: 600; cursor: pointer; transition: opacity .15s; }
-        .btn-add-content:hover { opacity: 0.9; }
-        .btn-remove { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 7px; border: 1px solid rgba(224,82,82,0.3); background: var(--red-dim); color: var(--red); cursor: pointer; transition: all .15s; flex-shrink: 0; }
-        .btn-remove:hover { background: rgba(224,82,82,0.2); border-color: rgba(224,82,82,0.5); }
+        .content-card {
+            border: 1px solid var(--border); border-radius: 10px;
+            padding: 16px; margin-bottom: 12px; background: var(--page-bg);
+            transition: border-color .15s;
+        }
+        .content-card:hover { border-color: var(--border-hover); }
+        .content-num {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: var(--accent-dim); color: var(--accent);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+        }
+        .btn-add-content {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 8px;
+            background: var(--accent); color: #fff; border: none;
+            font-size: 0.813rem; font-weight: 600; cursor: pointer; transition: background .15s;
+        }
+        .btn-add-content:hover { background: #4338ca; }
+        .btn-remove {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 30px; height: 30px; border-radius: 7px;
+            border: 1px solid rgba(239,68,68,0.3); background: var(--red-dim);
+            color: var(--red); cursor: pointer; transition: all .15s; flex-shrink: 0;
+        }
+        .btn-remove:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.5); }
 
         /* Metadata card */
-        .meta-card { background: var(--dark4); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
-        .meta-row { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--cream-muted); padding: 3px 0; }
-        .meta-row i { color: var(--amber); opacity: 0.7; width: 14px; }
+        .meta-card {
+            background: var(--page-bg); border: 1px solid var(--border);
+            border-radius: 10px; padding: 14px 16px;
+        }
+        .meta-row { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--text-muted); padding: 3px 0; }
+        .meta-row i { color: var(--accent); opacity: 0.7; width: 14px; }
 
         /* Alerts */
-        .alert { border-radius: 10px; border: none; font-size: 0.875rem; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
-        .alert-success { background: var(--green-dim); color: var(--green); border: 1px solid rgba(46,204,148,0.2); }
-        .alert-danger  { background: var(--red-dim); color: var(--red); border: 1px solid rgba(224,82,82,0.2); }
+        .alert { border-radius: 10px; font-size: 0.875rem; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: var(--green-dim); color: #065f46; border: 1px solid rgba(16,185,129,0.2); }
+        .alert-danger  { background: var(--red-dim); color: #991b1b; border: 1px solid rgba(239,68,68,0.2); }
         .btn-close { background: none; border: none; cursor: pointer; color: inherit; opacity: .6; font-size: 1rem; margin-left: auto; }
         .btn-close:hover { opacity: 1; }
 
         /* Page header shop info */
         .shop-thumb-hdr {
             width: 52px; height: 52px; border-radius: 12px;
-            border: 2px solid var(--border-soft); background: var(--dark4);
+            border: 1px solid var(--border); background: var(--accent-dim);
             display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 1.25rem; color: var(--amber);
+            font-weight: 700; font-size: 1.25rem; color: var(--accent);
             overflow: hidden; flex-shrink: 0;
         }
         .shop-thumb-hdr img { width: 100%; height: 100%; object-fit: cover; }
@@ -223,8 +248,8 @@
                 }
             </div>
             <div>
-                <h1 style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;margin:0 0 3px;color:var(--cream);">@poi.Name</h1>
-                <p style="font-size:0.75rem;color:var(--cream-muted);margin:0;">Cập nhật lần cuối: @poi.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 3px;color:var(--text-primary);">@poi.Name</h1>
+                <p style="font-size:0.75rem;color:var(--text-muted);margin:0;">Cập nhật lần cuối: @poi.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</p>
             </div>
         </div>
 
@@ -254,7 +279,7 @@
                 <div class="col-lg-7">
                     <div class="card">
                         <div class="card-header">
-                            <i class="bi bi-info-circle" style="color:var(--amber);"></i>Thông tin cơ bản
+                            <i class="bi bi-info-circle" style="color:var(--accent);"></i>Thông tin cơ bản
                         </div>
                         <div class="card-body">
                             <div class="mb-form">
@@ -327,9 +352,9 @@
                                 else
                                 {
                                     <div id="uploadPlaceholder">
-                                        <i class="bi bi-cloud-arrow-up" style="font-size:2rem;color:var(--cream-muted);"></i>
-                                        <p style="margin:8px 0 2px;color:var(--cream-muted);font-size:0.875rem;font-weight:500;">Click để chọn ảnh</p>
-                                        <p style="margin:0;font-size:0.75rem;color:var(--cream-muted);opacity:0.6;">JPG, PNG · Tối đa 5MB</p>
+                                        <i class="bi bi-cloud-arrow-up" style="font-size:2rem;color:var(--text-muted);"></i>
+                                        <p style="margin:8px 0 2px;color:var(--text-muted);font-size:0.875rem;font-weight:500;">Click để chọn ảnh</p>
+                                        <p style="margin:0;font-size:0.75rem;color:var(--text-muted);opacity:0.6;">JPG, PNG · Tối đa 5MB</p>
                                     </div>
                                     <img id="previewImg" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;display:none;" alt="" />
                                 }
@@ -386,7 +411,7 @@
                     </button>
                 </div>
                 <div class="card-body">
-                    <p style="font-size:0.813rem;color:var(--cream-muted);margin:0 0 16px;">Nội dung dùng cho TTS (Text-to-Speech) trên ứng dụng mobile. Hỗ trợ nhiều ngôn ngữ.</p>
+                    <p style="font-size:0.813rem;color:var(--text-muted);margin:0 0 16px;">Nội dung dùng cho TTS (Text-to-Speech) trên ứng dụng mobile. Hỗ trợ nhiều ngôn ngữ.</p>
 
                     <div id="contentsContainer">
                         @if (contents.Any())
@@ -444,12 +469,12 @@
                         }
                         else
                         {
-                            <div id="noContentPlaceholder" style="text-align:center;padding:40px 20px;background:var(--dark4);border-radius:10px;border:1px dashed var(--border-soft);">
-                                <div style="width:48px;height:48px;border-radius:50%;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
-                                    <i class="bi bi-chat-square-text" style="color:var(--amber);font-size:1.25rem;"></i>
+                            <div id="noContentPlaceholder" style="text-align:center;padding:40px 20px;background:var(--page-bg);border-radius:10px;border:2px dashed var(--border);">
+                                <div style="width:48px;height:48px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                                    <i class="bi bi-chat-square-text" style="color:var(--accent);font-size:1.25rem;"></i>
                                 </div>
-                                <p style="font-weight:600;margin-bottom:4px;color:var(--cream);">Chưa có nội dung thuyết minh</p>
-                                <p style="font-size:.813rem;color:var(--cream-muted);margin:0;">Nhấn <strong style="color:var(--amber);">Thêm ngôn ngữ</strong> để bắt đầu thêm nội dung.</p>
+                                <p style="font-weight:600;margin-bottom:4px;color:var(--text-primary);">Chưa có nội dung thuyết minh</p>
+                                <p style="font-size:.813rem;color:var(--text-muted);margin:0;">Nhấn <strong style="color:var(--accent);">Thêm ngôn ngữ</strong> để bắt đầu thêm nội dung.</p>
                             </div>
                         }
                     </div>
