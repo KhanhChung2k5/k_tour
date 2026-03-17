@@ -6,8 +6,21 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using DotNetEnv;
 
-// Load .env file
-Env.Load();
+// Load .env: tìm .env từ thư mục app lên gốc (để dùng doan/.env khi chạy từ API)
+var dir = AppContext.BaseDirectory;
+var found = false;
+for (var d = dir; !string.IsNullOrEmpty(d); d = Path.GetDirectoryName(d))
+{
+    var candidate = Path.Combine(d, ".env");
+    if (File.Exists(candidate)) { Env.Load(candidate); found = true; break; }
+}
+if (!found)
+    Env.Load();
+
+// Khi chạy local không có Supabase env → dùng Development để load appsettings.Development.json (DB local)
+if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"))
+    && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_STRING")))
+    Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,14 +42,21 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
 
-// Database - Supabase PostgreSQL (Secret File tránh Render cắt env tại dấu =)
+// Database - Supabase PostgreSQL (Render) hoặc local (Development)
 var connectionString = File.Exists("/etc/secrets/SUPABASE_CONNECTION_STRING")
     ? File.ReadAllText("/etc/secrets/SUPABASE_CONNECTION_STRING").Trim()
-    : Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_STRING") 
+    : Environment.GetEnvironmentVariable("SUPABASE_CONNECTION_STRING")
         ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
+// Khi chạy local (Development): dùng PostgreSQL local nếu chưa có connection string
+if (string.IsNullOrWhiteSpace(connectionString) && builder.Environment.IsDevelopment())
+{
+    connectionString = "Host=localhost;Port=5432;Database=heristepai;Username=postgres;Password=postgres;Pooling=true;Minimum Pool Size=0;Maximum Pool Size=10";
+    Console.WriteLine("[API] Using local PostgreSQL (Development). Set SUPABASE_CONNECTION_STRING or use appsettings.Development.json to override.");
+}
+
 if (string.IsNullOrWhiteSpace(connectionString))
-    throw new InvalidOperationException("SUPABASE_CONNECTION_STRING is required. Set it in Render Environment Variables.");
+    throw new InvalidOperationException("SUPABASE_CONNECTION_STRING is required. For local dev set ASPNETCORE_ENVIRONMENT=Development.");
 
 // Convert PostgreSQL URI format to ADO.NET key-value format for Npgsql
 if (connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase)

@@ -90,3 +90,6 @@ artifacts/
 *.db-shm
 *.db-wal
 *.rar
+
+# n8n workflow exports (không đưa lên repo)
+n8n-*-workflow.json

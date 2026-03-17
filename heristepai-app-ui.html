@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HeriStepAI — App UI Redesign</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --amber: #E8943A;
+  --amber-dark: #C4721E;
+  --amber-light: #F2AE5C;
+  --amber-pale: #FEF3E8;
+  --dark: #1A1208;
+  --cream: #FFF8F0;
+  --text: #1E1612;
+  --text-sub: #7A6A58;
+  --text-muted: #B0A090;
+  --white: #FFFFFF;
+  --border: #F0E4D4;
+  --green: #22C97A;
+  --red: #E84545;
+  --blue: #3B82F6;
+  --star: #F5A623;
+  --card: #FFFFFF;
+  --bg: #F7F2EC;
+
+  --phone-w: 375px;
+  --phone-h: 812px;
+  --radius: 16px;
+}
+
+body {
+  background: #0F0B07;
+  font-family: 'Nunito', sans-serif;
+  min-height: 100vh;
+  padding: 48px 32px;
+  overflow-x: auto;
+}
+
+/* ======= LAYOUT ======= */
+.showcase-title {
+  text-align: center;
+  color: #E8943A;
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+.showcase-sub {
+  text-align: center;
+  color: #7A6A58;
+  font-size: 0.85rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 48px;
+}
+
+.phones-row {
+  display: flex;
+  gap: 28px;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+/* ======= PHONE FRAME ======= */
+.phone-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.phone-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #7A6A58;
+  font-family: 'Nunito', sans-serif;
+}
+
+.phone {
+  width: var(--phone-w);
+  height: var(--phone-h);
+  background: var(--bg);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 0 0 2px #2A1E10,
+    0 0 0 4px #1A1208,
+    0 24px 64px rgba(0,0,0,0.6),
+    0 8px 24px rgba(232,148,58,0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Status bar */
+.status-bar {
+  height: 44px;
+  background: var(--amber);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+.status-bar.light { background: transparent; }
+.status-bar.white-bg { background: #fff; }
+.status-bar.bg-main { background: var(--bg); }
+
+.status-time { font-size: 0.8rem; font-weight: 700; color: white; }
+.status-time.dark { color: var(--text); }
+.status-icons { display: flex; gap: 5px; align-items: center; }
+.status-icons svg { opacity: 0.9; }
+
+/* Scrollable content */
+.screen-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Bottom nav */
+.bottom-nav {
+  height: 70px;
+  background: white;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 10px;
+  flex-shrink: 0;
+  padding-bottom: 8px;
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+}
+.nav-icon { font-size: 1.3rem; }
+.nav-label { font-size: 0.62rem; font-weight: 700; color: var(--text-muted); }
+.nav-item.active .nav-label { color: var(--amber); }
+.nav-item.active .nav-icon { filter: saturate(2); }
+
+/* ========================= */
+/* SCREEN 1: HOME */
+/* ========================= */
+.home-hero {
+  background: linear-gradient(160deg, #E8943A 0%, #C4721E 100%);
+  padding: 0 20px 24px;
+  position: relative;
+  overflow: hidden;
+}
+.home-hero::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+}
+.home-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; left: -40px;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+}
+
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  position: relative; z-index: 1;
+}
+
+.hero-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hero-logo {
+  width: 38px; height: 38px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  backdrop-filter: blur(10px);
+}
+.hero-brand-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.01em;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 8px;
+}
+.hero-btn {
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.hero-location {
+  position: relative; z-index: 1;
+  margin-bottom: 16px;
+}
+.hero-city {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.75);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+  display: flex; align-items: center; gap: 4px;
+}
+.hero-tagline {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1.25;
+}
+.hero-tagline span { color: rgba(255,255,255,0.75); font-weight: 500; font-size: 0.95rem; }
+
+/* Quick stats */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  position: relative; z-index: 1;
+}
+.stat-chip {
+  background: rgba(255,255,255,0.15);
+  border-radius: 14px;
+  padding: 12px 10px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.stat-chip-icon { font-size: 1.2rem; margin-bottom: 4px; }
+.stat-chip-val {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+}
+.stat-chip-label {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.7);
+  font-weight: 600;
+  margin-top: 2px;
+  letter-spacing: 0.05em;
+}
+
+/* Home sections */
+.home-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px;
+  background: var(--bg);
+}
+.home-body::-webkit-scrollbar { display: none; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.section-more {
+  font-size: 0.75rem;
+  color: var(--amber);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Tour cards horizontal scroll */
+.tour-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 0 16px 4px;
+}
+.tour-scroll::-webkit-scrollbar { display: none; }
+
+.tour-card {
+  width: 175px;
+  flex-shrink: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: transform 0.2s;
+  background: white;
+}
+
+.tour-card-img {
+  height: 115px;
+  background: linear-gradient(135deg, #2A2010, #4A3018);
+  position: relative;
+  overflow: hidden;
+  display: flex; align-items: flex-end;
+}
+.tour-card-img-bg {
+  position: absolute; inset: 0;
+  font-size: 3.5rem;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0.3;
+}
+.tour-card-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%);
+}
+.tour-card-tag {
+  position: relative; z-index: 1;
+  padding: 8px 10px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: white;
+  line-height: 1.2;
+}
+
+.tour-card-body {
+  padding: 10px 12px 12px;
+}
+.tour-card-name {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+.tour-card-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 0.68rem;
+  color: var(--text-sub);
+  margin-bottom: 6px;
+}
+.tour-card-price {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--amber);
+}
+
+/* Create tour button */
+.btn-create {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--amber), var(--amber-dark));
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 6px 20px rgba(232,148,58,0.35);
+  margin: 18px 0;
+  letter-spacing: 0.02em;
+}
+
+/* Recent tours */
+.recent-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  cursor: pointer;
+}
+.recent-thumb {
+  width: 72px; height: 72px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3A2810, #6A4820);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.recent-info { flex: 1; min-width: 0; }
+.recent-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.recent-meta {
+  font-size: 0.72rem;
+  color: var(--text-sub);
+  margin-bottom: 4px;
+  display: flex; gap: 10px;
+}
+.recent-price {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--amber);
+}
+.recent-arrow {
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+/* ========================= */
+/* SCREEN 2: TOUR DETAIL */
+/* ========================= */
+.tour-hero {
+  height: 220px;
+  background: linear-gradient(135deg, #1A1208, #3A2810);
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.tour-hero-bg {
+  position: absolute; inset: 0;
+  font-size: 6rem;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0.15;
+}
+.tour-hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 100%);
+}
+.tour-hero-back {
+  position: absolute;
+  top: 52px; left: 16px;
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; color: white;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+}
+.tour-hero-info {
+  position: relative; z-index: 1;
+  padding: 0 16px 16px;
+  width: 100%;
+}
+.tour-hero-emoji { font-size: 1.3rem; margin-bottom: 4px; }
+.tour-hero-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+.tour-hero-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tour-tag {
+  padding: 3px 10px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 99px;
+  font-size: 0.65rem;
+  color: white;
+  font-weight: 700;
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.tour-detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--bg);
+}
+.tour-detail-body::-webkit-scrollbar { display: none; }
+
+/* Info pills row */
+.info-pills {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.info-pill {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.info-pill-icon { font-size: 1.1rem; margin-bottom: 4px; }
+.info-pill-val { font-size: 0.85rem; font-weight: 800; color: var(--text); }
+.info-pill-label { font-size: 0.58rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+/* Shop list */
+.shop-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  cursor: pointer;
+  align-items: center;
+}
+.shop-thumb {
+  width: 64px; height: 64px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2A1A08, #5A3A18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+.shop-info { flex: 1; }
+.shop-name { font-size: 0.88rem; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.shop-rating { font-size: 0.72rem; color: var(--text-sub); margin-bottom: 3px; display: flex; gap: 4px; align-items: center; }
+.shop-type { font-size: 0.7rem; font-weight: 700; color: var(--amber); margin-bottom: 2px; }
+.shop-price { font-size: 0.75rem; font-weight: 700; color: var(--green); }
+.shop-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--amber-pale);
+  color: var(--amber);
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-start {
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(135deg, var(--amber), var(--amber-dark));
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  box-shadow: 0 8px 24px rgba(232,148,58,0.4);
+  margin-top: 18px;
+  letter-spacing: 0.02em;
+}
+
+/* ========================= */
+/* SCREEN 3: POI DETAIL */
+/* ========================= */
+.poi-hero {
+  height: 200px;
+  background: linear-gradient(135deg, #0F1828, #1A3050);
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.poi-hero-back {
+  position: absolute;
+  top: 52px; left: 16px;
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; color: white;
+  backdrop-filter: blur(8px);
+}
+.poi-hero-bg {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 7rem;
+  opacity: 0.12;
+}
+.poi-hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.1) 100%);
+}
+.poi-hero-info {
+  position: relative; z-index: 1;
+  padding: 0 16px 16px;
+}
+.poi-hero-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+}
+
+.poi-body {
+  flex: 1; overflow-y: auto; padding: 16px; background: var(--bg);
+}
+.poi-body::-webkit-scrollbar { display: none; }
+
+.poi-type-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.poi-type-badge {
+  padding: 5px 14px;
+  background: var(--amber);
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: white;
+}
+.poi-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+.info-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.info-card-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 6px;
+}
+.info-card-value {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.btn-listen {
+  flex: 1;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--amber), var(--amber-dark));
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 6px 18px rgba(232,148,58,0.35);
+}
+.btn-nav {
+  flex: 1;
+  padding: 16px;
+  background: white;
+  border: 2px solid var(--amber);
+  border-radius: var(--radius);
+  color: var(--amber);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-row {
+  display: flex; gap: 10px; margin-top: 16px;
+}
+
+/* ========================= */
+/* SCREEN 4: MAP */
+/* ========================= */
+.map-topbar {
+  background: white;
+  padding: 8px 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.map-back-btn {
+  width: 38px; height: 38px;
+  background: var(--bg);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.map-search {
+  flex: 1;
+  height: 38px;
+  background: var(--bg);
+  border-radius: 10px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 12px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.map-filter-btn {
+  width: 38px; height: 38px;
+  background: var(--amber);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.map-canvas {
+  flex: 1;
+  background: #E8E4DC;
+  position: relative;
+  overflow: hidden;
+  min-height: 320px;
+}
+.map-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(200,190,175,0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,190,175,0.5) 1px, transparent 1px);
+  background-size: 35px 35px;
+}
+.map-road-h {
+  position: absolute;
+  left: 0; right: 0;
+  background: white;
+  border-top: 1px solid #D0C8B8;
+  border-bottom: 1px solid #D0C8B8;
+}
+.map-road-v {
+  position: absolute;
+  top: 0; bottom: 0;
+  background: white;
+  border-left: 1px solid #D0C8B8;
+  border-right: 1px solid #D0C8B8;
+}
+.map-pin {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  cursor: pointer;
+}
+.map-pin-dot {
+  width: 36px; height: 36px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+.map-pin-dot-inner {
+  transform: rotate(45deg);
+  font-size: 1rem;
+}
+.map-user-dot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+.map-user-inner {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--blue);
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.5);
+}
+.map-user-ring {
+  position: absolute;
+  border: 2px solid rgba(59,130,246,0.3);
+  border-radius: 50%;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px; height: 36px;
+}
+
+.map-bottom-sheet {
+  background: white;
+  border-radius: 20px 20px 0 0;
+  padding: 14px 16px;
+  flex-shrink: 0;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+}
+.sheet-handle {
+  width: 36px; height: 4px;
+  background: #DDD;
+  border-radius: 99px;
+  margin: 0 auto 14px;
+}
+.nearby-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.nearby-scroll::-webkit-scrollbar { display: none; }
+.nearby-card {
+  width: 140px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.nearby-img {
+  width: 140px; height: 90px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1A1208, #3A2810);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+.nearby-name { font-size: 0.82rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.nearby-meta { font-size: 0.7rem; color: var(--text-sub); display: flex; align-items: center; gap: 4px; }
+.nearby-meta .dist { color: var(--amber); font-weight: 700; }
+
+/* ========================= */
+/* SCREEN 5: PLACES LIST */
+/* ========================= */
+.places-topbar {
+  background: white;
+  padding: 8px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.places-search {
+  height: 42px;
+  background: var(--bg);
+  border-radius: 12px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+}
+.filter-tab {
+  padding: 6px 16px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+}
+.filter-tab.active {
+  background: var(--amber);
+  color: white;
+}
+.filter-tab:not(.active) {
+  background: var(--bg);
+  color: var(--text-sub);
+}
+
+.places-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 14px;
+  background: var(--bg);
+}
+.places-list::-webkit-scrollbar { display: none; }
+
+.place-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  cursor: pointer;
+  align-items: flex-start;
+}
+.place-thumb {
+  width: 72px; height: 72px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1A1208, #3A2810);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+.place-info { flex: 1; }
+.place-name { font-size: 0.9rem; font-weight: 800; color: var(--text); margin-bottom: 5px; line-height: 1.3; }
+.place-rating { display: flex; align-items: center; gap: 4px; font-size: 0.72rem; color: var(--text-sub); margin-bottom: 4px; }
+.place-meta { display: flex; gap: 10px; font-size: 0.68rem; color: var(--text-muted); }
+.place-meta .km { color: var(--amber); font-weight: 700; }
+
+/* ========================= */
+/* SCREEN 6: SETTINGS */
+/* ========================= */
+.settings-hero {
+  background: linear-gradient(135deg, var(--amber), var(--amber-dark));
+  padding: 20px 20px 24px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.settings-hero::before {
+  content: '⚙';
+  position: absolute;
+  right: 20px; top: 50%; transform: translateY(-50%);
+  font-size: 5rem;
+  opacity: 0.1;
+}
+.settings-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  color: white;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.settings-sub { font-size: 0.78rem; color: rgba(255,255,255,0.75); font-weight: 500; }
+
+.settings-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--bg);
+}
+.settings-body::-webkit-scrollbar { display: none; }
+
+.settings-group-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 18px 0 10px;
+}
+.settings-group-title:first-child { margin-top: 0; }
+
+.settings-card {
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  margin-bottom: 6px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.setting-row:last-child { border-bottom: none; }
+
+.setting-icon {
+  width: 40px; height: 40px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+.setting-icon.amber { background: #FEF0DC; }
+.setting-icon.green { background: #DCF5EA; }
+.setting-icon.blue { background: #DCE8FD; }
+.setting-icon.red { background: #FDECEC; }
+
+.setting-info { flex: 1; }
+.setting-name { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.setting-desc { font-size: 0.72rem; color: var(--text-muted); }
+
+.setting-value { font-size: 0.8rem; font-weight: 700; color: var(--text-sub); }
+
+.toggle {
+  width: 44px; height: 24px;
+  border-radius: 99px;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--green); }
+.toggle.off { background: #DDD; }
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: white;
+  top: 3px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: left 0.2s;
+}
+.toggle.on::after { left: 23px; }
+.toggle.off::after { left: 3px; }
+
+.btn-sync {
+  width: 100%;
+  padding: 17px;
+  background: linear-gradient(135deg, var(--amber), var(--amber-dark));
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(232,148,58,0.35);
+  margin-top: 20px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+/* Version info row */
+.version-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.version-row:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+
+<div class="showcase-title">HeriStepAI — Mobile UI Redesign</div>
+<div class="showcase-sub">6 màn hình · Dark amber × Warm cream aesthetic</div>
+
+<div class="phones-row">
+
+  <!-- ==================== SCREEN 1: HOME ==================== -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <!-- Status bar -->
+      <div class="status-bar">
+        <span class="status-time">07:51</span>
+        <div class="status-icons">
+          <svg width="16" height="12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4" y="2" width="3" height="10" rx="1"/><rect x="8" y="0" width="3" height="12" rx="1"/><rect x="12" y="0" width="3" height="12" rx="1" opacity=".4"/></svg>
+          <svg width="16" height="12" fill="white"><path d="M8 2C5.2 2 2.7 3.1 1 5L2.4 6.4C3.7 5.1 5.8 4 8 4s4.3 1.1 5.6 2.4L15 5C13.3 3.1 10.8 2 8 2z"/><path d="M8 6C6.3 6 4.8 6.7 3.8 7.8L5.2 9.2C5.8 8.5 6.9 8 8 8s2.2.5 2.8 1.2L12.2 7.8C11.2 6.7 9.7 6 8 6z"/><circle cx="8" cy="11" r="1.5"/></svg>
+          <span style="font-size:0.65rem;color:white;font-weight:700">76%</span>
+        </div>
+      </div>
+
+      <div class="screen-content">
+        <!-- Hero -->
+        <div class="home-hero">
+          <div class="hero-top">
+            <div class="hero-brand">
+              <div class="hero-logo">🎙</div>
+              <div class="hero-brand-name">HeriStep<span style="color:rgba(255,255,255,0.75)">AI</span></div>
+            </div>
+            <div class="hero-actions">
+              <div class="hero-btn">🇻🇳</div>
+              <div class="hero-btn">📍</div>
+            </div>
+          </div>
+          <div class="hero-location">
+            <div class="hero-city">📍 Đà Nẵng · Việt Nam</div>
+            <div class="hero-tagline">
+              Chào mừng bạn!<br>
+              <span>Ứng dụng thuyết minh tự động</span>
+            </div>
+          </div>
+          <div class="hero-stats">
+            <div class="stat-chip">
+              <div class="stat-chip-icon">🗺</div>
+              <div class="stat-chip-val">9</div>
+              <div class="stat-chip-label">Tours</div>
+            </div>
+            <div class="stat-chip">
+              <div class="stat-chip-icon">⚙️</div>
+              <div class="stat-chip-val"></div>
+              <div class="stat-chip-label">Cài đặt</div>
+            </div>
+            <div class="stat-chip">
+              <div class="stat-chip-icon">🔄</div>
+              <div class="stat-chip-val"></div>
+              <div class="stat-chip-label">Làm mới</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="home-body">
+          <!-- Chọn Tour -->
+          <div class="section-header">
+            <div class="section-title">Chọn Tour</div>
+            <div class="section-more">Xem tất cả →</div>
+          </div>
+          <div class="tour-scroll">
+            <div class="tour-card">
+              <div class="tour-card-img" style="background:linear-gradient(135deg,#3A1A08,#6A3010)">
+                <div class="tour-card-img-bg">🍜</div>
+                <div class="tour-card-overlay"></div>
+                <div class="tour-card-tag">🍜 Tour Bún Phở Mì</div>
+              </div>
+              <div class="tour-card-body">
+                <div class="tour-card-name">Tour Bún Phở Mì</div>
+                <div class="tour-card-meta">
+                  <span>⏱ 150 phút</span>
+                  <span>📍 5 quán</span>
+                </div>
+                <div class="tour-card-price">25.000 – 100.001đ</div>
+              </div>
+            </div>
+            <div class="tour-card">
+              <div class="tour-card-img" style="background:linear-gradient(135deg,#081A18,#103030)">
+                <div class="tour-card-img-bg">🥘</div>
+                <div class="tour-card-overlay"></div>
+                <div class="tour-card-tag">🥘 Tour Ẩm thực</div>
+              </div>
+              <div class="tour-card-body">
+                <div class="tour-card-name">Tour Ẩm thực Đường phố</div>
+                <div class="tour-card-meta">
+                  <span>⏱ 210 phút</span>
+                  <span>📍 7 quán</span>
+                </div>
+                <div class="tour-card-price">5.000 – 120.000đ</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Create button -->
+          <button class="btn-create">＋ Tạo Tour mới</button>
+
+          <!-- Recent -->
+          <div class="section-header">
+            <div class="section-title">Tour gần đây</div>
+          </div>
+
+          <div class="recent-card">
+            <div class="recent-thumb">🍜</div>
+            <div class="recent-info">
+              <div class="recent-name">Tour Bún Phở Mì</div>
+              <div class="recent-meta">
+                <span>⏱ 150 phút</span>
+                <span>📍 5 ケ所</span>
+              </div>
+              <div class="recent-price">25.000 – 100.001đ</div>
+            </div>
+            <div class="recent-arrow">›</div>
+          </div>
+          <div class="recent-card">
+            <div class="recent-thumb">🥘</div>
+            <div class="recent-info">
+              <div class="recent-name">Tour Ẩm thực Đường phố</div>
+              <div class="recent-meta">
+                <span>⏱ 210 phút</span>
+                <span>📍 7 ケ所</span>
+              </div>
+              <div class="recent-price">5.000 – 120.000đ</div>
+            </div>
+            <div class="recent-arrow">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom nav -->
+      <div class="bottom-nav">
+        <div class="nav-item active">
+          <div class="nav-icon">🏠</div>
+          <div class="nav-label" style="color:var(--amber)">Trang chủ</div>
+        </div>
+        <div class="nav-item">
+          <div class="nav-icon">🗺</div>
+          <div class="nav-label">Bản đồ</div>
+        </div>
+        <div class="nav-item">
+          <div class="nav-icon">📍</div>
+          <div class="nav-label">Địa điểm</div>
+        </div>
+        <div class="nav-item">
+          <div class="nav-icon">⚙️</div>
+          <div class="nav-label">Cài đặt</div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">Trang chủ</div>
+  </div>
+
+  <!-- ==================== SCREEN 2: TOUR DETAIL ==================== -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-bar" style="background:transparent;position:absolute;top:0;left:0;right:0;z-index:10">
+        <span class="status-time">07:51</span>
+        <div class="status-icons">
+          <span style="font-size:0.65rem;color:white;font-weight:700">76%</span>
+        </div>
+      </div>
+      <div class="screen-content">
+        <div class="tour-hero">
+          <div class="tour-hero-bg">🍜</div>
+          <div class="tour-hero-overlay"></div>
+          <div class="tour-hero-back">←</div>
+          <div class="tour-hero-info">
+            <div class="tour-hero-emoji">🍜</div>
+            <div class="tour-hero-name">Tour Bún Phở Mì</div>
+            <div class="tour-hero-tags">
+              <span class="tour-tag">📍 5 quán</span>
+              <span class="tour-tag">⏱ 150 phút</span>
+              <span class="tour-tag">💰 195k–410k</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tour-detail-body">
+          <div style="font-size:0.8rem;color:var(--text-sub);margin-bottom:16px;line-height:1.5">
+            Khám phá thế giới bún, phở, mì đa dạng của ẩm thực Việt Nam qua 5 quán đặc sắc.
+          </div>
+
+          <div class="info-pills">
+            <div class="info-pill">
+              <div class="info-pill-icon">📍</div>
+              <div class="info-pill-val">5</div>
+              <div class="info-pill-label">Quán</div>
+            </div>
+            <div class="info-pill">
+              <div class="info-pill-icon">⏱</div>
+              <div class="info-pill-val">150</div>
+              <div class="info-pill-label">Phút</div>
+            </div>
+            <div class="info-pill">
+              <div class="info-pill-icon">💰</div>
+              <div class="info-pill-val" style="font-size:0.72rem;color:var(--amber)">195k+</div>
+              <div class="info-pill-label">Chi phí</div>
+            </div>
+          </div>
+
+          <div class="section-header">
+            <div class="section-title">Danh sách quán ăn</div>
+          </div>
+
+          <div class="shop-card">
+            <div class="shop-num">1</div>
+            <div class="shop-thumb">🍱</div>
+            <div class="shop-info">
+              <div class="shop-name">Đặc sản Huế 10 Thương</div>
+              <div class="shop-rating">⭐ N/A</div>
+              <div class="shop-type">Bún/Phở/Mì</div>
+              <div class="shop-price">50.000 – 65.000đ</div>
+            </div>
+          </div>
+          <div class="shop-card">
+            <div class="shop-num">2</div>
+            <div class="shop-thumb">🍝</div>
+            <div class="shop-info">
+              <div class="shop-name">Linh Bún Thái</div>
+              <div class="shop-rating">⭐ 4,2</div>
+              <div class="shop-type">Bún/Phở/Mì</div>
+              <div class="shop-price">25.000 – 44.999đ</div>
+            </div>
+          </div>
+          <div class="shop-card">
+            <div class="shop-num">3</div>
+            <div class="shop-thumb">🥣</div>
+            <div class="shop-info">
+              <div class="shop-name">Hủ Tiếu Nam Vang Phú Quý</div>
+              <div class="shop-rating">⭐ N/A</div>
+              <div class="shop-type">Bún/Phở/Mì</div>
+              <div class="shop-price">45.000đ</div>
+            </div>
+          </div>
+
+          <button class="btn-start">🗺 Bắt đầu Tour</button>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><div class="nav-icon">🏠</div><div class="nav-label" style="color:var(--amber)">Trang chủ</div></div>
+        <div class="nav-item"><div class="nav-icon">🗺</div><div class="nav-label">Bản đồ</div></div>
+        <div class="nav-item"><div class="nav-icon">📍</div><div class="nav-label">Địa điểm</div></div>
+        <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Cài đặt</div></div>
+      </div>
+    </div>
+    <div class="phone-label">Chi tiết Tour</div>
+  </div>
+
+  <!-- ==================== SCREEN 3: POI DETAIL ==================== -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-bar" style="background:transparent;position:absolute;top:0;left:0;right:0;z-index:10">
+        <span class="status-time">07:52</span>
+        <div class="status-icons"><span style="font-size:0.65rem;color:white;font-weight:700">76%</span></div>
+      </div>
+      <div class="screen-content">
+        <div class="poi-hero">
+          <div class="poi-hero-bg">🥣</div>
+          <div class="poi-hero-overlay"></div>
+          <div class="poi-hero-back">←</div>
+          <div class="poi-hero-info">
+            <div class="poi-hero-name">Hủ Tiếu Nam Vang Phú Quý</div>
+          </div>
+        </div>
+
+        <div class="poi-body">
+          <div class="poi-type-row">
+            <div class="poi-rating">⭐ N/A</div>
+            <div class="poi-type-badge">Ẩm thực</div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-card-label">📍 Địa chỉ</div>
+            <div class="info-card-value">84 Hồ Thị Kỷ, Phường 1, Quận 10, Thành phố Hồ Chí Minh, Việt Nam</div>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-card" style="margin:0">
+              <div class="info-card-label">🍽 Loại món</div>
+              <div class="info-card-value" style="font-weight:800">Bún/Phở/Mì</div>
+            </div>
+            <div class="info-card" style="margin:0">
+              <div class="info-card-label">💰 Giá</div>
+              <div class="info-card-value" style="color:var(--green);font-weight:800">45.000đ</div>
+            </div>
+          </div>
+
+          <div class="info-card" style="margin-top:10px">
+            <div class="info-card-label">⏱ Thời gian tham quan</div>
+            <div class="info-card-value" style="font-weight:800">30 phút</div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-card-label">ℹ Thông tin</div>
+            <div class="info-card-value">Quán chuyên hủ tiếu Nam Vang chuẩn vị, với nước dùng trong, ngọt thanh từ xương hầm, thơm nhẹ đặc trưng.</div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn-listen">🔊 Nghe</button>
+            <button class="btn-nav">🗺 Chỉ đường</button>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><div class="nav-icon">🏠</div><div class="nav-label" style="color:var(--amber)">Trang chủ</div></div>
+        <div class="nav-item"><div class="nav-icon">🗺</div><div class="nav-label">Bản đồ</div></div>
+        <div class="nav-item"><div class="nav-icon">📍</div><div class="nav-label">Địa điểm</div></div>
+        <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Cài đặt</div></div>
+      </div>
+    </div>
+    <div class="phone-label">Chi tiết địa điểm</div>
+  </div>
+
+  <!-- ==================== SCREEN 4: MAP ==================== -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-bar" style="background:#fff">
+        <span class="status-time" style="color:var(--text)">07:52</span>
+        <div class="status-icons"><span style="font-size:0.65rem;color:var(--text);font-weight:700">76%</span></div>
+      </div>
+      <div class="screen-content">
+        <div class="map-topbar">
+          <div class="map-back-btn">←</div>
+          <div class="map-search">🔍 Tìm kiếm...</div>
+          <div class="map-filter-btn">☰</div>
+        </div>
+
+        <div class="map-canvas">
+          <div class="map-grid"></div>
+          <!-- Roads -->
+          <div class="map-road-h" style="top:38%;height:22px"></div>
+          <div class="map-road-h" style="top:65%;height:16px"></div>
+          <div class="map-road-v" style="left:32%;width:18px"></div>
+          <div class="map-road-v" style="left:65%;width:22px"></div>
+          <!-- River -->
+          <div style="position:absolute;top:40%;left:20%;width:45%;height:40px;background:rgba(150,190,230,0.5);border-radius:20px;transform:rotate(-8deg)"></div>
+
+          <!-- Test mode badge -->
+          <div style="position:absolute;top:14px;right:16px;background:var(--amber);color:white;padding:6px 14px;border-radius:20px;font-size:0.72rem;font-weight:800;box-shadow:0 4px 12px rgba(232,148,58,0.4)">🧪 Test Mode</div>
+
+          <!-- Map pins -->
+          <div class="map-pin" style="left:52%;top:44%">
+            <div class="map-pin-dot" style="background:var(--amber)">
+              <div class="map-pin-dot-inner">🍜</div>
+            </div>
+          </div>
+          <div class="map-pin" style="left:72%;top:35%">
+            <div class="map-pin-dot" style="background:var(--amber)">
+              <div class="map-pin-dot-inner">🥘</div>
+            </div>
+          </div>
+
+          <!-- User location -->
+          <div class="map-user-dot" style="left:36%;top:60%">
+            <div class="map-user-ring"></div>
+            <div class="map-user-inner"></div>
+          </div>
+        </div>
+
+        <div class="map-bottom-sheet">
+          <div class="sheet-handle"></div>
+          <div class="section-header" style="margin-bottom:12px">
+            <div class="section-title">Địa điểm gần bạn</div>
+            <div class="section-more">Xem tất cả →</div>
+          </div>
+          <div class="nearby-scroll">
+            <div class="nearby-card">
+              <div class="nearby-img">🍝</div>
+              <div class="nearby-name">Linh Bún Thái</div>
+              <div class="nearby-meta"><span class="dist">85,1km</span> · ⭐ 4,4</div>
+            </div>
+            <div class="nearby-card">
+              <div class="nearby-img">🥐</div>
+              <div class="nearby-name">Tiệm Bánh Family</div>
+              <div class="nearby-meta"><span class="dist">85,1km</span> · ⭐ 4,3</div>
+            </div>
+            <div class="nearby-card">
+              <div class="nearby-img">🧋</div>
+              <div class="nearby-name">Cup Đẹp</div>
+              <div class="nearby-meta"><span class="dist">61,5km</span> · ⭐ 5,0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Trang chủ</div></div>
+        <div class="nav-item active"><div class="nav-icon">🗺</div><div class="nav-label" style="color:var(--amber)">Bản đồ</div></div>
+        <div class="nav-item"><div class="nav-icon">📍</div><div class="nav-label">Địa điểm</div></div>
+        <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Cài đặt</div></div>
+      </div>
+    </div>
+    <div class="phone-label">Bản đồ</div>
+  </div>
+
+  <!-- ==================== SCREEN 5: PLACES ==================== -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-bar" style="background:#fff">
+        <span class="status-time" style="color:var(--text)">07:52</span>
+        <div class="status-icons"><span style="font-size:0.65rem;color:var(--text);font-weight:700">76%</span></div>
+      </div>
+      <div class="screen-content">
+        <div class="places-topbar">
+          <div class="places-search">🔍 Tìm kiếm địa điểm...</div>
+          <div class="filter-tabs">
+            <button class="filter-tab active">Tất cả</button>
+            <button class="filter-tab">Tham quan</button>
+            <button class="filter-tab">Ẩm thực</button>
+          </div>
+        </div>
+
+        <div class="places-list">
+          <div class="place-card">
+            <div class="place-thumb">🧋</div>
+            <div class="place-info">
+              <div class="place-name">Cup Đẹp - Beauty In A Cup</div>
+              <div class="place-rating">⭐ 5,0 (0 đánh giá)</div>
+              <div class="place-meta">⏱ 30 phút &nbsp;·&nbsp; <span class="km">61,5km</span></div>
+            </div>
+          </div>
+          <div class="place-card">
+            <div class="place-thumb">🌿</div>
+            <div class="place-info">
+              <div class="place-name">Quán Cơm Chay Hoa Sen</div>
+              <div class="place-rating">⭐ N/A (0 đánh giá)</div>
+              <div class="place-meta">⏱ 30 phút &nbsp;·&nbsp; <span class="km">85,1km</span></div>
+            </div>
+          </div>
+          <div class="place-card">
+            <div class="place-thumb">🍖</div>
+            <div class="place-info">
+              <div class="place-name">Bò lụi sả - Chợ Hồ Thị Kỷ</div>
+              <div class="place-rating">⭐ N/A (0 đánh giá)</div>
+              <div class="place-meta">⏱ 30 phút &nbsp;·&nbsp; <span class="km">85,1km</span></div>
+            </div>
+          </div>
+          <div class="place-card">
+            <div class="place-thumb">🍝</div>
+            <div class="place-info">
+              <div class="place-name">Linh Bún Thái</div>
+              <div class="place-rating">⭐ 4,4 (12 đánh giá)</div>
+              <div class="place-meta">⏱ 30 phút &nbsp;·&nbsp; <span class="km">85,1km</span></div>
+            </div>
+          </div>
+          <div class="place-card">
+            <div class="place-thumb">🥣</div>
+            <div class="place-info">
+              <div class="place-name">Hủ Tiếu Nam Vang Phú Quý</div>
+              <div class="place-rating">⭐ N/A (0 đánh giá)</div>
+              <div class="place-meta">⏱ 30 phút &nbsp;·&nbsp; <span class="km">85,1km</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Trang chủ</div></div>
+        <div class="nav-item"><div class="nav-icon">🗺</div><div class="nav-label">Bản đồ</div></div>
+        <div class="nav-item active"><div class="nav-icon">📍</div><div class="nav-label" style="color:var(--amber)">Địa điểm</div></div>
+        <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Cài đặt</div></div>
+      </div>
+    </div>
+    <div class="phone-label">Địa điểm</div>
+  </div>
+
+  <!-- ==================== SCREEN 6: SETTINGS ==================== -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="status-bar">
+        <span class="status-time">07:52</span>
+        <div class="status-icons"><span style="font-size:0.65rem;color:white;font-weight:700">76%</span></div>
+      </div>
+      <div class="screen-content">
+        <div class="settings-hero">
+          <div class="settings-title">Cài đặt</div>
+          <div class="settings-sub">Tuỳ chỉnh ứng dụng của bạn</div>
+        </div>
+
+        <div class="settings-body">
+          <div class="settings-group-title">Thuyết minh</div>
+
+          <div class="settings-card">
+            <div class="setting-row">
+              <div class="setting-icon amber">🗣</div>
+              <div class="setting-info">
+                <div class="setting-name">Ngôn ngữ thuyết minh</div>
+                <div class="setting-desc">Chọn ngôn ngữ cho audio</div>
+              </div>
+              <div class="setting-value">日本語 ›</div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-icon green">🎙</div>
+              <div class="setting-info">
+                <div class="setting-name">Giọng đọc</div>
+                <div class="setting-desc">Chọn giọng Nam hoặc Nữ</div>
+              </div>
+              <div class="setting-value">Nữ ›</div>
+            </div>
+          </div>
+
+          <div class="settings-group-title">Vị trí</div>
+
+          <div class="settings-card">
+            <div class="setting-row">
+              <div class="setting-icon red">📍</div>
+              <div class="setting-info">
+                <div class="setting-name">Trạng thái GPS</div>
+                <div class="setting-desc">Vị trí đang hoạt động</div>
+              </div>
+              <div class="toggle on"></div>
+            </div>
+          </div>
+
+          <div class="settings-group-title">Thông tin</div>
+
+          <div class="settings-card">
+            <div class="version-row">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div class="setting-icon blue" style="width:36px;height:36px;border-radius:9px">ℹ</div>
+                <div>
+                  <div class="setting-name">Phiên bản</div>
+                  <div class="setting-desc">HeriStepAI Mobile</div>
+                </div>
+              </div>
+              <div class="setting-value">1.0.0</div>
+            </div>
+            <div class="version-row">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div class="setting-icon amber" style="width:36px;height:36px;border-radius:9px">✉</div>
+                <div>
+                  <div class="setting-name">Liên hệ hỗ trợ</div>
+                  <div class="setting-desc">support@heristepai.com</div>
+                </div>
+              </div>
+              <div class="setting-value">›</div>
+            </div>
+          </div>
+
+          <button class="btn-sync">🔄 Đồng bộ dữ liệu</button>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Trang chủ</div></div>
+        <div class="nav-item"><div class="nav-icon">🗺</div><div class="nav-label">Bản đồ</div></div>
+        <div class="nav-item"><div class="nav-icon">📍</div><div class="nav-label">Địa điểm</div></div>
+        <div class="nav-item active"><div class="nav-icon">⚙️</div><div class="nav-label" style="color:var(--amber)">Cài đặt</div></div>
+      </div>
+    </div>
+    <div class="phone-label">Cài đặt</div>
+  </div>
+
+</div><!-- end phones-row -->
+</body>
+</html>

@@ -17,16 +17,13 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        if (User.Identity?.IsAuthenticated == true)
-        {
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            if (role == "ShopOwner" || role == "2")
-            {
-                return RedirectToAction("Dashboard", "ShopOwner");
-            }
-            return RedirectToAction("Dashboard");
-        }
-        return View();
+        if (User.Identity?.IsAuthenticated != true)
+            return RedirectToAction("Login", "Auth");
+
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        if (role == "ShopOwner" || role == "2")
+            return RedirectToAction("Dashboard", "ShopOwner");
+        return RedirectToAction("Dashboard");
     }
 
     [Authorize]

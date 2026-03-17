@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HeriStepAI – Thuyết Minh Thông Minh</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --amber: #E8A14B;
+    --amber-light: #F2C47E;
+    --amber-soft: rgba(232,161,75,0.12);
+    --dark: #0A0906;
+    --dark2: #12100B;
+    --dark3: #1C1812;
+    --cream: #F8F3E8;
+    --cream-muted: #A89B82;
+    --radius: 16px;
+    --radius-sm: 12px;
+  }
+
+  body {
+    min-height: 100vh;
+    background: var(--dark);
+    font-family: 'Be Vietnam Pro', sans-serif;
+    display: flex;
+    overflow: hidden;
+    color: var(--cream);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 20% 40%, rgba(232,161,75,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 80% at 80% 60%, rgba(232,161,75,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .left-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 48px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .brand-block {
+    text-align: center;
+    max-width: 360px;
+  }
+
+  .logo-mark {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 24px;
+    background: linear-gradient(145deg, var(--amber), #C07820);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    box-shadow: 0 12px 40px rgba(232,161,75,0.25);
+  }
+
+  .brand-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .brand-name span { color: var(--amber); }
+
+  .brand-tagline {
+    font-size: 0.8rem;
+    color: var(--cream-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 12px;
+    font-weight: 400;
+  }
+
+  .hero-illustration {
+    margin-top: 48px;
+    width: 280px;
+    height: 180px;
+    background: var(--dark3);
+    border-radius: var(--radius);
+    border: 1px solid rgba(232,161,75,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+  }
+
+  .right-panel {
+    flex: 0 0 440px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 48px 56px;
+    background: var(--dark2);
+    border-left: 1px solid rgba(232,161,75,0.1);
+    position: relative;
+    z-index: 1;
+  }
+
+  .login-header {
+    margin-bottom: 36px;
+  }
+
+  .login-welcome {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .login-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--cream);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .login-title em { color: var(--amber); font-style: italic; }
+
+  .login-subtitle {
+    color: var(--cream-muted);
+    font-size: 0.85rem;
+    margin-top: 10px;
+    font-weight: 300;
+    line-height: 1.55;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cream-muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  input[type="email"],
+  input[type="password"] {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--dark3);
+    border: 1px solid rgba(232,161,75,0.15);
+    border-radius: var(--radius-sm);
+    color: var(--cream);
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input::placeholder { color: rgba(168,155,130,0.5); }
+  input:focus {
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px var(--amber-soft);
+  }
+
+  .forgot-link {
+    display: block;
+    text-align: right;
+    font-size: 0.78rem;
+    color: var(--amber);
+    text-decoration: none;
+    margin-top: 6px;
+    transition: opacity 0.2s;
+  }
+  .forgot-link:hover { opacity: 0.85; }
+
+  .options-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .remember-me input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--amber);
+    cursor: pointer;
+  }
+  .remember-me span { font-size: 0.82rem; color: var(--cream-muted); }
+
+  .btn-login {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--amber) 0%, #D48938 100%);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: #0A0906;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-login:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(232,161,75,0.35);
+  }
+  .btn-login:active { transform: translateY(0); }
+
+  .or-divider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 24px 0;
+  }
+  .or-divider::before, .or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(232,161,75,0.12);
+  }
+  .or-divider span {
+    font-size: 0.7rem;
+    color: var(--cream-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .social-row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn-social {
+    flex: 1;
+    padding: 12px;
+    background: var(--dark3);
+    border: 1px solid rgba(232,161,75,0.12);
+    border-radius: var(--radius-sm);
+    color: var(--cream);
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 0.82rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .btn-social:hover {
+    border-color: rgba(232,161,75,0.3);
+    background: var(--amber-soft);
+  }
+  .btn-social svg { width: 18px; height: 18px; }
+
+  .register-link {
+    text-align: center;
+    margin-top: 28px;
+    font-size: 0.82rem;
+    color: var(--cream-muted);
+  }
+  .register-link a {
+    color: var(--amber);
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.2s;
+  }
+  .register-link a:hover { opacity: 0.85; }
+
+  @media (max-width: 900px) {
+    body { flex-direction: column; overflow: auto; }
+    .left-panel { padding: 40px 24px; }
+    .right-panel { flex: none; padding: 40px 28px; border-left: none; border-top: 1px solid rgba(232,161,75,0.1); }
+    .brand-name { font-size: 2rem; }
+    .login-title { font-size: 1.7rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="left-panel">
+  <div class="brand-block">
+    <div class="logo-mark">🎙</div>
+    <div class="brand-name">Heri<span>Step</span>AI</div>
+    <div class="brand-tagline">Thuyết minh hàng quán thông minh</div>
+    <div class="hero-illustration">🍜</div>
+  </div>
+</div>
+
+<div class="right-panel">
+  <div class="login-header">
+    <div class="login-welcome">Chào mừng trở lại</div>
+    <h1 class="login-title">Đăng nhập để <em>khám phá</em> ẩm thực</h1>
+    <p class="login-subtitle">Quản lý thuyết minh tự động cho quán của bạn với trí tuệ nhân tạo HeriStepAI.</p>
+  </div>
+
+  <form onsubmit="handleLogin(event)">
+    <div class="form-group">
+      <label for="email">Email / Tài khoản</label>
+      <input type="email" id="email" placeholder="tenban@example.com" required />
+    </div>
+    <div class="form-group">
+      <label for="password">Mật khẩu</label>
+      <input type="password" id="password" placeholder="Nhập mật khẩu" required />
+      <a href="#" class="forgot-link">Quên mật khẩu?</a>
+    </div>
+    <div class="options-row">
+      <label class="remember-me">
+        <input type="checkbox" /> <span>Ghi nhớ đăng nhập</span>
+      </label>
+    </div>
+    <button type="submit" class="btn-login">Đăng nhập</button>
+  </form>
+
+  <div class="or-divider"><span>hoặc đăng nhập với</span></div>
+  <div class="social-row">
+    <button type="button" class="btn-social">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      Google
+    </button>
+    <button type="button" class="btn-social">
+      <svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+      Facebook
+    </button>
+  </div>
+  <div class="register-link">
+    Chưa có tài khoản? <a href="#">Đăng ký miễn phí</a>
+  </div>
+</div>
+
+<script>
+function handleLogin(e) {
+  e.preventDefault();
+  const btn = document.querySelector('.btn-login');
+  btn.textContent = 'Đang xác thực...';
+  btn.style.background = 'linear-gradient(135deg, #2E7D5E, #1a5c44)';
+  btn.style.color = '#F8F3E8';
+  setTimeout(() => {
+    btn.textContent = 'Đăng nhập';
+    btn.style.background = '';
+    btn.style.color = '';
+    alert('Đăng nhập thành công! Chào mừng đến với HeriStepAI 🎙');
+  }, 1800);
+}
+</script>
+</body>
+</html>

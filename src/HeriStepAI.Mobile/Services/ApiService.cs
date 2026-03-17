@@ -9,21 +9,30 @@ public class ApiService : IApiService
 {
     private readonly HttpClient _httpClient;
     private readonly IAuthService _authService;
-    private static readonly string _baseUrl =
-#if DEBUG && EMULATOR
-        "http://10.0.2.2:5000/api/"; // Emulator local API only
+
+    private static string GetBaseUrl()
+    {
+#if DEBUG
+        // Local API: Android emulator dùng 10.0.2.2, iOS simulator / máy thật trong mạng LAN dùng IP máy PC
+        if (DeviceInfo.Platform == DevicePlatform.Android)
+            return "http://10.0.2.2:5000/api/";
+        if (DeviceInfo.Platform == DevicePlatform.iOS)
+            return "http://127.0.0.1:5000/api/"; // iOS simulator; máy thật: đổi thành IP PC (vd 192.168.1.x:5000)
+        return "http://localhost:5000/api/";
 #else
-        "https://heristep.onrender.com/api/"; // Production (real device or release)
+        return "https://heristep.onrender.com/api/";
 #endif
+    }
 
     public ApiService(IAuthService authService)
     {
         _authService = authService;
+        var baseUrl = GetBaseUrl();
         try
         {
             _httpClient = new HttpClient(new HttpClientHandler { AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate })
             {
-                BaseAddress = new Uri(_baseUrl)
+                BaseAddress = new Uri(baseUrl)
             };
             _httpClient.Timeout = TimeSpan.FromSeconds(45);
             _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
@@ -32,7 +41,7 @@ public class ApiService : IApiService
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error initializing ApiService: {ex.Message}");
-            _httpClient = new HttpClient { BaseAddress = new Uri(_baseUrl), Timeout = TimeSpan.FromSeconds(45) };
+            _httpClient = new HttpClient { BaseAddress = new Uri(baseUrl), Timeout = TimeSpan.FromSeconds(45) };
         }
     }
 

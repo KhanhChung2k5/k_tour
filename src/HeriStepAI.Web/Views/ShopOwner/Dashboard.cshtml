@@ -15,35 +15,35 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --accent:       #4f46e5;
-            --accent-light: #818cf8;
-            --accent-dim:   #eef2ff;
-            --page-bg:      #f8fafc;
-            --card-bg:      #ffffff;
-            --input-bg:     #f1f5f9;
-            --text-primary: #1e293b;
-            --text-muted:   #64748b;
-            --text-dim:     rgba(100,116,139,0.08);
-            --green:        #10b981;
-            --green-dim:    rgba(16,185,129,0.1);
-            --blue:         #3b82f6;
-            --blue-dim:     rgba(59,130,246,0.1);
-            --red:          #ef4444;
-            --amber:        #f59e0b;
-            --amber-dim:    rgba(245,158,11,0.1);
-            --border:       #e2e8f0;
-            --border-hover: #94a3b8;
+            --accent:       #E8A14B;
+            --accent-light: #F2C47E;
+            --accent-dim:   rgba(232,161,75,0.15);
+            --page-bg:      #0D0B08;
+            --card-bg:      #1E1810;
+            --input-bg:     #261F14;
+            --text-primary: #F5ECD7;
+            --text-muted:   #9E8E75;
+            --text-dim:     rgba(245,236,215,0.06);
+            --green:        #2ECC94;
+            --green-dim:    rgba(46,204,148,0.12);
+            --blue:         #5B8AF0;
+            --blue-dim:     rgba(91,138,240,0.12);
+            --red:          #E05252;
+            --amber:        #E8A14B;
+            --amber-dim:    rgba(232,161,75,0.15);
+            --border:       rgba(232,161,75,0.12);
+            --border-hover: rgba(232,161,75,0.3);
         }
         *, *::before, *::after { box-sizing: border-box; }
-        * { font-family: 'Inter', Arial, sans-serif; }
+        * { font-family: 'Be Vietnam Pro', sans-serif; }
         body { background: var(--page-bg); color: var(--text-primary); margin: 0; min-height: 100vh; }
 
         /* Topbar */
         .so-navbar {
-            background: #ffffff;
+            background: #110F0A;
             border-bottom: 1px solid var(--border);
             height: 64px;
             display: flex; align-items: center;
@@ -53,14 +53,15 @@
         }
         .so-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
         .so-brand-icon {
-            width: 34px; height: 34px;
-            background: var(--accent);
-            border-radius: 9px;
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--accent), #C07820);
+            border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            color: #fff; font-size: 0.95rem;
-            box-shadow: 0 2px 8px rgba(79,70,229,0.25);
+            color: #0D0B08; font-size: 0.95rem;
+            box-shadow: 0 4px 12px rgba(232,161,75,0.3);
         }
         .so-brand-name {
+            font-family: 'Playfair Display', serif;
             font-size: 1.1rem; font-weight: 700;
             color: var(--text-primary); letter-spacing: -0.02em;
         }
@@ -69,13 +70,13 @@
         .so-user {
             display: flex; align-items: center; gap: 8px;
             padding: 5px 12px; border-radius: 8px;
-            border: 1px solid var(--border); background: var(--page-bg);
+            border: 1px solid var(--border); background: var(--text-dim);
         }
         .so-user-avatar {
-            width: 26px; height: 26px; border-radius: 50%;
-            background: var(--accent-dim);
+            width: 28px; height: 28px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #C07820);
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.72rem; font-weight: 700; color: var(--accent);
+            font-size: 0.72rem; font-weight: 700; color: #0D0B08;
         }
         .so-user-name { font-size: 0.82rem; color: var(--text-muted); }
         .btn-logout {
@@ -85,7 +86,7 @@
             color: var(--text-muted);
             font-size: 0.8rem; cursor: pointer; transition: all .2s;
         }
-        .btn-logout:hover { border-color: rgba(239,68,68,0.35); color: var(--red); background: rgba(239,68,68,0.04); }
+        .btn-logout:hover { border-color: rgba(224,82,82,0.4); color: var(--red); background: rgba(224,82,82,0.1); }
 
         /* Content */
         .so-content { max-width: 1300px; margin: 0 auto; padding: 32px; }
@@ -134,8 +135,8 @@
         .section-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
-            border-radius: 12px; overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            border-radius: 14px; overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         .section-header {
             padding: 16px 24px;
@@ -147,8 +148,8 @@
             display: flex; align-items: center; gap: 8px;
         }
         .count-badge {
-            width: 24px; height: 24px; border-radius: 50%;
-            background: var(--accent-dim); color: var(--accent);
+            width: 26px; height: 26px; border-radius: 50%;
+            background: var(--accent); color: #0D0B08;
             font-size: 0.73rem; font-weight: 700;
             display: flex; align-items: center; justify-content: center;
         }
@@ -164,7 +165,7 @@
         }
         .table thead tr { border-bottom: 1px solid var(--border); }
         .table thead tr th {
-            background: #f8fafc !important;
+            background: var(--input-bg) !important;
             padding: 10px 20px;
             font-size: 0.68rem; letter-spacing: 0.1em;
             text-transform: uppercase; color: var(--text-muted);
@@ -173,7 +174,7 @@
         }
         .table tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
         .table tbody tr:last-child { border-bottom: none; }
-        .table tbody tr:hover { background: #fafafa !important; }
+        .table tbody tr:hover { background: var(--text-dim) !important; }
         .table tbody td {
             padding: 14px 20px; font-size: 0.84rem;
             color: var(--text-primary); vertical-align: middle;
@@ -186,14 +187,14 @@
             display: inline-block; padding: 3px 10px;
             border-radius: 99px; font-size: 0.72rem; font-weight: 600;
             background: var(--accent-dim); color: var(--accent);
-            border: 1px solid rgba(79,70,229,0.15);
+            border: 1px solid rgba(232,161,75,0.2);
         }
         .badge-soft-warning {
-            background: var(--amber-dim); color: #b45309;
+            background: var(--amber-dim); color: var(--accent-light);
             border-radius: 6px; padding: 3px 8px; font-size: .75rem; font-weight: 500;
         }
         .badge-soft-info {
-            background: var(--blue-dim); color: var(--blue);
+            background: var(--blue-dim); color: #93c5fd;
             border-radius: 6px; padding: 3px 8px; font-size: .75rem; font-weight: 500;
         }
         .status-pill {
@@ -213,8 +214,8 @@
             font-size: 0.85rem; transition: all .15s; color: var(--text-muted);
             text-decoration: none;
         }
-        .act-btn:hover { border-color: rgba(79,70,229,0.3); color: var(--accent); background: var(--accent-dim); }
-        .act-btn.stat:hover { color: var(--blue); background: var(--blue-dim); border-color: rgba(59,130,246,0.3); }
+        .act-btn:hover { border-color: var(--border-hover); color: var(--accent); background: var(--accent-dim); }
+        .act-btn.stat:hover { color: var(--blue); background: var(--blue-dim); border-color: rgba(91,138,240,0.3); }
 
         /* Shop cell */
         .shop-thumb { width: 42px; height: 42px; border-radius: 10px; border: 1px solid var(--border); flex-shrink: 0; object-fit: cover; }

@@ -20,34 +20,34 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --accent:       #4f46e5;
-            --accent-light: #818cf8;
-            --accent-dim:   #eef2ff;
-            --page-bg:      #f8fafc;
-            --card-bg:      #ffffff;
-            --input-bg:     #f8fafc;
-            --text-primary: #1e293b;
-            --text-muted:   #64748b;
-            --green:        #10b981;
-            --green-dim:    rgba(16,185,129,0.1);
-            --red:          #ef4444;
-            --blue:         #3b82f6;
-            --blue-dim:     rgba(59,130,246,0.1);
-            --amber:        #f59e0b;
-            --amber-dim:    rgba(245,158,11,0.1);
-            --border:       #e2e8f0;
-            --border-hover: #94a3b8;
+            --accent:       #E8A14B;
+            --accent-light: #F2C47E;
+            --accent-dim:   rgba(232,161,75,0.15);
+            --page-bg:      #0D0B08;
+            --card-bg:      #1E1810;
+            --input-bg:     #261F14;
+            --text-primary: #F5ECD7;
+            --text-muted:   #9E8E75;
+            --green:        #2ECC94;
+            --green-dim:    rgba(46,204,148,0.12);
+            --red:          #E05252;
+            --blue:         #5B8AF0;
+            --blue-dim:     rgba(91,138,240,0.12);
+            --amber:        #E8A14B;
+            --amber-dim:    rgba(232,161,75,0.15);
+            --border:       rgba(232,161,75,0.12);
+            --border-hover: rgba(232,161,75,0.3);
         }
         *, *::before, *::after { box-sizing: border-box; }
-        * { font-family: 'Inter', Arial, sans-serif; }
+        * { font-family: 'Be Vietnam Pro', sans-serif; }
         body { background: var(--page-bg); color: var(--text-primary); margin: 0; min-height: 100vh; }
 
         /* Topbar */
         .so-navbar {
-            background: #ffffff;
+            background: #110F0A;
             border-bottom: 1px solid var(--border);
             height: 64px;
             display: flex; align-items: center;
@@ -57,26 +57,26 @@
         }
         .so-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
         .so-brand-icon {
-            width: 34px; height: 34px;
-            background: var(--accent);
-            border-radius: 9px;
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--accent), #C07820);
+            border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            color: #fff; font-size: 0.95rem;
-            box-shadow: 0 2px 8px rgba(79,70,229,0.25);
+            color: #0D0B08; font-size: 0.95rem;
+            box-shadow: 0 4px 12px rgba(232,161,75,0.3);
         }
-        .so-brand-name { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+        .so-brand-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
         .so-brand-name span { color: var(--accent); }
         .so-right { display: flex; align-items: center; gap: 12px; }
         .so-user {
             display: flex; align-items: center; gap: 8px;
             padding: 5px 12px; border-radius: 8px;
-            border: 1px solid var(--border); background: var(--page-bg);
+            border: 1px solid var(--border); background: rgba(245,236,215,0.06);
         }
         .so-user-avatar {
-            width: 26px; height: 26px; border-radius: 50%;
-            background: var(--accent-dim);
+            width: 28px; height: 28px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #C07820);
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.72rem; font-weight: 700; color: var(--accent);
+            font-size: 0.72rem; font-weight: 700; color: #0D0B08;
         }
         .so-user-name { font-size: 0.82rem; color: var(--text-muted); }
         .btn-logout {
@@ -85,7 +85,7 @@
             border: 1px solid var(--border); background: transparent;
             color: var(--text-muted); font-size: 0.8rem; cursor: pointer; transition: all .2s;
         }
-        .btn-logout:hover { border-color: rgba(239,68,68,0.35); color: var(--red); background: rgba(239,68,68,0.04); }
+        .btn-logout:hover { border-color: rgba(224,82,82,0.4); color: var(--red); background: rgba(224,82,82,0.1); }
 
         /* Content */
         .so-content { max-width: 1300px; margin: 0 auto; padding: 32px; }
@@ -161,17 +161,17 @@
         }
         .form-control:focus, .form-select:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(79,70,229,0.12); outline: none;
-            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(232,161,75,0.12); outline: none;
+            background: var(--input-bg);
         }
         .btn-filter {
             display: inline-flex; align-items: center; gap: 6px;
             padding: 8px 18px; border-radius: 8px;
-            background: var(--accent); color: #fff; border: none;
+            background: linear-gradient(135deg, var(--accent), #C07820); color: #0D0B08; border: none;
             font-size: 0.875rem; font-weight: 600; cursor: pointer;
-            transition: background .15s; width: 100%; justify-content: center;
+            transition: background .15s, box-shadow .15s; width: 100%; justify-content: center;
         }
-        .btn-filter:hover { background: #4338ca; }
+        .btn-filter:hover { box-shadow: 0 4px 14px rgba(232,161,75,0.35); }
 
         /* Section card */
         .section-card {
@@ -189,8 +189,8 @@
         }
         .count-badge {
             font-size: 0.73rem; font-weight: 600; padding: 3px 12px;
-            border-radius: 99px; background: var(--accent-dim); color: var(--accent);
-            border: 1px solid rgba(79,70,229,0.15);
+            border-radius: 99px; background: var(--accent); color: #0D0B08;
+            border: 1px solid rgba(232,161,75,0.2);
         }
 
         /* Table */
@@ -199,12 +199,12 @@
             --bs-table-bg: transparent;
             --bs-table-color: var(--text-primary);
             --bs-table-border-color: transparent;
-            --bs-table-hover-bg: #fafafa;
+            --bs-table-hover-bg: rgba(245,236,215,0.06);
             color: var(--text-primary);
         }
         .table thead tr { border-bottom: 1px solid var(--border); }
         .table thead tr th {
-            background: #f8fafc !important;
+            background: var(--input-bg) !important;
             padding: 10px 20px;
             font-size: 0.68rem; letter-spacing: 0.1em;
             text-transform: uppercase; color: var(--text-muted);
@@ -213,7 +213,7 @@
         }
         .table tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
         .table tbody tr:last-child { border-bottom: none; }
-        .table tbody tr:hover { background: #fafafa !important; }
+        .table tbody tr:hover { background: rgba(245,236,215,0.06) !important; }
         .table tbody td {
             padding: 14px 20px; font-size: 0.84rem;
             color: var(--text-primary); vertical-align: middle;
@@ -222,8 +222,8 @@
         }
 
         /* Visit type badges */
-        .badge-geo    { background: var(--green-dim); color: #065f46; border: 1px solid rgba(16,185,129,0.2); border-radius: 6px; padding: 3px 10px; font-size: .75rem; font-weight: 600; }
-        .badge-manual { background: var(--blue-dim);  color: #1d4ed8;  border: 1px solid rgba(59,130,246,0.2);  border-radius: 6px; padding: 3px 10px; font-size: .75rem; font-weight: 600; }
+        .badge-geo    { background: var(--green-dim); color: #6ee7b7; border: 1px solid rgba(46,204,148,0.25); border-radius: 6px; padding: 3px 10px; font-size: .75rem; font-weight: 600; }
+        .badge-manual { background: var(--blue-dim);  color: #93c5fd;  border: 1px solid rgba(91,138,240,0.25);  border-radius: 6px; padding: 3px 10px; font-size: .75rem; font-weight: 600; }
 
         /* Edit button */
         .btn-edit {

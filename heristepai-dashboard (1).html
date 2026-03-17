@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HeriStepAI – Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --amber: #E8A14B;
+  --amber-light: #F2C47E;
+  --amber-dim: rgba(232,161,75,0.15);
+  --dark: #0D0B08;
+  --dark2: #141108;
+  --dark3: #1E1810;
+  --dark4: #261F14;
+  --sidebar: #110F0A;
+  --cream: #F5ECD7;
+  --cream-muted: #9E8E75;
+  --cream-dim: rgba(245,236,215,0.06);
+  --green: #2ECC94;
+  --green-dim: rgba(46,204,148,0.12);
+  --red: #E05252;
+  --red-dim: rgba(224,82,82,0.12);
+  --blue: #5B8AF0;
+  --blue-dim: rgba(91,138,240,0.12);
+  --border: rgba(232,161,75,0.12);
+  --border-hover: rgba(232,161,75,0.3);
+  --radius: 14px;
+  --sidebar-w: 260px;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--dark);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  color: var(--cream);
+  display: flex;
+  overflow: hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0; right: -1px; bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, var(--amber), transparent);
+  opacity: 0.2;
+}
+
+.sidebar-logo {
+  padding: 28px 24px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--amber), #C07820);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(232,161,75,0.3);
+}
+
+.logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--cream);
+  letter-spacing: -0.01em;
+}
+.logo-text span { color: var(--amber); }
+
+.sidebar-section-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cream-muted);
+  padding: 20px 24px 8px;
+  font-weight: 600;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 20px;
+  margin: 2px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.88rem;
+  font-weight: 400;
+  color: var(--cream-muted);
+  position: relative;
+  text-decoration: none;
+}
+
+.nav-item:hover {
+  background: var(--cream-dim);
+  color: var(--cream);
+}
+
+.nav-item.active {
+  background: var(--amber-dim);
+  color: var(--amber);
+  font-weight: 600;
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: -12px; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 20px;
+  background: var(--amber);
+  border-radius: 0 3px 3px 0;
+}
+
+.nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--amber);
+  color: var(--dark);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+}
+
+.nav-soon {
+  margin-left: auto;
+  font-size: 0.65rem;
+  color: var(--cream-muted);
+  background: var(--cream-dim);
+  padding: 2px 7px;
+  border-radius: 99px;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.user-card:hover { background: var(--cream-dim); }
+
+.user-avatar {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--amber), #C07820);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700;
+  color: var(--dark);
+  flex-shrink: 0;
+}
+
+.user-name { font-size: 0.85rem; font-weight: 600; color: var(--cream); }
+.user-role { font-size: 0.72rem; color: var(--cream-muted); }
+
+/* ===== MAIN AREA ===== */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--dark2);
+}
+
+/* TOPBAR */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 36px;
+  border-bottom: 1px solid var(--border);
+  background: var(--dark2);
+  flex-shrink: 0;
+}
+
+.topbar-title { font-size: 0.82rem; color: var(--cream-muted); font-weight: 400; }
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--cream-muted);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.topbar-btn:hover { border-color: var(--border-hover); color: var(--cream); }
+
+.topbar-notif {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--cream-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  position: relative;
+}
+.topbar-notif:hover { border-color: var(--border-hover); color: var(--amber); }
+.topbar-notif::after {
+  content: '';
+  position: absolute;
+  top: 7px; right: 7px;
+  width: 6px; height: 6px;
+  background: var(--amber);
+  border-radius: 50%;
+  border: 1.5px solid var(--dark2);
+}
+
+/* ===== PAGE CONTENT ===== */
+.page {
+  flex: 1;
+  overflow-y: auto;
+  padding: 36px;
+  display: none;
+  animation: fadeIn 0.4s ease both;
+}
+.page.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--cream);
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  font-size: 0.82rem;
+  color: var(--cream-muted);
+  margin-top: 4px;
+  font-weight: 300;
+}
+
+.btn-primary {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 22px;
+  background: linear-gradient(135deg, var(--amber), #C07820);
+  border: none;
+  border-radius: 10px;
+  color: var(--dark);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(232,161,75,0.25);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(232,161,75,0.35);
+}
+
+.btn-secondary {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 20px;
+  background: transparent;
+  border: 1px solid var(--border-hover);
+  border-radius: 10px;
+  color: var(--amber);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: var(--amber-dim); }
+
+.btn-danger {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 20px;
+  background: transparent;
+  border: 1px solid rgba(224,82,82,0.3);
+  border-radius: 10px;
+  color: var(--red);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-danger:hover { background: var(--red-dim); }
+
+/* ===== STATS CARDS ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: var(--dark3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: default;
+}
+
+.stat-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.stat-card.amber::before { background: linear-gradient(90deg, var(--amber), transparent); }
+.stat-card.green::before { background: linear-gradient(90deg, var(--green), transparent); }
+.stat-card.blue::before { background: linear-gradient(90deg, var(--blue), transparent); }
+.stat-card.red::before { background: linear-gradient(90deg, var(--red), transparent); }
+
+.stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.stat-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+}
+.stat-card.amber .stat-icon { background: rgba(232,161,75,0.15); }
+.stat-card.green .stat-icon { background: rgba(46,204,148,0.12); }
+.stat-card.blue .stat-icon { background: rgba(91,138,240,0.12); }
+.stat-card.red .stat-icon { background: rgba(224,82,82,0.12); }
+
+.stat-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+
+.stat-card.amber .stat-badge { background: rgba(232,161,75,0.15); color: var(--amber); }
+.stat-card.green .stat-badge { background: rgba(46,204,148,0.12); color: var(--green); }
+.stat-card.blue .stat-badge { background: rgba(91,138,240,0.12); color: var(--blue); }
+.stat-card.red .stat-badge { background: rgba(224,82,82,0.12); color: var(--red); }
+
+.stat-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--cream);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-label {
+  font-size: 0.78rem;
+  color: var(--cream-muted);
+  font-weight: 400;
+}
+
+/* ===== GRID LAYOUT ===== */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.card {
+  background: var(--dark3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-meta { font-size: 0.75rem; color: var(--cream-muted); }
+
+.card-body { padding: 20px 24px; }
+
+/* Quick Access List */
+.quick-list { display: flex; flex-direction: column; gap: 4px; }
+
+.quick-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.quick-item:hover { background: var(--cream-dim); }
+
+.quick-item-icon {
+  width: 38px; height: 38px;
+  border-radius: 9px;
+  background: var(--amber-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.quick-item-text { flex: 1; }
+.quick-item-name { font-size: 0.88rem; font-weight: 600; color: var(--cream); }
+.quick-item-desc { font-size: 0.75rem; color: var(--cream-muted); margin-top: 2px; }
+.quick-item-arrow { color: var(--cream-muted); font-size: 0.8rem; }
+
+.quick-item.disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Chart bars */
+.chart-container { padding: 20px 24px 16px; }
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 120px;
+  margin-bottom: 8px;
+}
+
+.chart-bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.chart-bar {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(to top, var(--amber), var(--amber-light));
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  min-height: 4px;
+}
+.chart-bar:hover { opacity: 1; }
+
+.chart-label {
+  font-size: 0.6rem;
+  color: var(--cream-muted);
+  text-align: center;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 48px;
+}
+
+/* ===== POI LIST PAGE ===== */
+.poi-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.search-box {
+  flex: 1;
+  position: relative;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 11px 16px 11px 42px;
+  background: var(--dark3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--cream);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.86rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-box input:focus { border-color: var(--amber); }
+.search-box input::placeholder { color: var(--cream-muted); }
+
+.search-icon {
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--cream-muted);
+  font-size: 0.9rem;
+}
+
+.filter-select {
+  padding: 11px 16px;
+  background: var(--dark3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--cream);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.82rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.poi-table-wrap {
+  background: var(--dark3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+table { width: 100%; border-collapse: collapse; }
+
+thead tr {
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  padding: 14px 20px;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cream-muted);
+  font-weight: 600;
+  text-align: left;
+}
+
+tbody tr {
+  border-bottom: 1px solid rgba(232,161,75,0.06);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--cream-dim); }
+
+td {
+  padding: 16px 20px;
+  font-size: 0.84rem;
+  color: var(--cream);
+  vertical-align: middle;
+}
+
+.poi-name-cell { display: flex; align-items: center; gap: 12px; }
+
+.poi-thumb {
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  background: var(--dark4);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  object-fit: cover;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+}
+
+.poi-name { font-weight: 600; color: var(--cream); }
+.poi-addr { font-size: 0.74rem; color: var(--cream-muted); margin-top: 2px; }
+
+.status-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 99px;
+}
+.status-dot.active { background: var(--green-dim); color: var(--green); }
+.status-dot.inactive { background: var(--red-dim); color: var(--red); }
+.status-dot::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+.tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--amber-dim);
+  color: var(--amber);
+  border: 1px solid rgba(232,161,75,0.2);
+  margin-right: 4px;
+}
+
+.action-btns { display: flex; gap: 6px; align-items: center; }
+
+.action-btn {
+  width: 32px; height: 32px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+  color: var(--cream-muted);
+}
+.action-btn:hover { border-color: var(--border-hover); color: var(--amber); background: var(--amber-dim); }
+.action-btn.delete:hover { border-color: rgba(224,82,82,0.4); color: var(--red); background: var(--red-dim); }
+
+/* ===== POI DETAIL PAGE ===== */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+}
+
+.detail-card {
+  background: var(--dark3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.detail-card-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detail-section-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cream);
+  display: flex; align-items: center; gap: 8px;
+}
+
+.detail-card-body { padding: 24px; }
+
+.poi-image-hero {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  background: var(--dark4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  border: 1px solid var(--border);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.info-item label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cream-muted);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.info-item .value {
+  font-size: 0.9rem;
+  color: var(--cream);
+  font-weight: 500;
+}
+
+.info-item .value.amber { color: var(--amber); }
+.info-item .value.green { color: var(--green); }
+.info-item .value.coord { font-size: 0.8rem; font-family: monospace; color: var(--blue); }
+
+.lang-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.lang-tab {
+  padding: 6px 14px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--cream-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+.lang-tab.active { background: var(--amber-dim); border-color: var(--border-hover); color: var(--amber); }
+.lang-tab:hover:not(.active) { border-color: var(--border-hover); color: var(--cream); }
+
+.narration-text {
+  background: var(--dark4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 0.88rem;
+  color: var(--cream);
+  line-height: 1.7;
+  font-weight: 300;
+  min-height: 100px;
+}
+
+/* Sidebar detail info */
+.detail-info-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.detail-info-item:last-child { border-bottom: none; }
+.detail-info-label { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cream-muted); font-weight: 600; flex-shrink: 0; }
+.detail-info-val { font-size: 0.84rem; color: var(--cream); font-weight: 500; text-align: right; }
+
+.action-stack { display: flex; flex-direction: column; gap: 8px; }
+
+/* ===== EDIT PAGE ===== */
+.edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cream-muted);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.form-label .req { color: var(--amber); margin-left: 2px; }
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--dark4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--cream);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-input:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(232,161,75,0.1); }
+.form-input::placeholder { color: rgba(158,142,117,0.5); }
+
+.form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--dark4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--cream);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  resize: vertical;
+  min-height: 110px;
+  transition: border-color 0.2s;
+  line-height: 1.6;
+}
+.form-textarea:focus { border-color: var(--amber); }
+
+.form-select {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--dark4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--cream);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  cursor: pointer;
+}
+.form-select:focus { border-color: var(--amber); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.form-group { margin-bottom: 20px; }
+
+.form-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 24px 0 20px;
+}
+.form-divider-line { flex: 1; height: 1px; background: var(--border); }
+.form-divider-label { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cream-muted); font-weight: 600; white-space: nowrap; }
+
+/* Image upload */
+.img-upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.img-upload-zone:hover { border-color: var(--border-hover); }
+
+.img-preview {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background: var(--dark4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3rem;
+  border: 1px solid var(--border);
+}
+
+.img-upload-hint { font-size: 0.78rem; color: var(--cream-muted); margin-top: 8px; }
+
+/* Toggle */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--dark4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+.toggle-label { font-size: 0.85rem; color: var(--cream); font-weight: 500; }
+.toggle-desc { font-size: 0.72rem; color: var(--cream-muted); margin-top: 2px; }
+
+.toggle {
+  position: relative;
+  width: 44px; height: 24px;
+  flex-shrink: 0;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--dark);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  left: 2px; top: 2px;
+  background: var(--cream-muted);
+  border-radius: 50%;
+  transition: 0.3s;
+}
+.toggle input:checked + .toggle-slider { background: var(--amber-dim); border-color: var(--amber); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: var(--amber); }
+
+.btn-save {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--amber), #C07820);
+  border: none;
+  border-radius: 10px;
+  color: var(--dark);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(232,161,75,0.25);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-save:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,161,75,0.35); }
+
+.btn-cancel-text {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: var(--cream-muted);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  margin-top: 6px;
+}
+.btn-cancel-text:hover { color: var(--cream); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(232,161,75,0.2); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(232,161,75,0.4); }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 28px; right: 28px;
+  background: var(--dark3);
+  border: 1px solid var(--green);
+  border-radius: 12px;
+  padding: 14px 20px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 0.85rem; font-weight: 500;
+  color: var(--green);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  z-index: 999;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.22,1,0.36,1);
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* Back link */
+.back-link {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.8rem; color: var(--cream-muted);
+  cursor: pointer;
+  transition: color 0.2s;
+  border: none; background: none;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  padding: 0;
+}
+.back-link:hover { color: var(--amber); }
+
+.separator { color: var(--cream-muted); margin: 0 2px; }
+
+.mt-4 { margin-top: 16px; }
+.mb-4 { margin-bottom: 16px; }
+.flex { display: flex; }
+.gap-3 { gap: 12px; }
+.items-center { align-items: center; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🎙</div>
+    <div class="logo-text">Heri<span>Step</span>AI</div>
+  </div>
+
+  <div class="sidebar-section-label">Menu</div>
+  <a class="nav-item active" onclick="showPage('dashboard', this)">
+    <span class="nav-icon">⊞</span> Dashboard
+  </a>
+  <a class="nav-item" onclick="showPage('poi-list', this)">
+    <span class="nav-icon">📍</span> Quản lý POI
+    <span class="nav-badge">23</span>
+  </a>
+  <a class="nav-item" onclick="showPage('analytics', this)">
+    <span class="nav-icon">📊</span> Analytics
+  </a>
+
+  <div class="sidebar-section-label">Hệ thống</div>
+  <a class="nav-item" style="opacity:.5;cursor:not-allowed">
+    <span class="nav-icon">⚙</span> Cài đặt
+    <span class="nav-soon">Soon</span>
+  </a>
+  <a class="nav-item" style="opacity:.5;cursor:not-allowed">
+    <span class="nav-icon">👥</span> Người dùng
+    <span class="nav-soon">Soon</span>
+  </a>
+
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar">A</div>
+      <div>
+        <div class="user-name">admin</div>
+        <div class="user-role">Administrator</div>
+      </div>
+      <span style="margin-left:auto;color:var(--cream-muted);font-size:0.75rem">→</span>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <span class="topbar-title" id="topbar-breadcrumb">Dashboard</span>
+    <div class="topbar-right">
+      <button class="topbar-btn">🌐 VI</button>
+      <button class="topbar-notif">🔔</button>
+      <button class="topbar-btn">← Đăng xuất</button>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: DASHBOARD ===== -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-subtitle">Tổng quan hệ thống HeriStepAI — 22/02/2026</div>
+      </div>
+      <button class="btn-primary" onclick="showPage('poi-edit', null, true)">＋ Thêm POI mới</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card amber">
+        <div class="stat-top">
+          <div class="stat-icon">📍</div>
+          <span class="stat-badge">POI</span>
+        </div>
+        <div class="stat-value">23</div>
+        <div class="stat-label">Tổng số địa điểm</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-top">
+          <div class="stat-icon">👥</div>
+          <span class="stat-badge">↑ +12%</span>
+        </div>
+        <div class="stat-value">169</div>
+        <div class="stat-label">Tổng lượt ghé thăm</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-top">
+          <div class="stat-icon">📡</div>
+          <span class="stat-badge">Geofence</span>
+        </div>
+        <div class="stat-value">0</div>
+        <div class="stat-label">Tự động nhận diện</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-top">
+          <div class="stat-icon">✅</div>
+          <span class="stat-badge">Hoạt động</span>
+        </div>
+        <div class="stat-value">23</div>
+        <div class="stat-label">POI đang mở</div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-grid">
+      <!-- Quick Access -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⚡ Truy cập nhanh</div>
+        </div>
+        <div class="card-body">
+          <div class="quick-list">
+            <div class="quick-item" onclick="showPage('poi-list', null)">
+              <div class="quick-item-icon">🏪</div>
+              <div class="quick-item-text">
+                <div class="quick-item-name">Quản lý POI</div>
+                <div class="quick-item-desc">Thêm, sửa, xoá địa điểm</div>
+              </div>
+              <span class="quick-item-arrow">›</span>
+            </div>
+            <div class="quick-item" onclick="showPage('analytics', null)">
+              <div class="quick-item-icon" style="background:var(--green-dim)">📈</div>
+              <div class="quick-item-text">
+                <div class="quick-item-name">Analytics</div>
+                <div class="quick-item-desc">Thống kê & phân tích</div>
+              </div>
+              <span class="quick-item-arrow">›</span>
+            </div>
+            <div class="quick-item disabled">
+              <div class="quick-item-icon" style="background:var(--blue-dim)">⚙</div>
+              <div class="quick-item-text">
+                <div class="quick-item-name">Cài đặt</div>
+                <div class="quick-item-desc">Sắp ra mắt</div>
+              </div>
+              <span class="nav-soon">Soon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📊 Top địa điểm được ghé thăm</div>
+          <span class="card-meta">10 địa điểm</span>
+        </div>
+        <div class="chart-container">
+          <div class="chart-bars">
+            <div class="chart-bar-wrap">
+              <div class="chart-bar" style="height:100%"></div>
+              <div class="chart-label">Đặc sản Huế</div>
+            </div>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar" style="height:55%"></div>
+              <div class="chart-label">Bánh khọt</div>
+            </div>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar" style="height:38%"></div>
+              <div class="chart-label">Tiệm Bánh Family</div>
+            </div>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar" style="height:30%"></div>
+              <div class="chart-label">Cup Đẹp</div>
+            </div>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar" style="height:28%"></div>
+              <div class="chart-label">Trà sữa MR</div>
+            </div>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar" style="height:27%"></div>
+              <div class="chart-label">Hủ tiếu A.Hùng</div>
+            </div>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar" style="height:45%"></div>
+              <div class="chart-label">Heo nướng</div>
+            </div>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar" style="height:22%"></div>
+              <div class="chart-label">Xiên Nướng</div>
+            </div>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar" style="height:18%"></div>
+              <div class="chart-label">Hủ Tiếu Nam</div>
+            </div>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar" style="height:15%"></div>
+              <div class="chart-label">Bò lụi sả</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: POI LIST ===== -->
+  <div class="page" id="page-poi-list">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Quản lý POI</div>
+        <div class="page-subtitle">Danh sách tất cả điểm thuyết minh trong hệ thống</div>
+      </div>
+      <button class="btn-primary" onclick="showPage('poi-edit', null, true)">＋ Thêm POI mới</button>
+    </div>
+
+    <div class="poi-controls">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Tìm kiếm theo tên, địa chỉ...">
+      </div>
+      <select class="filter-select">
+        <option>Tất cả loại</option>
+        <option>Ẩm thực</option>
+        <option>Cà phê</option>
+        <option>Dessert</option>
+      </select>
+      <select class="filter-select">
+        <option>Tất cả trạng thái</option>
+        <option>Hoạt động</option>
+        <option>Tạm dừng</option>
+      </select>
+    </div>
+
+    <div class="poi-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Địa điểm</th>
+            <th>Loại</th>
+            <th>Giá</th>
+            <th>Trạng thái</th>
+            <th>Cập nhật</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr onclick="showPage('poi-detail', null)">
+            <td style="color:var(--cream-muted)">4</td>
+            <td>
+              <div class="poi-name-cell">
+                <div class="poi-thumb">🍜</div>
+                <div>
+                  <div class="poi-name">Đặc sản Huế 10 Thương</div>
+                  <div class="poi-addr">10 Thương, Phường Bến Nghé, Q.1, TP.HCM</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="tag">Food</span><span class="tag">Noodles</span></td>
+            <td style="color:var(--amber)">50k–65k ₫</td>
+            <td><span class="status-dot active">Hoạt động</span></td>
+            <td style="color:var(--cream-muted);font-size:0.78rem">10/02/2026</td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" onclick="event.stopPropagation();showPage('poi-detail',null)" title="Xem">👁</button>
+                <button class="action-btn" onclick="event.stopPropagation();showPage('poi-edit',null)" title="Sửa">✏</button>
+                <button class="action-btn delete" onclick="event.stopPropagation()" title="Xoá">🗑</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="color:var(--cream-muted)">5</td>
+            <td>
+              <div class="poi-name-cell">
+                <div class="poi-thumb">🥞</div>
+                <div>
+                  <div class="poi-name">Bánh khọt (bánh xèo…)</div>
+                  <div class="poi-addr">Lê Thánh Tôn, Q.1, TP.HCM</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="tag">Food</span></td>
+            <td style="color:var(--amber)">30k–50k ₫</td>
+            <td><span class="status-dot active">Hoạt động</span></td>
+            <td style="color:var(--cream-muted);font-size:0.78rem">07/02/2026</td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Xem">👁</button>
+                <button class="action-btn" title="Sửa">✏</button>
+                <button class="action-btn delete" title="Xoá">🗑</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="color:var(--cream-muted)">6</td>
+            <td>
+              <div class="poi-name-cell">
+                <div class="poi-thumb">🎂</div>
+                <div>
+                  <div class="poi-name">Tiệm Bánh Family</div>
+                  <div class="poi-addr">Nguyễn Huệ, Q.1, TP.HCM</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="tag">Dessert</span></td>
+            <td style="color:var(--amber)">20k–45k ₫</td>
+            <td><span class="status-dot active">Hoạt động</span></td>
+            <td style="color:var(--cream-muted);font-size:0.78rem">05/02/2026</td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Xem">👁</button>
+                <button class="action-btn" title="Sửa">✏</button>
+                <button class="action-btn delete" title="Xoá">🗑</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="color:var(--cream-muted)">7</td>
+            <td>
+              <div class="poi-name-cell">
+                <div class="poi-thumb">☕</div>
+                <div>
+                  <div class="poi-name">Cup Đẹp - Beauty In...</div>
+                  <div class="poi-addr">Bùi Viện, Q.1, TP.HCM</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="tag">Cà phê</span></td>
+            <td style="color:var(--amber)">35k–80k ₫</td>
+            <td><span class="status-dot inactive">Tạm dừng</span></td>
+            <td style="color:var(--cream-muted);font-size:0.78rem">01/02/2026</td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Xem">👁</button>
+                <button class="action-btn" title="Sửa">✏</button>
+                <button class="action-btn delete" title="Xoá">🗑</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="color:var(--cream-muted)">8</td>
+            <td>
+              <div class="poi-name-cell">
+                <div class="poi-thumb">🧋</div>
+                <div>
+                  <div class="poi-name">Trà sữa Mr Tea</div>
+                  <div class="poi-addr">Phạm Ngũ Lão, Q.1, TP.HCM</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="tag">Đồ uống</span></td>
+            <td style="color:var(--amber)">25k–55k ₫</td>
+            <td><span class="status-dot active">Hoạt động</span></td>
+            <td style="color:var(--cream-muted);font-size:0.78rem">03/02/2026</td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" title="Xem">👁</button>
+                <button class="action-btn" title="Sửa">✏</button>
+                <button class="action-btn delete" title="Xoá">🗑</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: POI DETAIL ===== -->
+  <div class="page" id="page-poi-detail">
+    <div class="page-header">
+      <div>
+        <button class="back-link" onclick="showPage('poi-list',null)">← Quay lại danh sách</button>
+        <div class="page-title" style="margin-top:8px">Đặc sản Huế 10 Thương</div>
+        <div class="page-subtitle">Chi tiết địa điểm #4</div>
+      </div>
+      <div class="flex gap-3 items-center">
+        <button class="btn-secondary" onclick="showPage('poi-list',null)">← Quay lại</button>
+        <button class="btn-primary" onclick="showPage('poi-edit',null)">✏ Chỉnh sửa</button>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <!-- Left -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <!-- Main info -->
+        <div class="detail-card">
+          <div class="detail-card-header">
+            <div class="detail-section-title">🏪 Thông tin chính</div>
+            <span class="status-dot active">Hoạt động</span>
+          </div>
+          <div class="detail-card-body">
+            <div class="poi-image-hero">🍜</div>
+
+            <div class="info-grid">
+              <div class="info-item" style="grid-column:1/-1">
+                <label>Tên địa điểm</label>
+                <div class="value">Đặc sản Huế 10 Thương</div>
+              </div>
+              <div class="info-item" style="grid-column:1/-1">
+                <label>Địa chỉ</label>
+                <div class="value">📍 10 Thương, Phường Bến Nghé, Quận 1, TP.HCM</div>
+              </div>
+              <div class="info-item" style="grid-column:1/-1">
+                <label>Mô tả</label>
+                <div class="value" style="font-size:0.84rem;font-weight:300;line-height:1.7;color:var(--cream-muted)">
+                  Quán chuyên các món đặc sản Huế: Bún Bò Huế (Tô đặc biệt 65k, Tô thường 50k, Bún bò giò 55k, Bắp bò 60k), Bánh Canh Cá Lóc Huế (chả cua 45k, cá lóc 45k, đầu cá 60k, giò heo 50k), cùng bánh thập cẩm, bánh nậm lọc, chả cây và nước giải khát.
+                </div>
+              </div>
+              <div class="info-item">
+                <label>Tọa độ (Lat)</label>
+                <div class="value coord">10.759889</div>
+              </div>
+              <div class="info-item">
+                <label>Tọa độ (Lng)</label>
+                <div class="value coord">106.680288</div>
+              </div>
+              <div class="info-item">
+                <label>Loại</label>
+                <div><span class="tag">Food</span><span class="tag">Noodles</span></div>
+              </div>
+              <div class="info-item">
+                <label>Đánh giá</label>
+                <div class="value" style="color:var(--cream-muted)">Chưa có đánh giá</div>
+              </div>
+              <div class="info-item">
+                <label>Giá</label>
+                <div class="value amber">50,000 – 65,000 VND</div>
+              </div>
+              <div class="info-item">
+                <label>Thời gian tham quan</label>
+                <div class="value">⏱ 30 phút</div>
+              </div>
+              <div class="info-item">
+                <label>Ưu tiên</label>
+                <div class="value">Thấp</div>
+              </div>
+            </div>
+
+            <div style="margin-top:20px">
+              <button style="display:flex;align-items:center;gap:8px;padding:10px 18px;background:var(--dark4);border:1px solid var(--border);border-radius:9px;color:var(--cream-muted);font-family:'Be Vietnam Pro',sans-serif;font-size:0.82rem;cursor:pointer">
+                🗺 Xem trên Google Maps
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Narration -->
+        <div class="detail-card">
+          <div class="detail-card-header">
+            <div class="detail-section-title">🎙 Nội dung thuyết minh</div>
+          </div>
+          <div class="detail-card-body">
+            <div class="lang-tabs">
+              <button class="lang-tab active">🇻🇳 Việt</button>
+              <button class="lang-tab" onclick="switchLang(this,'en')">🇬🇧 EN</button>
+              <button class="lang-tab" onclick="switchLang(this,'ko')">🇰🇷 KO</button>
+              <button class="lang-tab" onclick="switchLang(this,'zh')">🇨🇳 ZH</button>
+              <button class="lang-tab" onclick="switchLang(this,'ja')">🇯🇵 JA</button>
+              <button class="lang-tab" onclick="switchLang(this,'th')">🇹🇭 TH</button>
+              <button class="lang-tab" onclick="switchLang(this,'fr')">🇫🇷 FR</button>
+            </div>
+            <div class="narration-text" id="narration-text">
+              Chào mừng bạn đến với Đặc sản Huế 10 Thương. Quán chuyên phục vụ các món đặc sản Huế như Bún Bò Huế đậm đà với tô đặc biệt, tô thường, bún bò giò và bắp bò. Bánh Canh Cá Lóc Huế với chả cua, cá lóc, đầu cá và giò heo. Ngoài ra còn có bánh thập cẩm, bánh nậm lọc, chả cây cùng nhiều đồ uống. Mời bạn ghé thưởng thức.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right sidebar -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <!-- Tech info -->
+        <div class="detail-card">
+          <div class="detail-card-header">
+            <div class="detail-section-title">⚙ Thông tin kỹ thuật</div>
+          </div>
+          <div class="detail-card-body" style="padding:16px 20px">
+            <div class="detail-info-item">
+              <span class="detail-info-label">Bán kính Geofence</span>
+              <span class="detail-info-val">5 m</span>
+            </div>
+            <div class="detail-info-item">
+              <span class="detail-info-label">Owner ID</span>
+              <span class="detail-info-val">3</span>
+            </div>
+            <div class="detail-info-item">
+              <span class="detail-info-label">Tour ID</span>
+              <span class="detail-info-val" style="color:var(--cream-muted)">—</span>
+            </div>
+            <div class="detail-info-item">
+              <span class="detail-info-label">Ngày tạo</span>
+              <span class="detail-info-val">07/02/2026 07:12</span>
+            </div>
+            <div class="detail-info-item" style="border-bottom:none">
+              <span class="detail-info-label">Cập nhật cuối</span>
+              <span class="detail-info-val">10/02/2026 15:47</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="detail-card">
+          <div class="detail-card-header">
+            <div class="detail-section-title">⚡ Thao tác</div>
+          </div>
+          <div class="detail-card-body">
+            <div class="action-stack">
+              <button class="btn-primary" style="justify-content:center" onclick="showPage('poi-edit',null)">✏ Chỉnh sửa</button>
+              <button class="btn-secondary" style="justify-content:center">⏸ Tạm dừng</button>
+              <button class="btn-danger" style="justify-content:center">🗑 Xóa POI</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: POI EDIT ===== -->
+  <div class="page" id="page-poi-edit">
+    <div class="page-header">
+      <div>
+        <button class="back-link" onclick="showPage('poi-detail',null)">← Quay lại chi tiết</button>
+        <div class="page-title" id="edit-page-title" style="margin-top:8px">Chỉnh sửa: Đặc sản Huế 10 Thương</div>
+        <div class="page-subtitle">Cập nhật thông tin địa điểm</div>
+      </div>
+      <button class="back-link" onclick="showPage('poi-detail',null)">← Quay lại</button>
+    </div>
+
+    <div class="edit-grid">
+      <!-- Left form -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <!-- Basic info -->
+        <div class="detail-card">
+          <div class="detail-card-header">
+            <div class="detail-section-title">📍 Thông tin cơ bản</div>
+          </div>
+          <div class="detail-card-body">
+            <div class="form-group">
+              <label class="form-label">Tên POI <span class="req">*</span></label>
+              <input type="text" class="form-input" value="Đặc sản Huế 10 Thương">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mô tả <span class="req">*</span></label>
+              <textarea class="form-textarea">Quán chuyên các món đặc sản Huế: Bún Bò Huế (Tô đặc biệt 65k, Tô thường 50k, Bún bò giò 55k, Bắp bò 60k), Bánh Canh Cá Lóc Huế (chả cua 45k, cá lóc 45k, đầu cá 60k, giò heo 50k), cùng bánh thập cẩm, bánh nậm lọc, chả cây và nước giải khát. Hương vị Huế truyền thống, giá hợp túi tiền.</textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Địa chỉ</label>
+              <input type="text" class="form-input" value="10 Thương, Phường Bến Nghé, Quận 1, Thành phố Hồ Chí Minh">
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Vĩ độ <span class="req">*</span></label>
+                <input type="text" class="form-input" value="10.75988924983683">
+              </div>
+              <div class="form-group" style="margin:0">
+                <label class="form-label">Kinh độ <span class="req">*</span></label>
+                <input type="text" class="form-input" value="106.68028771877417">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Narration -->
+        <div class="detail-card">
+          <div class="detail-card-header">
+            <div class="detail-section-title">🎙 Nội dung thuyết minh</div>
+          </div>
+          <div class="detail-card-body">
+            <div class="lang-tabs" style="margin-bottom:16px">
+              <button class="lang-tab active">🇻🇳 Việt</button>
+              <button class="lang-tab">🇬🇧 EN</button>
+              <button class="lang-tab">🇰🇷 KO</button>
+              <button class="lang-tab">🇨🇳 ZH</button>
+              <button class="lang-tab">🇯🇵 JA</button>
+              <button class="lang-tab">🇹🇭 TH</button>
+              <button class="lang-tab">🇫🇷 FR</button>
+            </div>
+            <textarea class="form-textarea" style="min-height:130px">Chào mừng bạn đến với Đặc sản Huế 10 Thương. Quán chuyên phục vụ các món đặc sản Huế như Bún Bò Huế đậm đà với tô đặc biệt, tô thường, bún bò giò và bắp bò. Bánh Canh Cá Lóc Huế với chả cua, cá lóc, đầu cá và giò heo. Ngoài ra còn có bánh thập cẩm, bánh nậm lọc, chả cây cùng nhiều đồ uống. Mời bạn ghé thưởng thức.</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <!-- Classification -->
+        <div class="detail-card">
+          <div class="detail-card-header">
+            <div class="detail-section-title">🏷 Phân loại & Cài đặt</div>
+          </div>
+          <div class="detail-card-body">
+            <div class="form-group">
+              <label class="form-label">Loại POI <span class="req">*</span></label>
+              <select class="form-select">
+                <option selected>Ẩm thực</option>
+                <option>Cà phê</option>
+                <option>Dessert</option>
+                <option>Đồ uống</option>
+                <option>Mua sắm</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Loại món ăn</label>
+              <select class="form-select">
+                <option selected>Bún/Phở/Mì</option>
+                <option>Cơm</option>
+                <option>Bánh</option>
+                <option>Lẩu</option>
+              </select>
+            </div>
+            <div class="form-row" style="margin-bottom:16px">
+              <div>
+                <label class="form-label">Giá min (VND)</label>
+                <input type="number" class="form-input" value="50000">
+              </div>
+              <div>
+                <label class="form-label">Giá max (VND)</label>
+                <input type="number" class="form-input" value="65000">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Thời gian tham quan (phút)</label>
+              <input type="number" class="form-input" value="30">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Ưu tiên</label>
+              <select class="form-select">
+                <option selected>Thấp</option>
+                <option>Trung bình</option>
+                <option>Cao</option>
+              </select>
+            </div>
+
+            <div class="toggle-row">
+              <div>
+                <div class="toggle-label">Kích hoạt</div>
+                <div class="toggle-desc">POI hiển thị và hoạt động</div>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Image -->
+        <div class="detail-card">
+          <div class="detail-card-header">
+            <div class="detail-section-title">🖼 Hình ảnh</div>
+          </div>
+          <div class="detail-card-body">
+            <div class="img-upload-zone">
+              <div class="img-preview">🍜</div>
+              <div style="font-size:0.8rem;color:var(--cream-muted)">Kéo thả hoặc click để thay ảnh</div>
+              <div class="img-upload-hint">Để trống nếu giữ ảnh cũ</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meta -->
+        <div class="detail-card">
+          <div class="detail-card-body" style="padding:14px 20px">
+            <div style="display:flex;justify-content:space-between;font-size:0.74rem;color:var(--cream-muted)">
+              <span>📅 Tạo: 07/02/2026 07:12</span>
+              <span>🔄 Cập nhật: 10/02/2026 15:47</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-save" onclick="handleSave()">✓ Lưu thay đổi</button>
+        <button class="btn-cancel-text" onclick="showPage('poi-detail',null)">Hủy bỏ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: ANALYTICS ===== -->
+  <div class="page" id="page-analytics">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Analytics</div>
+        <div class="page-subtitle">Thống kê & phân tích dữ liệu ghé thăm</div>
+      </div>
+      <button class="topbar-btn">📅 Tháng này</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card green">
+        <div class="stat-top"><div class="stat-icon">👁</div><span class="stat-badge">+12%</span></div>
+        <div class="stat-value">169</div>
+        <div class="stat-label">Lượt ghé thăm tháng này</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-top"><div class="stat-icon">⏱</div><span class="stat-badge">avg</span></div>
+        <div class="stat-value">4.2<span style="font-size:1rem;font-weight:400"> phút</span></div>
+        <div class="stat-label">Thời gian nghe trung bình</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-top"><div class="stat-icon">🌐</div><span class="stat-badge">Top</span></div>
+        <div class="stat-value">VI</div>
+        <div class="stat-label">Ngôn ngữ phổ biến nhất</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-top"><div class="stat-icon">📡</div><span class="stat-badge">Live</span></div>
+        <div class="stat-value">3</div>
+        <div class="stat-label">Người dùng đang hoạt động</div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📈 Lượt ghé thăm theo ngày</div>
+          <span class="card-meta">7 ngày qua</span>
+        </div>
+        <div class="chart-container">
+          <div class="chart-bars" style="height:140px">
+            <div class="chart-bar-wrap"><div class="chart-bar" style="height:60%"></div><div class="chart-label">16/02</div></div>
+            <div class="chart-bar-wrap"><div class="chart-bar" style="height:80%"></div><div class="chart-label">17/02</div></div>
+            <div class="chart-bar-wrap"><div class="chart-bar" style="height:45%"></div><div class="chart-label">18/02</div></div>
+            <div class="chart-bar-wrap"><div class="chart-bar" style="height:90%"></div><div class="chart-label">19/02</div></div>
+            <div class="chart-bar-wrap"><div class="chart-bar" style="height:70%"></div><div class="chart-label">20/02</div></div>
+            <div class="chart-bar-wrap"><div class="chart-bar" style="height:55%"></div><div class="chart-label">21/02</div></div>
+            <div class="chart-bar-wrap"><div class="chart-bar" style="height:100%"></div><div class="chart-label">22/02</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🌐 Phân bố ngôn ngữ</div>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:6px">
+                <span style="color:var(--cream)">🇻🇳 Tiếng Việt</span>
+                <span style="color:var(--amber)">62%</span>
+              </div>
+              <div style="height:6px;background:var(--dark4);border-radius:99px;overflow:hidden">
+                <div style="height:100%;width:62%;background:var(--amber);border-radius:99px"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:6px">
+                <span style="color:var(--cream)">🇰🇷 Tiếng Hàn</span>
+                <span style="color:var(--blue)">18%</span>
+              </div>
+              <div style="height:6px;background:var(--dark4);border-radius:99px;overflow:hidden">
+                <div style="height:100%;width:18%;background:var(--blue);border-radius:99px"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:6px">
+                <span style="color:var(--cream)">🇬🇧 Tiếng Anh</span>
+                <span style="color:var(--green)">12%</span>
+              </div>
+              <div style="height:6px;background:var(--dark4);border-radius:99px;overflow:hidden">
+                <div style="height:100%;width:12%;background:var(--green);border-radius:99px"></div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:6px">
+                <span style="color:var(--cream)">🇨🇳 Tiếng Trung</span>
+                <span style="color:var(--red)">8%</span>
+              </div>
+              <div style="height:6px;background:var(--dark4);border-radius:99px;overflow:hidden">
+                <div style="height:100%;width:8%;background:var(--red);border-radius:99px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✓ Đã lưu thay đổi thành công!</div>
+
+<script>
+const narrations = {
+  vi: 'Chào mừng bạn đến với Đặc sản Huế 10 Thương. Quán chuyên phục vụ các món đặc sản Huế như Bún Bò Huế đậm đà với tô đặc biệt, tô thường, bún bò giò và bắp bò. Bánh Canh Cá Lóc Huế với chả cua, cá lóc, đầu cá và giò heo. Mời bạn ghé thưởng thức.',
+  en: 'Welcome to Hue Specialties 10 Thuong. We specialize in authentic Hue cuisine including hearty Bun Bo Hue noodle soup and Banh Canh Ca Loc. Come in and enjoy our traditional flavors!',
+  ko: '후에 10 트엉 특산물 전문점에 오신 것을 환영합니다. 이 가게는 특별한 그릇, 일반 그릇, 족발 분보와 양지 분보 등 진한 맛의 분보후에를 비롯한 후에 특산 요리를 전문으로 합니다.',
+  zh: '欢迎来到顺化特产10商店。我们专注于顺化传统美食，包括美味的顺化牛肉粉和鱼米粉。请进来品尝我们的传统风味！',
+  ja: 'フエ名産品10トゥオン専門店へようこそ。当店はフエの伝統料理、牛肉のブンボーフエやバインカインカーロックを専門としています。ぜひお越しください。',
+  th: 'ยินดีต้อนรับสู่ร้านอาหารฮเว 10 เทือง เราเชี่ยวชาญด้านอาหารฮเวแบบดั้งเดิม รวมถึงบุ๋นบ่อฮเวและแบ๊งห์กัญก้าล๊อก',
+  fr: 'Bienvenue à la Spécialité de Huê 10 Thuong. Nous nous spécialisons dans la cuisine traditionnelle de Huê avec notre savoureux Bun Bo Huê et Banh Canh Ca Loc. Venez déguster!',
+};
+
+function switchLang(btn, lang) {
+  document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const el = document.getElementById('narration-text');
+  if (el && narrations[lang]) el.textContent = narrations[lang];
+}
+
+const pageLabels = {
+  dashboard: 'Dashboard',
+  'poi-list': 'Dashboard › Quản lý POI',
+  'poi-detail': 'Quản lý POI › Chi tiết POI',
+  'poi-edit': 'Quản lý POI › Chỉnh sửa POI',
+  analytics: 'Dashboard › Analytics',
+};
+
+const navMap = {
+  dashboard: 0,
+  'poi-list': 1,
+  'poi-detail': 1,
+  'poi-edit': 1,
+  analytics: 2,
+};
+
+function showPage(id, navEl, isNew) {
+  // Hide all pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+
+  // Update nav
+  document.querySelectorAll('.nav-item').forEach((n,i) => {
+    n.classList.toggle('active', i === navMap[id]);
+  });
+
+  // Breadcrumb
+  document.getElementById('topbar-breadcrumb').textContent = pageLabels[id] || id;
+
+  // If new POI
+  if (isNew) {
+    document.getElementById('edit-page-title').textContent = 'Thêm POI mới';
+  } else if (id === 'poi-edit') {
+    document.getElementById('edit-page-title').textContent = 'Chỉnh sửa: Đặc sản Huế 10 Thương';
+  }
+}
+
+function handleSave() {
+  const btn = document.querySelector('.btn-save');
+  btn.textContent = '⏳ Đang lưu...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = '✓ Lưu thay đổi';
+    btn.disabled = false;
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+    setTimeout(() => showPage('poi-detail', null), 500);
+  }, 1200);
+}
+
+// Lang tab click in edit page
+document.querySelectorAll('.lang-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    const parent = this.closest('.lang-tabs');
+    parent.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>

@@ -84,11 +84,14 @@ builder.Services.AddAuthorization();
 // Supabase Storage
 builder.Services.AddSingleton<ISupabaseStorageService, SupabaseStorageService>();
 
-// HTTP Client for API
+// HTTP Client for API (local: http://localhost:5000/api/; deploy: set API_BASE_URL hoặc ApiSettings:BaseUrl)
 builder.Services.AddHttpClient("API", client =>
 {
-    client.BaseAddress = new Uri(Environment.GetEnvironmentVariable("API_BASE_URL") ?? builder.Configuration["ApiSettings:BaseUrl"] ?? "https://heristep.onrender.com/api/");
-    client.Timeout = TimeSpan.FromSeconds(90); // Render spin-up có thể mất đến 60s
+    var baseUrl = Environment.GetEnvironmentVariable("API_BASE_URL")
+        ?? builder.Configuration["ApiSettings:BaseUrl"]
+        ?? "http://localhost:5000/api/";
+    client.BaseAddress = new Uri(baseUrl);
+    client.Timeout = TimeSpan.FromSeconds(90);
 });
 
 var app = builder.Build();

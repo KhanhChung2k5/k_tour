@@ -6,268 +6,42 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HeriStepAI – Thuyết Minh Thông Minh</title>
+    <meta http-equiv="refresh" content="0;url=/Auth/Login" />
+    <title>HeriStepAI – Đang chuyển hướng</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"></noscript>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
-          rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Be+Vietnam+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+        :root {
+            --amber: #E8A14B;
+            --dark: #0A0906;
+            --cream: #F8F3E8;
+            --cream-muted: #A89B82;
+        }
         body {
             min-height: 100vh;
-            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
-            font-family: 'Inter', Arial, sans-serif;
+            background: var(--dark);
+            font-family: 'Be Vietnam Pro', sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px;
+            color: var(--cream);
         }
-
-        .login-wrap { width: 100%; max-width: 420px; }
-
-        .login-brand {
+        .msg {
             text-align: center;
-            margin-bottom: 28px;
-        }
-
-        .brand-icon {
-            width: 48px; height: 48px;
-            border-radius: 12px;
-            background: #4f46e5;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 1.3rem;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 12px rgba(79,70,229,0.3);
-        }
-
-        .brand-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1e293b;
-            letter-spacing: -0.02em;
-        }
-
-        .brand-name span { color: #4f46e5; }
-
-        .brand-tagline {
-            font-size: 0.8rem;
-            color: #64748b;
-            margin-top: 5px;
-        }
-
-        .login-card {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
-            padding: 36px 32px;
-        }
-
-        .login-card h2 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 5px;
-        }
-
-        .login-card p {
-            font-size: 0.875rem;
-            color: #64748b;
-            margin-bottom: 28px;
-        }
-
-        .field { margin-bottom: 18px; }
-
-        .field label {
-            display: block;
-            font-size: 0.82rem;
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 6px;
-        }
-
-        .input-wrap { position: relative; }
-
-        .input-icon {
-            position: absolute;
-            left: 12px; top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
             font-size: 0.95rem;
-            pointer-events: none;
+            color: var(--cream-muted);
         }
-
-        .pw-toggle {
-            position: absolute;
-            right: 12px; top: 50%;
-            transform: translateY(-50%);
-            background: none; border: none;
-            color: #94a3b8;
-            cursor: pointer;
-            font-size: 0.95rem;
-            padding: 0;
-            transition: color 0.15s;
-        }
-        .pw-toggle:hover { color: #4f46e5; }
-
-        input[type="email"],
-        input[type="password"],
-        input[type="text"] {
-            width: 100%;
-            padding: 10px 40px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            color: #1e293b;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.875rem;
-            outline: none;
-            transition: border-color 0.15s, box-shadow 0.15s;
-        }
-
-        input::placeholder { color: #94a3b8; }
-
-        input:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
-            background: #fff;
-        }
-
-        .remember-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 22px;
-        }
-
-        .remember-row input[type="checkbox"] {
-            width: 16px; height: 16px; padding: 0;
-            accent-color: #4f46e5; cursor: pointer;
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 11px;
-            background: #4f46e5;
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.15s, box-shadow 0.15s;
-        }
-
-        .btn-login:hover {
-            background: #4338ca;
-            box-shadow: 0 4px 14px rgba(79,70,229,0.35);
-        }
-
-        .btn-login:disabled { opacity: 0.65; cursor: not-allowed; }
-
-        .spinner {
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 6px;
-            width: 14px; height: 14px;
-            border: 2px solid rgba(255,255,255,0.4);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
-
-        @@keyframes spin { to { transform: rotate(360deg); } }
-
-        .login-footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 0.75rem;
-            color: #94a3b8;
-        }
-
-        @@media (max-width: 480px) {
-            .login-card { padding: 28px 20px; }
-        }
+        .msg a { color: var(--amber); text-decoration: none; }
+        .msg a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-
-<div class="login-wrap">
-    <div class="login-brand">
-        <div class="brand-icon"><i class="bi bi-geo-alt-fill"></i></div>
-        <div class="brand-name">Heri<span>Step</span>AI</div>
-        <div class="brand-tagline">Hệ thống Thuyết minh Du lịch Tự động</div>
+    <div class="msg">
+        Đang chuyển tới trang đăng nhập…<br />
+        <a href="/Auth/Login">Bấm vào đây nếu không tự chuyển.</a>
     </div>
-
-    <div class="login-card">
-        <h2>Đăng nhập</h2>
-        <p>Nhập thông tin tài khoản để tiếp tục</p>
-
-        <form method="post" action="/Auth/Login" onsubmit="handleSubmit(this)">
-            @Html.AntiForgeryToken()
-
-            <div class="field">
-                <label for="email">Email / Tài khoản</label>
-                <div class="input-wrap">
-                    <span class="input-icon"><i class="bi bi-envelope"></i></span>
-                    <input type="email" id="email" name="email"
-                           placeholder="email@example.com" required autocomplete="username" />
-                </div>
-            </div>
-
-            <div class="field">
-                <label for="password">Mật khẩu</label>
-                <div class="input-wrap">
-                    <span class="input-icon"><i class="bi bi-lock"></i></span>
-                    <input type="password" id="password" name="password"
-                           placeholder="••••••••" required autocomplete="current-password" />
-                    <button type="button" class="pw-toggle" onclick="togglePw()" tabindex="-1">
-                        <i class="bi bi-eye" id="pwIcon"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="remember-row">
-                <input type="checkbox" id="remember" />
-                <label for="remember" style="font-size:0.82rem;color:#64748b;font-weight:400;cursor:pointer;">Ghi nhớ đăng nhập</label>
-            </div>
-
-            <button type="submit" class="btn-login" id="loginBtn">
-                <span id="loginContent">Đăng nhập</span>
-            </button>
-        </form>
-    </div>
-
-    <div class="login-footer">
-        &copy; 2026 HeriStepAI &nbsp;·&nbsp; Thuyết minh Du lịch Tự động
-    </div>
-</div>
-
-<script>
-    function togglePw() {
-        const inp  = document.getElementById('password');
-        const icon = document.getElementById('pwIcon');
-        if (inp.type === 'password') {
-            inp.type = 'text';
-            icon.className = 'bi bi-eye-slash';
-        } else {
-            inp.type = 'password';
-            icon.className = 'bi bi-eye';
-        }
-    }
-
-    function handleSubmit() {
-        const btn = document.getElementById('loginBtn');
-        btn.disabled = true;
-        document.getElementById('loginContent').innerHTML = '<span class="spinner"></span> Đang xác thực...';
-    }
-</script>
+    <script>window.location.replace("/Auth/Login");</script>
 </body>
 </html>

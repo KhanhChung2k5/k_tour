@@ -15,9 +15,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Render sets PORT - app listens on it (default 5000 if not set)
-ENV ASPNETCORE_URLS=http://0.0.0.0:5000
-EXPOSE 5000
+# PORT env var: set by platform (Fly.io: fly.toml PORT=8080, Render: injected automatically)
+EXPOSE 8080
 
-# Use shell to allow PORT override at runtime
-CMD sh -c 'export ASPNETCORE_URLS=http://0.0.0.0:${PORT:-5000} && dotnet HeriStepAI.API.dll'
+# Use shell to allow PORT override at runtime (default 8080)
+CMD sh -c 'export ASPNETCORE_URLS=http://0.0.0.0:${PORT:-8080} && dotnet HeriStepAI.API.dll'

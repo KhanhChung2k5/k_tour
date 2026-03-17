@@ -33,7 +33,8 @@
       "Bash(dotnet ef migrations list:*)",
       "Bash(Select-String -Pattern \"error\" -Context 0,2)",
       "Bash(git restore:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(adb:*)"
     ]
   }
 }

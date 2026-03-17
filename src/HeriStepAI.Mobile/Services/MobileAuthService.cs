@@ -8,11 +8,20 @@ public class MobileAuthService : IAuthService
     private const string TokenKey = "auth_token";
     private const string UserKey = "auth_user";
 
-    private const string _baseUrl = "https://heristep.onrender.com/api/";
+    private static string GetBaseUrl()
+    {
+#if DEBUG
+        if (DeviceInfo.Platform == DevicePlatform.Android) return "http://10.0.2.2:5000/api/";
+        if (DeviceInfo.Platform == DevicePlatform.iOS) return "http://127.0.0.1:5000/api/";
+        return "http://localhost:5000/api/";
+#else
+        return "https://heristep.onrender.com/api/";
+#endif
+    }
 
     private readonly HttpClient _http = new()
     {
-        BaseAddress = new Uri(_baseUrl),
+        BaseAddress = new Uri(GetBaseUrl()),
         Timeout = TimeSpan.FromSeconds(60)
     };
 
