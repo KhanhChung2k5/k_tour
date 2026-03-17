@@ -93,3 +93,13 @@ artifacts/
 
 # n8n workflow exports (không đưa lên repo)
 n8n-*-workflow.json
+
+# Mockup / draft files & logs (không đưa lên repo)
+add_multilingual_narrations.sql
+heristepai-app-ui.html
+heristepai-dashboard (1).html
+heristepai-login (1).html
+heristepai-login-redesign.html
+heristepai-shopowner (1).html
+logs.txt
+README.md
