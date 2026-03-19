@@ -39,27 +39,43 @@ public class HomeController : Controller
         {
             var client = CreateAuthenticatedClient();
 
+            // Tổng lượt ghé thăm + Tự động nhận diện (Geofence) — đồng bộ với trang Analytics
+            var summaryTask = client.GetAsync("analytics/summary");
+            // Top 10 địa điểm chỉ để hiển thị biểu đồ (không ảnh hưởng số liệu tổng)
             var topPoisTask = client.GetAsync("analytics/top-pois?count=10");
             var poisClient = CreateAuthenticatedClient();
             var poisTask = poisClient.GetAsync("poi");
 
-            await Task.WhenAll(topPoisTask, poisTask);
+            await Task.WhenAll(summaryTask, topPoisTask, poisTask);
 
+            var summaryResponse = summaryTask.Result;
             var topPoisResponse = topPoisTask.Result;
             var poisResponse = poisTask.Result;
+
+            if (summaryResponse.IsSuccessStatusCode)
+            {
+                var content = await summaryResponse.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(content);
+                var root = doc.RootElement;
+                ViewBag.TotalVisits = root.TryGetProperty("TotalVisits", out var tv) ? tv.GetInt32() : 0;
+                ViewBag.GeofenceVisits = root.TryGetProperty("Geofence", out var gf) ? gf.GetInt32() : 0;
+            }
+            else
+            {
+                Console.WriteLine($"[Dashboard] analytics/summary failed: {(int)summaryResponse.StatusCode} {summaryResponse.ReasonPhrase}");
+                ViewBag.TotalVisits = 0;
+                ViewBag.GeofenceVisits = 0;
+            }
 
             if (topPoisResponse.IsSuccessStatusCode)
             {
                 var content = await topPoisResponse.Content.ReadAsStringAsync();
-                var topPOIs = JsonSerializer.Deserialize<Dictionary<string, int>>(content,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                ViewBag.TopPOIs = topPOIs ?? new Dictionary<string, int>();
-                ViewBag.TotalVisits = topPOIs?.Values.Sum() ?? 0;
+                ViewBag.TopPOIs = JsonSerializer.Deserialize<Dictionary<string, int>>(content,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Dictionary<string, int>();
             }
             else
             {
                 ViewBag.TopPOIs = new Dictionary<string, int>();
-                ViewBag.TotalVisits = 0;
             }
 
             if (poisResponse.IsSuccessStatusCode)
@@ -93,6 +109,7 @@ public class HomeController : Controller
             Console.WriteLine($"[Dashboard] Error: {ex.Message}");
             ViewBag.TopPOIs = new Dictionary<string, int>();
             ViewBag.TotalVisits = 0;
+            ViewBag.GeofenceVisits = 0;
             ViewBag.TotalPOIs = 0;
             ViewBag.ActivePOIs = 0;
             ViewBag.POINames = new Dictionary<string, string>();

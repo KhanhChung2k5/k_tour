@@ -76,6 +76,15 @@ public class AnalyticsController : ControllerBase
         return Accepted(new { Message = "Visit queued" });
     }
 
+    /// <summary>Tổng lượt ghé thăm và phân loại — Dashboard dùng để đồng bộ với Analytics.</summary>
+    [HttpGet("summary")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetVisitSummary([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
+    {
+        var (total, geofence, mapClick, qrCode) = await _analyticsService.GetVisitSummaryAsync(startDate, endDate);
+        return Ok(new { TotalVisits = total, Geofence = geofence, MapClick = mapClick, QRCode = qrCode });
+    }
+
     [HttpGet("top-pois")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetTopPOIs([FromQuery] int count = 10, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)

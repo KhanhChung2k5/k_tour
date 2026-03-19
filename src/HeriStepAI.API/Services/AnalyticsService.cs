@@ -92,4 +92,17 @@ public class AnalyticsService : IAnalyticsService
             VisitsByType = visitsByType.ToDictionary(v => v.Type, v => v.Count)
         };
     }
+
+    public async Task<(int TotalVisits, int Geofence, int MapClick, int QRCode)> GetVisitSummaryAsync(DateTime? startDate, DateTime? endDate)
+    {
+        var query = _context.VisitLogs.AsQueryable();
+        if (startDate.HasValue) query = query.Where(v => v.VisitTime >= startDate.Value);
+        if (endDate.HasValue) query = query.Where(v => v.VisitTime <= endDate.Value);
+
+        var total = await query.CountAsync();
+        var geofence = await query.CountAsync(v => v.VisitType == VisitType.Geofence);
+        var mapClick = await query.CountAsync(v => v.VisitType == VisitType.MapClick);
+        var qrCode = await query.CountAsync(v => v.VisitType == VisitType.QRCode);
+        return (total, geofence, mapClick, qrCode);
+    }
 }
