@@ -108,6 +108,8 @@ HeriStepAI là hệ thống **thuyết minh tự động** phục vụ khách du
 | **ANA-02** | Top N POI theo số lượt visit.                                                         |
 | **ANA-03** | Trang Analytics: thống kê theo POI (endpoint `poi/{id}/statistics` hoặc tương đương). |
 
+**Ghi chú dữ liệu:** Dashboard và API analytics **tổng hợp trực tiếp từ bảng `VisitLogs`** (GROUP BY, COUNT, filter theo ngày/POI). **Không dùng** bảng entity `Analytics` trong logic nghiệp vụ hiện tại (có thể vẫn tồn tại trong migration EF cũ nhưng không ghi/đọc).
+
 
 ### 4.5 Ứng dụng Mobile — Khách du lịch
 

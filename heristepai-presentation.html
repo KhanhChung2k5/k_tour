@@ -397,8 +397,8 @@
                     <div class="label">Visit Types (Geofence / MapClick / QR)</div>
                 </div>
                 <div class="stat-card">
-                    <div class="value">5</div>
-                    <div class="label">Bảng PostgreSQL</div>
+                    <div class="value">4</div>
+                    <div class="label">Bảng PostgreSQL (nghiệp vụ)</div>
                 </div>
                 <div class="stat-card">
                     <div class="value">6</div>
@@ -474,7 +474,7 @@
                 <span class="flow-arrow">→</span>
                 <span class="flow-step">VisitLog → DB</span>
                 <span class="flow-arrow">→</span>
-                <span class="flow-step success">Analytics Aggregate</span>
+                <span class="flow-step success">Thống kê từ VisitLogs</span>
             </div>
             <div class="flow" style="margin-top:.5rem;">
                 <span class="flow-step warning">ShopOwner (Web)</span>
@@ -1016,12 +1016,14 @@
                 </div>
             </div>
 
-            <p>Hệ thống analytics gồm 2 tầng: <strong>VisitLog</strong> ghi nhận raw event, <strong>Analytics</strong>
-                aggregate theo ngày. n8n workflow đọc báo cáo hàng ngày để tự động hóa các tác vụ downstream.</p>
+            <p>Nguồn số liệu chính là bảng <strong>VisitLogs</strong>: mỗi lượt ghé ghi một dòng. <strong>Dashboard &amp;
+                báo cáo</strong> được tính <strong>trực tiếp</strong> từ <code>VisitLogs</code> qua
+                <code>IAnalyticsService</code> (GROUP BY, COUNT, filter theo ngày/POI) — <strong>không dùng bảng
+                tổng hợp <code>Analytics</code></strong>. n8n có thể gọi API báo cáo theo khoảng thời gian.</p>
 
             <div class="card-grid">
                 <div class="card">
-                    <h3>📝 VisitLog (Raw Events)</h3>
+                    <h3>📝 VisitLog (sự kiện)</h3>
                     <ul>
                         <li>Ghi mỗi lần khách ghé thăm POI</li>
                         <li>Fields: POIId, UserId, VisitTime, Lat/Lng, VisitType, DurationSeconds</li>
@@ -1030,12 +1032,11 @@
                     </ul>
                 </div>
                 <div class="card">
-                    <h3>📈 Analytics (Daily Aggregation)</h3>
+                    <h3>📈 Thống kê (runtime)</h3>
                     <ul>
-                        <li>Aggregate theo ngày và POI</li>
-                        <li>Fields: VisitCount, UniqueVisitors, AverageDuration</li>
-                        <li><code>VisitByType</code>: JSON field chứa breakdown theo type</li>
-                        <li>Tính từ VisitLogs → upsert daily record</li>
+                        <li>Summary, top POI, thống kê theo POI: truy vấn <code>VisitLogs</code> (EF Core / LINQ)</li>
+                        <li>Không có bảng “daily aggregate” trong luồng hiện tại</li>
+                        <li>Phân loại theo <code>VisitType</code> (Geofence, MapClick, QRCode) trên tập log</li>
                     </ul>
                 </div>
                 <div class="card">
@@ -1511,7 +1512,7 @@
                 </div>
             </div>
 
-            <h3>5 Bảng Chính</h3>
+            <h3>4 Bảng Chính (nghiệp vụ)</h3>
             <div class="table-wrap">
                 <table>
                     <thead>
@@ -1526,7 +1527,7 @@
                         <tr>
                             <td><code>POIs</code></td>
                             <td>Điểm tham quan: tọa độ, bán kính, giá, category, owner</td>
-                            <td>1 POI → N POIContents, N VisitLogs, N Analytics</td>
+                            <td>1 POI → N POIContents, N VisitLogs</td>
                         </tr>
                         <tr>
                             <td><code>POIContents</code></td>
@@ -1535,16 +1536,17 @@
                         </tr>
                         <tr>
                             <td><code>VisitLogs</code></td>
-                            <td>Raw visit events: time, location, type, duration</td>
+                            <td>Sự kiện lượt ghé: thời gian, vị trí, loại visit — dùng cho Dashboard &amp; API analytics</td>
                             <td>N VisitLogs → 1 POI</td>
-                        </tr>
-                        <tr>
-                            <td><code>Analytics</code></td>
-                            <td>Daily aggregated stats per POI: counts, avg duration, JSON breakdown</td>
-                            <td>N Analytics → 1 POI (compound unique: POIId + Date)</td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div class="highlight warning">
+                <strong>Legacy / không dùng:</strong> Bảng entity <code>Analytics</code> có thể vẫn còn trong
+                migration EF Core cũ nhưng <strong>ứng dụng không ghi và không đọc</strong> bảng này. Mọi metric
+                (tổng visit, top POI, theo loại) lấy từ <code>VisitLogs</code>.
             </div>
 
             <h3 style="margin-top:1.5rem;">Users Table</h3>
@@ -1564,18 +1566,17 @@
 }
             </div>
 
-            <h3>Analytics Table — JSON Field</h3>
+            <h3>VisitLog — Ghi nhận lượt ghé (dùng cho thống kê)</h3>
             <div class="code-block">
-<span class="keyword">public class</span> <span class="type">Analytics</span>
+<span class="comment">// VisitLog — mỗi lần POST analytics/visit hoặc tương đương</span>
+<span class="keyword">public class</span> <span class="type">VisitLog</span>
 {
     <span class="keyword">public int</span> Id { <span class="keyword">get</span>; <span class="keyword">set</span>; }
-    <span class="keyword">public int</span> POIId { <span class="keyword">get</span>; <span class="keyword">set</span>; }
-    <span class="keyword">public DateTime</span> Date { <span class="keyword">get</span>; <span class="keyword">set</span>; }
-    <span class="keyword">public int</span> VisitCount { <span class="keyword">get</span>; <span class="keyword">set</span>; }
-    <span class="keyword">public int</span> UniqueVisitors { <span class="keyword">get</span>; <span class="keyword">set</span>; }
-    <span class="keyword">public double</span> AverageDuration { <span class="keyword">get</span>; <span class="keyword">set</span>; }
-    <span class="keyword">public string</span> VisitByType { <span class="keyword">get</span>; <span class="keyword">set</span>; }
-    <span class="comment">// JSON: {"Geofence": 45, "MapClick": 12, "QRCode": 3}</span>
+    <span class="keyword">public int</span> POId { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public string</span>? UserId { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public DateTime</span> VisitTime { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public</span> <span class="type">VisitType</span> VisitType { <span class="keyword">get</span>; <span class="keyword">set</span>; } <span class="comment">// Geofence, MapClick, QRCode</span>
+    <span class="comment">// ... Latitude, Longitude, DurationSeconds (nullable)</span>
 }
             </div>
 
@@ -1682,7 +1683,7 @@ dotnet ef database update --project src/HeriStepAI.API
                         <tr><td>Backend API</td><td>ASP.NET Core 8.0</td><td>REST API, JWT, EF Core, CORS</td></tr>
                         <tr><td>Web Frontend</td><td>ASP.NET Core MVC 8.0</td><td>Razor Views, Cookie Auth, IHttpClientFactory</td></tr>
                         <tr><td>Mobile App</td><td>.NET MAUI 8.0</td><td>Android + iOS, MVVM, WebView Leaflet</td></tr>
-                        <tr><td>Database</td><td>PostgreSQL (Npgsql)</td><td>Supabase hosted, EF Core ORM, 5 tables</td></tr>
+                        <tr><td>Database</td><td>PostgreSQL (Npgsql)</td><td>Supabase hosted, EF Core ORM, 4 bảng nghiệp vụ</td></tr>
                         <tr><td>File Storage</td><td>Supabase Storage</td><td>S3-compatible, POI images CDN</td></tr>
                         <tr><td>Maps</td><td>Leaflet + OpenStreetMap</td><td>Free, no API key, mobile WebView</td></tr>
                         <tr><td>Authentication</td><td>JWT + BCrypt</td><td>HS256, 24h TTL, SecureStorage/Cookie</td></tr>
@@ -1948,7 +1949,7 @@ sequenceDiagram
 
             <!-- Sơ đồ 7 -->
             <h3 style="margin-top:2rem;">Sơ đồ 7 — Entity Relationship (Database Schema)</h3>
-            <p>Quan hệ giữa 5 bảng chính trong PostgreSQL.</p>
+            <p>Quan hệ giữa 4 bảng nghiệp vụ trong PostgreSQL (không gồm bảng legacy).</p>
             <div class="diagram-btns">
                 <button class="diagram-btn" onclick="openDiagram('diag7','Sơ đồ 7 — Database ER Diagram')">
                     🐘 Xem toàn màn hình
