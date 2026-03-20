@@ -24,16 +24,6 @@
 
 ---
 
-## — Your Role (tham chiếu) —
-
-Business Analyst + Product Owner: mô tả đúng hành vi đã triển khai, acceptance criteria kiểm tra được.
-
----
-
-## — Task & Output —
-
-Tài liệu dưới đây là **Output**: Markdown có heading rõ ràng, **bảng User Stories**, **bảng Acceptance Criteria (Given–When–Then)**; không thêm tính năng ngoài scope ngoài mục *Future Enhancements*.
-
 ---
 
 ## 1. Overview & Goals
