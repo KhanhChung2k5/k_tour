@@ -2,6 +2,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HeriStepAI.API.Models;
 
+/// <summary>
+/// Legacy: bảng có thể vẫn tồn tại trong migration; ứng dụng không ghi/đọc.
+/// Thống kê lấy từ VisitLogs qua IAnalyticsService.
+/// </summary>
 public class Analytics
 {
     public int Id { get; set; }

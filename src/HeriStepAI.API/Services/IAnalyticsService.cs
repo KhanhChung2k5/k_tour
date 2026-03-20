@@ -8,6 +8,6 @@ public interface IAnalyticsService
     Task<List<VisitLog>> GetVisitLogsAsync(int? poiId, DateTime? startDate, DateTime? endDate);
     Task<Dictionary<int, int>> GetTopPOIsAsync(int count, DateTime? startDate, DateTime? endDate);
     Task<object> GetPOIStatisticsAsync(int poiId, DateTime? startDate, DateTime? endDate);
-    /// <summary>Tổng lượt ghé thăm và phân loại (Geofence / MapClick / QRCode) — dùng cho Dashboard đồng bộ với Analytics.</summary>
+    /// <summary>Tổng lượt ghé thăm và phân loại (Geofence / MapClick / QRCode) — tính trực tiếp từ VisitLogs.</summary>
     Task<(int TotalVisits, int Geofence, int MapClick, int QRCode)> GetVisitSummaryAsync(DateTime? startDate, DateTime? endDate);
 }

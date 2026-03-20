@@ -76,7 +76,7 @@ public class AnalyticsController : ControllerBase
         return Accepted(new { Message = "Visit queued" });
     }
 
-    /// <summary>Tổng lượt ghé thăm và phân loại — Dashboard dùng để đồng bộ với Analytics.</summary>
+    /// <summary>Tổng lượt ghé thăm và phân loại — tính từ VisitLogs (không dùng bảng Analytics).</summary>
     [HttpGet("summary")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetVisitSummary([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
