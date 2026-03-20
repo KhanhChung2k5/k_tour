@@ -194,4 +194,320 @@ HeriStepAI là hệ thống **thuyết minh tự động** phục vụ khách du
 
 ---
 
+## 10. Sơ Đồ Hệ Thống
+
+> Render bằng Mermaid: VS Code (extension), GitHub, GitLab, Notion, hoặc [mermaid.live](https://mermaid.live/).
+
+---
+
+### 10.1 Tổng Quan Thành Phần & Luồng Dữ Liệu
+
+Ba nhóm người dùng (Admin, ShopOwner, Tourist) — ba project độc lập — hai cách Web lấy dữ liệu tùy theo vai trò.
+
+```mermaid
+flowchart TB
+    subgraph Users["👤 Người dùng"]
+        A[Admin - Web]
+        S[ShopOwner - Web]
+        U[Khách du lịch - App]
+    end
+
+    subgraph Web["HeriStepAI.Web :5001"]
+        W[MVC, Cookie + JWT cookie]
+    end
+
+    subgraph API["HeriStepAI.API :5000"]
+        AP[REST, JWT Bearer]
+    end
+
+    subgraph Storage["Lưu trữ"]
+        DB[(PostgreSQL\nUsers, POIs, POIContents, VisitLogs)]
+        SUP[Supabase Storage\nẢnh POI]
+    end
+
+    A -->|"1. Mở / 2. POST /Auth/Login\n3. Dashboard, POI, Analytics"| W
+    S -->|"Đăng nhập, Dashboard, Edit POI, Thống kê"| W
+    U -->|"Đăng nhập, GET poi\nPOST analytics/visit"| AP
+
+    W -->|"Bearer JWT (cookie)\nauth/login, poi, analytics/summary, top-pois"| AP
+    W -.->|"DbContext trực tiếp\n(ShopOwner only)"| DB
+    W -->|"Upload ảnh POI"| SUP
+    AP -->|"EF Core\nAuth, POI, VisitLogs"| DB
+```
+
+**Chú thích:**
+- Admin → Web → **API** → DB (mọi thao tác đều qua API)
+- ShopOwner → Web → **DB trực tiếp** qua DbContext (Dashboard/Edit/Statistics)
+- Tourist App → **API** trực tiếp (auth, poi, analytics/visit)
+
+---
+
+### 10.2 Flow Đăng Nhập Web (Admin / ShopOwner)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Web as HeriStepAI.Web
+    participant API as HeriStepAI.API
+    participant DB as PostgreSQL
+
+    User->>Web: GET / (hoặc /Home/Index)
+    Web->>User: 302 → /Auth/Login
+    User->>Web: GET /Auth/Login
+    Web->>User: Form đăng nhập (Razor view)
+    User->>Web: POST /Auth/Login (email, password)
+    Web->>API: POST api/auth/login (JSON)
+    API->>DB: Kiểm tra Users (BCrypt verify)
+    DB-->>API: User + Role
+    API->>API: Tạo JWT (HS256, 24h TTL)
+    API-->>Web: 200 { token, userId, role }
+    Web->>Web: Set Cookie AuthToken (JWT)
+    Web->>User: 302 → /Home/Dashboard (Admin)\nhoặc /ShopOwner/Dashboard
+```
+
+| Bước | Hành động | Ghi chú |
+|------|-----------|---------|
+| 5 | POST /Auth/Login | Web chuyển tiếp sang API |
+| 7 | API verify BCrypt | `AuthService.VerifyPassword()` |
+| 9 | Tạo JWT | Claims: NameIdentifier, Name, Email, Role |
+| 11 | Set Cookie | `AuthToken` — được gửi kèm mọi request sau |
+| 12 | Redirect | Admin → `/Home/Dashboard`; ShopOwner → `/ShopOwner/Dashboard` |
+
+---
+
+### 10.3 Flow Dashboard Admin (Gọi API Song Song)
+
+Admin Dashboard gửi 3 request song song để tối ưu thời gian load.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Web as HeriStepAI.Web
+    participant API as HeriStepAI.API
+    participant DB as PostgreSQL
+
+    User->>Web: GET /Home/Dashboard (Cookie)
+    Web->>Web: Đọc AuthToken từ cookie
+    par Gọi song song
+        Web->>API: GET api/analytics/summary (Bearer)
+        API->>DB: SELECT VisitLogs (count, VisitType)
+        DB-->>API: Kết quả
+        API-->>Web: TotalVisits, Geofence%, ...
+    and
+        Web->>API: GET api/analytics/top-pois?count=10 (Bearer)
+        API->>DB: GroupBy POIId, Count, Order DESC
+        API-->>Web: [{ poiId, name, count }]
+    and
+        Web->>API: GET api/poi (Bearer)
+        API->>DB: SELECT POIs WHERE IsActive=true
+        API-->>Web: [POI list]
+    end
+    Web->>Web: ViewBag.TotalVisits, TopPOIs, POIs
+    Web->>User: Dashboard.cshtml (charts + table)
+```
+
+---
+
+### 10.4 Flow Mobile: Đăng Nhập & Ghi Visit
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as HeriStepAI.Mobile
+    participant API as HeriStepAI.API
+    participant DB as PostgreSQL
+
+    User->>App: Mở app
+    App->>App: TryRestoreSession (SecureStorage)
+    alt Có session hợp lệ
+        App->>User: AppShell (MapPage / MainPage)
+    else Không session
+        App->>User: AuthPage (Login/Register)
+        User->>App: Email, password
+        App->>API: POST api/auth/login
+        API->>DB: Kiểm tra Users
+        API-->>App: JWT + userId + role
+        App->>App: SecureStorage.Set("jwt_token", jwt)
+        App->>User: AppShell
+    end
+
+    App->>App: LocationService.StartListeningForegroundAsync()
+    App->>API: GET api/pois (sync background)
+    API-->>App: POI list + POIContents
+    Note over App: Update SQLite cache
+
+    Note over App,API: User vào vùng POI (geofence)
+    App->>App: GeofenceService detects entry (distance ≤ Radius)
+    App->>App: NarrationService.EnqueueAsync(poi, lang)
+    App->>App: ITextToSpeech.SpeakAsync(content)
+    App->>API: POST api/analytics/visit (POIId, VisitType=Geofence) Bearer
+    API-->>App: 202 Accepted
+    API->>DB: INSERT VisitLog (background)
+```
+
+---
+
+### 10.5 Phân Tách Nguồn Dữ Liệu (Web)
+
+```mermaid
+flowchart LR
+    subgraph AdminWeb["Admin Web"]
+        D[Dashboard]
+        P[POI CRUD]
+        AN[Analytics]
+    end
+
+    subgraph ShopOwnerWeb["ShopOwner Web"]
+        SD[ShopOwner Dashboard]
+        SE[Edit POI]
+        ST[Statistics]
+    end
+
+    API[HeriStepAI.API :5000]
+    DB[(PostgreSQL)]
+
+    D --> API
+    P --> API
+    AN --> API
+    API --> DB
+
+    SD -->|"DbContext trực tiếp"| DB
+    SE -->|"DbContext trực tiếp"| DB
+    ST -->|"DbContext trực tiếp"| DB
+```
+
+**Tóm tắt:** Admin → Web → **API** → DB; ShopOwner → Web → **DB** trực tiếp; App → **API** → DB.
+
+---
+
+### 10.6 End-to-End: Từ Mở App đến Nghe Thuyết Minh
+
+Luồng đầy đủ từ khi tourist mở app đến khi TTS phát xong, bao gồm offline fallback.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as Mobile App
+    participant SQLite as SQLite (local)
+    participant GPS as LocationService
+    participant Geo as GeofenceService
+    participant TTS as NarrationService
+    participant API as API :5000
+
+    User->>App: Mở app
+    App->>SQLite: Load pois.db (offline-first, 0ms)
+    SQLite-->>App: POI list cache
+
+    App->>API: GET api/pois (sync background)
+    API-->>App: POI list + POIContents
+    App->>SQLite: Update cache
+
+    App->>GPS: StartListeningForegroundAsync()
+    GPS-->>App: LocationChanged events
+
+    loop Mỗi khi GPS cập nhật
+        App->>Geo: checkGeofences(lat, lng)
+        alt Trong bán kính POI (distance ≤ Radius)
+            Geo->>Geo: Cooldown 5 phút? → skip nếu có
+            Geo->>TTS: EnqueueAsync(poi, language)
+            TTS->>SQLite: Load POIContent by language
+            alt Content tìm thấy
+                TTS->>User: ITextToSpeech.SpeakAsync(text)
+            else Fallback "vi"
+                TTS->>User: SpeakAsync(content_vi)
+            end
+            Geo->>API: POST analytics/visit (fire-and-forget)
+        end
+    end
+```
+
+---
+
+### 10.7 Entity Relationship — Database Schema
+
+```mermaid
+erDiagram
+    Users {
+        int Id PK
+        string Username
+        string Email
+        string PasswordHash
+        int Role
+        bool IsActive
+        datetime CreatedAt
+    }
+    POIs {
+        int Id PK
+        string Name
+        double Latitude
+        double Longitude
+        int Radius
+        int OwnerId FK
+        string Category
+        int FoodType
+        decimal PriceMin
+        decimal PriceMax
+        string ImageUrl
+        bool IsActive
+    }
+    POIContents {
+        int Id PK
+        int POIId FK
+        string Language
+        string TextContent
+        string AudioUrl
+        int ContentType
+        datetime CreatedAt
+    }
+    VisitLogs {
+        int Id PK
+        int POIId FK
+        string UserId
+        datetime VisitTime
+        double Latitude
+        double Longitude
+        int VisitType
+        int DurationSeconds
+    }
+    Users ||--o{ POIs : "owns (OwnerId)"
+    POIs ||--o{ POIContents : "has (cascade delete)"
+    POIs ||--o{ VisitLogs : "logged in"
+```
+
+---
+
+### 10.8 ShopOwner Web Flow (Chi Tiết)
+
+```mermaid
+sequenceDiagram
+    participant SO as ShopOwner
+    participant Web as HeriStepAI.Web
+    participant DB as PostgreSQL
+
+    SO->>Web: POST /Auth/Login (email, password)
+    Web->>Web: Gọi API → nhận JWT → Set Cookie AuthToken
+    Web->>SO: 302 → /ShopOwner/Dashboard
+
+    SO->>Web: GET /ShopOwner/Dashboard (Cookie)
+    Web->>DB: SELECT POIs WHERE OwnerId = userId (DbContext)
+    Web->>DB: SELECT VisitLogs WHERE POI.OwnerId = userId
+    DB-->>Web: POIs + VisitLogs
+    Web->>SO: Dashboard (visit count, POI list)
+
+    SO->>Web: GET /ShopOwner/Edit/{id}
+    Web->>DB: SELECT POI + POIContents WHERE Id = id AND OwnerId = userId
+    DB-->>Web: POI entity
+    Web->>SO: Edit form (name, description, price, content tabs)
+
+    SO->>Web: POST /ShopOwner/Edit/{id} (form data)
+    Web->>DB: UPDATE POI SET ... WHERE Id = id AND OwnerId = userId
+    Web->>SO: 302 → /ShopOwner/Dashboard (success)
+
+    SO->>Web: GET /ShopOwner/Statistics
+    Web->>DB: SELECT VisitLogs GROUP BY POIId + Date
+    DB-->>Web: Aggregated data
+    Web->>SO: Statistics.cshtml (bar chart, unique visitors)
+```
+
+---
 

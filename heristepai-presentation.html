@@ -1,0 +1,2142 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeriStepAI — Hệ Thống Hướng Dẫn Du Lịch Tự Động</title>
+    <style>
+        :root {
+            --primary: #1565c0;
+            --primary-light: #5e92f3;
+            --primary-dark: #003c8f;
+            --accent: #00897b;
+            --accent-light: #4ebaaa;
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --text: #212121;
+            --text-secondary: #616161;
+            --border: #e0e0e0;
+            --code-bg: #263238;
+            --code-text: #eeffff;
+            --success: #2e7d32;
+            --warning: #f57f17;
+            --info: #0277bd;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+
+        /* ===== NAV ===== */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            background: var(--primary-dark);
+            color: white;
+            padding: 0 2rem;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,.2);
+        }
+        nav .logo { font-weight: 700; font-size: 1.1rem; letter-spacing: -.5px; }
+        nav .nav-links { display: flex; gap: .4rem; list-style: none; flex-wrap: wrap; }
+        nav .nav-links a {
+            color: rgba(255,255,255,.85);
+            text-decoration: none;
+            font-size: .8rem;
+            padding: .3rem .65rem;
+            border-radius: 4px;
+            transition: background .2s;
+        }
+        nav .nav-links a:hover, nav .nav-links a.active {
+            background: rgba(255,255,255,.15);
+            color: #fff;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            margin-top: 56px;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--primary-light));
+            color: white;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 2.4rem; font-weight: 800; margin-bottom: .5rem; letter-spacing: -1px;
+            color: #ffffff;
+            text-shadow: 0 2px 8px rgba(0,0,0,.25);
+        }
+        .hero .subtitle {
+            font-size: 1.1rem;
+            color: #cce5ff;
+            max-width: 720px; margin: 0 auto 1.5rem;
+        }
+        .hero .badges { display: flex; justify-content: center; gap: .6rem; flex-wrap: wrap; }
+        .hero .badge {
+            background: rgba(255,255,255,.18);
+            border: 1px solid rgba(255,255,255,.35);
+            color: #e8f4fd;
+            padding: .3rem .8rem;
+            border-radius: 20px;
+            font-size: .8rem;
+            backdrop-filter: blur(4px);
+        }
+
+        /* ===== SECTIONS ===== */
+        section { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; }
+        .section-wrap:nth-child(even) { background: var(--surface); }
+
+        .section-header { display: flex; align-items: center; gap: .8rem; margin-bottom: 1.5rem; }
+        .section-header .icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; flex-shrink: 0;
+        }
+        .section-header h2 { font-size: 1.6rem; font-weight: 700; color: var(--text); }
+        .section-header .section-num {
+            font-size: .75rem; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--primary); font-weight: 600;
+        }
+
+        /* ===== CARDS ===== */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.2rem; margin: 1.5rem 0;
+        }
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 1.5rem;
+            transition: box-shadow .2s, transform .2s;
+        }
+        .card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); transform: translateY(-2px); }
+        .card h3 { font-size: 1.05rem; margin-bottom: .4rem; color: var(--primary-dark); }
+        .card p, .card li { font-size: .9rem; color: var(--text-secondary); }
+        .card ul { padding-left: 1.2rem; margin-top: .4rem; }
+        .card li { margin-bottom: .2rem; }
+
+        /* ===== TABLES ===== */
+        .table-wrap { overflow-x: auto; margin: 1rem 0; }
+        table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+        th { background: var(--primary); color: white; padding: .6rem .8rem; text-align: left; font-weight: 600; }
+        td { padding: .55rem .8rem; border-bottom: 1px solid var(--border); }
+        tr:hover td { background: #e3f2fd; }
+
+        /* ===== CODE ===== */
+        .code-block {
+            background: var(--code-bg); color: var(--code-text);
+            padding: 1.2rem 1.5rem; border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: .82rem; line-height: 1.7; margin: 1rem 0;
+        }
+        .code-block .comment { color: #546e7a; }
+        .code-block .keyword { color: #c792ea; }
+        .code-block .string { color: #c3e88d; }
+        .code-block .type { color: #ffcb6b; }
+        .code-block .fn { color: #82aaff; }
+        code {
+            background: #e8eaf6; padding: .15rem .4rem; border-radius: 3px;
+            font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: .85em;
+        }
+
+        /* ===== FLOW ===== */
+        .flow { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin: 1rem 0; }
+        .flow-step {
+            background: var(--primary); color: white;
+            padding: .4rem .9rem; border-radius: 8px;
+            font-size: .82rem; font-weight: 600; white-space: nowrap;
+        }
+        .flow-step.alt { background: var(--accent); }
+        .flow-step.success { background: var(--success); }
+        .flow-step.warning { background: var(--warning); color: var(--text); }
+        .flow-step.danger { background: #c62828; }
+        .flow-arrow { font-size: 1.2rem; color: var(--text-secondary); }
+
+        /* ===== TIER BARS ===== */
+        .tier-list { margin: 1rem 0; }
+        .tier-item {
+            display: flex; align-items: stretch;
+            margin-bottom: .6rem; border-radius: 8px;
+            overflow: hidden; border: 1px solid var(--border);
+        }
+        .tier-label {
+            width: 80px; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: .85rem; color: white; flex-shrink: 0;
+        }
+        .tier-content { flex: 1; padding: .7rem 1rem; background: var(--surface); }
+        .tier-content strong { display: block; font-size: .9rem; margin-bottom: .2rem; }
+        .tier-content span { font-size: .82rem; color: var(--text-secondary); }
+
+        /* ===== STATS ROW ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem; margin: 1.5rem 0;
+        }
+        .stat-card {
+            text-align: center; padding: 1.2rem .8rem;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        .stat-card .value { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        .stat-card .label { font-size: .78rem; color: var(--text-secondary); margin-top: .2rem; }
+
+        /* ===== TIMELINE ===== */
+        .timeline { position: relative; padding-left: 2rem; margin: 1.5rem 0; }
+        .timeline::before {
+            content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+            width: 2px; background: var(--primary);
+        }
+        .timeline-item { position: relative; margin-bottom: 1.5rem; }
+        .timeline-item::before {
+            content: ''; position: absolute; left: -2rem; top: 6px;
+            width: 14px; height: 14px; border-radius: 50%;
+            background: var(--primary); border: 2px solid white;
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+        .timeline-item h4 { font-size: .95rem; color: var(--primary-dark); margin-bottom: .3rem; }
+        .timeline-item p { font-size: .85rem; color: var(--text-secondary); }
+
+        /* ===== HIGHLIGHT BOX ===== */
+        .highlight {
+            border-left: 4px solid var(--primary);
+            background: #e3f2fd;
+            padding: 1rem 1.2rem; border-radius: 0 8px 8px 0; margin: 1rem 0;
+        }
+        .highlight.success { border-color: var(--success); background: #e8f5e9; }
+        .highlight.warning { border-color: var(--warning); background: #fffde7; }
+        .highlight.danger { border-color: #c62828; background: #ffebee; }
+        .highlight strong { color: var(--text); }
+
+        /* ===== ARCH GRID ===== */
+        .arch-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: .8rem; margin: 1.5rem 0;
+        }
+        .arch-module {
+            border: 2px solid var(--border); border-radius: 10px;
+            padding: 1rem; text-align: center; transition: all .2s;
+        }
+        .arch-module:hover { border-color: var(--primary); box-shadow: 0 2px 12px rgba(21,101,192,.15); }
+        .arch-module .mod-icon { font-size: 1.8rem; margin-bottom: .3rem; }
+        .arch-module .mod-name { font-weight: 700; font-size: .9rem; color: var(--primary-dark); }
+        .arch-module .mod-desc { font-size: .75rem; color: var(--text-secondary); margin-top: .2rem; }
+        .arch-module.reserved { opacity: .5; border-style: dashed; }
+
+        /* ===== ROLE GRID ===== */
+        .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.5rem 0; }
+        .role-card {
+            border-radius: 12px; padding: 1.2rem; text-align: center;
+            border: 2px solid transparent;
+        }
+        .role-card.admin { background: #fce4ec; border-color: #e91e63; }
+        .role-card.shopowner { background: #fff3e0; border-color: #ff9800; }
+        .role-card.tourist { background: #e8f5e9; border-color: #4caf50; }
+        .role-card .role-icon { font-size: 2rem; margin-bottom: .4rem; }
+        .role-card .role-name { font-weight: 700; font-size: 1rem; margin-bottom: .3rem; }
+        .role-card ul { list-style: none; padding: 0; text-align: left; }
+        .role-card li { font-size: .82rem; color: var(--text-secondary); padding: .15rem 0; }
+        .role-card li::before { content: '• '; color: var(--primary); font-weight: 700; }
+
+        /* ===== FOOTER ===== */
+        footer {
+            text-align: center; padding: 2rem;
+            background: var(--code-bg); color: rgba(255,255,255,.6); font-size: .8rem;
+        }
+        footer strong { color: rgba(255,255,255,.9); }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 1.6rem; }
+            section { padding: 2rem 1rem; }
+            .card-grid { grid-template-columns: 1fr; }
+            .arch-grid { grid-template-columns: repeat(2, 1fr); }
+            .role-grid { grid-template-columns: 1fr; }
+            nav .nav-links { display: none; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        h3 { font-size: 1.1rem; color: var(--text); margin-bottom: .6rem; }
+        p { color: var(--text-secondary); margin-bottom: .8rem; }
+
+        .tag {
+            display: inline-block;
+            background: var(--primary); color: white;
+            font-size: .72rem; font-weight: 600;
+            padding: .15rem .55rem; border-radius: 10px;
+            vertical-align: middle; margin-left: .3rem;
+        }
+        .tag.green { background: var(--success); }
+        .tag.orange { background: #e65100; }
+        .tag.grey { background: #607d8b; }
+
+        /* ===== DIAGRAM BUTTONS & MODAL ===== */
+        .diagram-btns { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.2rem; }
+        .diagram-btn {
+            display: inline-flex; align-items: center; gap: .4rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white; border: none; padding: .5rem 1.1rem; border-radius: 22px;
+            font-size: .82rem; font-weight: 600; cursor: pointer; transition: all .25s;
+            box-shadow: 0 2px 6px rgba(0,131,143,.2);
+        }
+        .diagram-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,131,143,.35); }
+        .diagram-overlay {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,.65); backdrop-filter: blur(6px);
+            align-items: center; justify-content: center;
+        }
+        .diagram-overlay.active { display: flex; }
+        .diagram-modal {
+            background: white; border-radius: 16px; width: 96vw; height: 92vh;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 24px 80px rgba(0,0,0,.4); animation: modalIn .3s ease-out;
+        }
+        @keyframes modalIn {
+            from { transform: scale(.92); opacity: 0; }
+            to   { transform: scale(1);   opacity: 1; }
+        }
+        .dm-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: .7rem 1.2rem; background: var(--primary); color: white; flex-shrink: 0;
+        }
+        .dm-header h3 { font-size: 1rem; font-weight: 600; }
+        .dm-ctrl { display: flex; align-items: center; gap: .4rem; }
+        .dm-ctrl button {
+            background: rgba(255,255,255,.18); color: white; border: none;
+            width: 34px; height: 34px; border-radius: 8px; font-size: 1.1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: background .2s;
+        }
+        .dm-ctrl button:hover { background: rgba(255,255,255,.32); }
+        .dm-ctrl .zpct { font-size: .78rem; min-width: 3.5rem; text-align: center; font-weight: 600; }
+        .dm-body {
+            flex: 1; overflow: hidden; position: relative; cursor: grab; background: #fafafa;
+        }
+        .dm-body:active { cursor: grabbing; }
+        .dm-body .vp {
+            position: absolute; transform-origin: 0 0; padding: 2rem; display: inline-block;
+        }
+        .dm-body .vp svg { max-width: none !important; height: auto !important; }
+        .mermaid-inline {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 1.5rem; margin: 1rem 0; overflow-x: auto;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <div class="logo">🗺️ HeriStepAI</div>
+        <ul class="nav-links">
+            <li><a href="#overview">Kiến trúc</a></li>
+            <li><a href="#startup">Khởi động</a></li>
+            <li><a href="#auth">Auth/RBAC</a></li>
+            <li><a href="#geofence">GPS/Geofence</a></li>
+            <li><a href="#poi">POI Content</a></li>
+            <li><a href="#narration">Thuyết minh</a></li>
+            <li><a href="#analytics">Analytics</a></li>
+            <li><a href="#admin">Admin Web</a></li>
+            <li><a href="#mobile">Mobile App</a></li>
+            <li><a href="#tour-sqlite">Tour &amp; SQLite</a></li>
+            <li><a href="#product">PRD &amp; Mục tiêu</a></li>
+            <li><a href="#risks">Rủi ro &amp; Hạn chế</a></li>
+            <li><a href="#database">Database</a></li>
+            <li><a href="#deploy">Triển khai</a></li>
+            <li><a href="#diagrams">Sơ đồ</a></li>
+        </ul>
+    </nav>
+
+    <!-- HERO -->
+    <div class="hero">
+        <h1>HeriStepAI</h1>
+        <p class="subtitle">Hệ thống hướng dẫn âm thanh du lịch tự động: GPS Geofencing tự động phát thuyết minh đa
+            ngôn ngữ khi khách đến gần điểm tham quan. Full-stack .NET 8: API + Web MVC + Mobile MAUI.</p>
+        <div class="badges">
+            <span class="badge">ASP.NET Core 8.0</span>
+            <span class="badge">.NET MAUI (Android / iOS)</span>
+            <span class="badge">PostgreSQL + EF Core</span>
+            <span class="badge">JWT + Cookie Auth</span>
+            <span class="badge">Leaflet + OpenStreetMap</span>
+            <span class="badge">.NET Text-to-Speech</span>
+            <span class="badge">Supabase Storage</span>
+            <span class="badge">n8n Automation</span>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="section-wrap">
+        <section>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="value">3</div>
+                    <div class="label">Projects (API / Web / Mobile)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">3</div>
+                    <div class="label">Vai trò (Admin / ShopOwner / Tourist)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">7+</div>
+                    <div class="label">Ngôn ngữ UI (LocalizationService)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">3</div>
+                    <div class="label">Visit Types (Geofence / MapClick / QR)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">5</div>
+                    <div class="label">Bảng PostgreSQL</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">6</div>
+                    <div class="label">MAUI Pages</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">5m</div>
+                    <div class="label">Cooldown Geofence / POI</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">24h</div>
+                    <div class="label">JWT Token TTL</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== OVERVIEW ===== -->
+    <div class="section-wrap" id="overview">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#e3f2fd;color:var(--primary);">🏗️</div>
+                <div>
+                    <div class="section-num">Chapter 00</div>
+                    <h2>Kiến Trúc Tổng Quan</h2>
+                </div>
+            </div>
+
+            <p>Hệ thống chia thành 3 project độc lập giao tiếp qua REST API. Web và Mobile đều gọi API qua
+                <code>IHttpClientFactory</code> / <code>HttpClient</code>. Database PostgreSQL được quản lý hoàn toàn
+                bởi EF Core Migrations.</p>
+
+            <div class="arch-grid">
+                <div class="arch-module">
+                    <div class="mod-icon">⚙️</div>
+                    <div class="mod-name">HeriStepAI.API</div>
+                    <div class="mod-desc">REST API: Auth, POI CRUD, Analytics, JWT, EF Core + PostgreSQL</div>
+                </div>
+                <div class="arch-module">
+                    <div class="mod-icon">🖥️</div>
+                    <div class="mod-name">HeriStepAI.Web</div>
+                    <div class="mod-desc">ASP.NET Core MVC: Admin & ShopOwner dashboard, Cookie Auth, Razor Views</div>
+                </div>
+                <div class="arch-module">
+                    <div class="mod-icon">📱</div>
+                    <div class="mod-name">HeriStepAI.Mobile</div>
+                    <div class="mod-desc">.NET MAUI (Android/iOS): Map, Geofence, TTS, SQLite offline cache</div>
+                </div>
+                <div class="arch-module">
+                    <div class="mod-icon">🐘</div>
+                    <div class="mod-name">PostgreSQL</div>
+                    <div class="mod-desc">Supabase (Production), Local Dev mode. 5 tables + EF Migrations</div>
+                </div>
+                <div class="arch-module">
+                    <div class="mod-icon">📦</div>
+                    <div class="mod-name">Supabase Storage</div>
+                    <div class="mod-desc">S3-compatible object storage cho ảnh POI. Upload từ Web Admin.</div>
+                </div>
+                <div class="arch-module">
+                    <div class="mod-icon">🔄</div>
+                    <div class="mod-name">n8n Automation</div>
+                    <div class="mod-desc">Daily reports, certificate generation, webhook trigger từ API</div>
+                </div>
+            </div>
+
+            <h3>Luồng Dữ Liệu Chính</h3>
+            <div class="flow">
+                <span class="flow-step warning">Tourist (Mobile)</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">GPS Detect POI</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step alt">POST /visits</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">VisitLog → DB</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step success">Analytics Aggregate</span>
+            </div>
+            <div class="flow" style="margin-top:.5rem;">
+                <span class="flow-step warning">ShopOwner (Web)</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">Login → JWT Cookie</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step alt">Manage POI + Content</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step success">View Statistics</span>
+            </div>
+            <div class="flow" style="margin-top:.5rem;">
+                <span class="flow-step danger">Admin (Web)</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">Full POI CRUD</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step alt">Analytics Dashboard</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step success">Daily Reports → n8n</span>
+            </div>
+
+            <div class="highlight" style="margin-top:1.5rem;">
+                <strong>API Base URLs:</strong> Dev: <code>http://localhost:5000/api/</code> — Production:
+                <code>https://heristep.onrender.com/api/</code>. Web chạy port 5001, gọi API qua named
+                <code>IHttpClientFactory("API")</code>.
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== STARTUP ===== -->
+    <div class="section-wrap" id="startup">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#e8f5e9;color:var(--success);">🚀</div>
+                <div>
+                    <div class="section-num">Chapter 01</div>
+                    <h2>Luồng Khởi Động</h2>
+                </div>
+            </div>
+
+            <h3>API Startup Sequence</h3>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h4>Tầng 1 — Configuration Binding</h4>
+                    <p>Load <code>.env</code> → bind <code>JwtSettings</code> (Secret, Issuer, Audience, ExpiryMinutes=1440),
+                        <code>SUPABASE_CONNECTION_STRING</code>, <code>SUPABASE_URL</code>, <code>SUPABASE_SERVICE_ROLE_KEY</code>.
+                    </p>
+                </div>
+                <div class="timeline-item">
+                    <h4>Tầng 2 — EF Core Migration Auto-Apply</h4>
+                    <p>Gọi <code>db.Database.MigrateAsync()</code> khi khởi động. Hỗ trợ cả PostgreSQL URI format lẫn
+                        key-value connection string. Nếu lỗi → log warning, không crash server.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>Tầng 3 — Data Seeding (SeedService)</h4>
+                    <p>Kiểm tra DB trống → seed Admin account (Role=1), sample POIs, default content. Chỉ chạy nếu
+                        <code>Users.Count() == 0</code>.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>Tầng 4 — JWT Middleware</h4>
+                    <p>Đăng ký <code>AddAuthentication(JwtBearer)</code> với <code>TokenValidationParameters</code>.
+                        Đọc cả <code>Authorization: Bearer</code> header lẫn cookie <code>AuthToken</code>.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>Server Ready — 5 Controllers Mounted</h4>
+                    <p><code>AuthController</code>, <code>POIController</code>, <code>AnalyticsController</code>,
+                        <code>UserController</code>, <code>ReportController</code> → prefix <code>/api/</code>.</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top:2rem;">Web Startup Flow</h3>
+            <div class="flow">
+                <span class="flow-step">App Start</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step alt">Cookie Auth Middleware</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step warning">Check AuthToken Cookie</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">Decode JWT Role</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step success">Route by Role</span>
+            </div>
+
+            <div class="card-grid" style="margin-top:1rem;">
+                <div class="card">
+                    <h3>🔑 Role=1 (Admin)</h3>
+                    <p>Redirect → <code>/Home/Dashboard</code>. Sidebar layout với full CRUD POI, analytics, user
+                        management.</p>
+                </div>
+                <div class="card">
+                    <h3>🏪 Role=2 (ShopOwner)</h3>
+                    <p>Redirect → <code>/ShopOwner/Dashboard</code>. Chỉ thấy POI của mình, view statistics, edit
+                        content.</p>
+                </div>
+                <div class="card">
+                    <h3>📱 Mobile Startup</h3>
+                    <p>Kiểm tra <code>SecureStorage["jwt_token"]</code> → nếu có và còn hạn → vào <code>MainPage</code>,
+                        ngược lại → <code>AuthPage</code>.</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">Mobile Startup Sequence</h3>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h4>JWT Check + Auto-Login</h4>
+                    <p><code>MobileAuthService.IsAuthenticated()</code> → decode token, check <code>exp</code> field
+                        (số, không phải string). Dùng <code>JsonValueKind.Number</code> guard.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>SQLite Sync (POIService)</h4>
+                    <p>Load <code>pois.db</code> từ local → hiển thị ngay (0ms offline). Sau đó gọi
+                        <code>GET /api/poi</code> → sync về SQLite → cập nhật UI.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>GPS Permission Request</h4>
+                    <p>Android: xin <code>ACCESS_FINE_LOCATION</code> + <code>ACCESS_BACKGROUND_LOCATION</code> → khởi
+                        <code>LocationForegroundService</code>. iOS: <code>WhenInUseAuthorization</code>.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>GeofenceService Activation</h4>
+                    <p>Subscribe <code>LocationService.LocationChanged</code> → bắt đầu monitor tất cả active POI trong
+                        cache. Cooldown 5 phút per POI.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== AUTH / RBAC ===== -->
+    <div class="section-wrap" id="auth">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#efebe9;color:#4e342e;">🛡️</div>
+                <div>
+                    <div class="section-num">Chapter 02</div>
+                    <h2>Authentication &amp; RBAC</h2>
+                </div>
+            </div>
+
+            <h3>3 Vai Trò Hệ Thống</h3>
+            <div class="role-grid">
+                <div class="role-card admin">
+                    <div class="role-icon">👑</div>
+                    <div class="role-name">Admin <span class="tag" style="background:#e91e63;">Role = 1</span></div>
+                    <ul>
+                        <li>Toàn quyền hệ thống</li>
+                        <li>CRUD tất cả POI</li>
+                        <li>Quản lý User/ShopOwner</li>
+                        <li>Xem Analytics toàn bộ</li>
+                        <li>Trigger daily reports</li>
+                        <li>Upload ảnh Supabase</li>
+                    </ul>
+                </div>
+                <div class="role-card shopowner">
+                    <div class="role-icon">🏪</div>
+                    <div class="role-name">ShopOwner <span class="tag" style="background:#ff9800;">Role = 2</span></div>
+                    <ul>
+                        <li>Quản lý POI của mình</li>
+                        <li>Edit tên, mô tả, giá</li>
+                        <li>Quản lý multilingual content</li>
+                        <li>View thống kê lượt ghé</li>
+                        <li>Không thấy POI người khác</li>
+                    </ul>
+                </div>
+                <div class="role-card tourist">
+                    <div class="role-icon">🧭</div>
+                    <div class="role-name">Tourist <span class="tag" style="background:#4caf50;">Role = 3</span></div>
+                    <ul>
+                        <li>Chỉ trên Mobile App</li>
+                        <li>Xem danh sách POI</li>
+                        <li>Geofence auto-narration</li>
+                        <li>Nghe thuyết minh TTS</li>
+                        <li>Log visit analytics</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">JWT Implementation</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>🔐 Token Generation (API)</h3>
+                    <ul>
+                        <li>Algorithm: <strong>HS256</strong></li>
+                        <li>Secret: 32-byte key (env var)</li>
+                        <li>Expiry: <strong>1440 phút (24h)</strong></li>
+                        <li>Claims: <code>NameIdentifier</code>, <code>Name</code>, <code>Email</code>, <code>Role</code></li>
+                        <li>BCrypt password hash (cost factor 12)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>🌐 Web Cookie Auth</h3>
+                    <ul>
+                        <li>Cookie name: <code>AuthToken</code></li>
+                        <li>Đọc JWT → parse claims thủ công</li>
+                        <li>Tạo <code>ClaimsPrincipal</code> → <code>SignInAsync()</code></li>
+                        <li>Logout: <code>SignOutAsync()</code> + xóa cookie</li>
+                        <li>Redirect về <code>/Auth/Login</code> nếu 401</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>📱 Mobile SecureStorage</h3>
+                    <ul>
+                        <li>Lưu JWT vào <code>SecureStorage["jwt_token"]</code></li>
+                        <li>Android: Encrypted SharedPreferences</li>
+                        <li>iOS: Keychain Services</li>
+                        <li>Đính kèm Bearer header mỗi API call</li>
+                        <li>Auto-retry với refresh nếu 401</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">JWT Claims Parsing — Known Pitfall</h3>
+            <div class="code-block">
+<span class="comment">// JWT claims dùng full URI namespace:</span>
+<span class="keyword">var</span> role = claims[<span class="string">"http://schemas.microsoft.com/ws/2008/06/identity/claims/role"</span>];
+
+<span class="comment">// exp field là Number, không phải String — phải guard:</span>
+<span class="keyword">if</span> (prop.Value.ValueKind != JsonValueKind.String) <span class="keyword">continue</span>;
+
+<span class="comment">// GetClaimsFromJwt xử lý cả URI và shorthand:</span>
+<span class="keyword">private static</span> <span class="type">Dictionary&lt;string, string&gt;</span> <span class="fn">GetClaimsFromJwt</span>(<span class="type">string</span> token)
+{
+    <span class="keyword">var</span> payload = token.Split(<span class="string">'.'</span>)[<span class="number">1</span>];
+    <span class="keyword">var</span> json = Base64UrlDecode(payload);
+    <span class="comment">// parse → return dict bỏ qua Number fields</span>
+}
+            </div>
+
+            <h3>Login Flow</h3>
+            <div class="flow">
+                <span class="flow-step warning">POST /auth/login</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">Verify BCrypt</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step alt">Generate JWT</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">Return {token, role}</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step success">Store Cookie / SecureStorage</span>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== GPS / GEOFENCE ===== -->
+    <div class="section-wrap" id="geofence">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#e3f2fd;color:var(--info);">📡</div>
+                <div>
+                    <div class="section-num">Chapter 03</div>
+                    <h2>GPS + Geofence + Tự Động Phát Thuyết Minh</h2>
+                </div>
+            </div>
+
+            <p>Khi khách du lịch bước vào vùng bán kính của POI (mặc định 50m), hệ thống tự động phát âm thanh
+                thuyết minh bằng ngôn ngữ đã chọn, không cần thao tác thêm.</p>
+
+            <h3>Kiến Trúc GPS Trên Mobile</h3>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <h4>LocationService — GPS Continuous Tracking</h4>
+                    <p><code>Geolocation.StartListeningForegroundAsync()</code> → emit <code>LocationChanged</code>
+                        event liên tục. Android dùng <code>LocationForegroundService</code> để track khi app
+                        background.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>GeofenceService — Zone Detection</h4>
+                    <p>Subscribe <code>LocationChanged</code> → tính Haversine distance với mỗi POI trong cache →
+                        nếu <code>distance ≤ poi.Radius</code> → trigger narration. Cooldown <strong>5 phút</strong>
+                        per POI (tránh phát lặp).</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>NarrationService — Queue Manager</h4>
+                    <p>Nhận POI trigger → enqueue vào <code>NarrationQueue</code> (single-slot priority). Xử lý
+                        tuần tự: không phát đè lên audio đang chạy. Hỗ trợ Skip/Stop.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>ITextToSpeech — Platform TTS</h4>
+                    <p>Đọc <code>POIContent</code> theo ngôn ngữ user đã chọn (vi/en/zh) → gọi
+                        <code>TextToSpeech.SpeakAsync(text, options)</code>. Options gồm volume, pitch, locale.</p>
+                </div>
+                <div class="timeline-item">
+                    <h4>VisitLog — Fire-and-Forget Analytics</h4>
+                    <p>Song song với phát audio: <code>POST /api/analytics/visit</code> với
+                        <code>VisitType=Geofence</code>, lat/lng, UserId, timestamp. Không block UI.</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">Visit Type Enum</h3>
+            <div class="tier-list">
+                <div class="tier-item">
+                    <div class="tier-label" style="background:#2e7d32;">Geofence</div>
+                    <div class="tier-content">
+                        <strong>VisitType = 1 — Tự động khi đến gần</strong>
+                        <span>Trigger bởi GeofenceService khi user bước vào vùng bán kính POI. Phổ biến nhất.</span>
+                    </div>
+                </div>
+                <div class="tier-item">
+                    <div class="tier-label" style="background:#1565c0;">MapClick</div>
+                    <div class="tier-content">
+                        <strong>VisitType = 2 — User chủ động click trên bản đồ</strong>
+                        <span>Tap vào POI marker trên Leaflet map → hiện detail + phát thuyết minh thủ công.</span>
+                    </div>
+                </div>
+                <div class="tier-item">
+                    <div class="tier-label" style="background:#e65100;">QRCode</div>
+                    <div class="tier-content">
+                        <strong>VisitType = 3 — Quét mã QR tại điểm</strong>
+                        <span>Quét QR code tại cửa hàng → mở POI detail page → log visit.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight warning">
+                <strong>Android Background Location:</strong> Từ Android 10+, cần xin riêng quyền
+                <code>ACCESS_BACKGROUND_LOCATION</code>. App hiển thị dialog giải thích trước khi request.
+                Nếu từ chối, geofence vẫn hoạt động khi app foreground.
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== POI CONTENT ===== -->
+    <div class="section-wrap" id="poi">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#fce4ec;color:#c62828;">📍</div>
+                <div>
+                    <div class="section-num">Chapter 04</div>
+                    <h2>POI Content — Vòng Đời Điểm Tham Quan</h2>
+                </div>
+            </div>
+
+            <h3>POI Entity — Các Trường Chính</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Mô tả</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Id</code></td>
+                            <td>int PK</td>
+                            <td>Auto-increment primary key</td>
+                        </tr>
+                        <tr>
+                            <td><code>Name</code></td>
+                            <td>string</td>
+                            <td>Tên điểm tham quan / cửa hàng</td>
+                        </tr>
+                        <tr>
+                            <td><code>Latitude, Longitude</code></td>
+                            <td>double</td>
+                            <td>Tọa độ GPS chính xác</td>
+                        </tr>
+                        <tr>
+                            <td><code>Radius</code></td>
+                            <td>int (default 50)</td>
+                            <td>Bán kính geofence tính bằng mét</td>
+                        </tr>
+                        <tr>
+                            <td><code>OwnerId</code></td>
+                            <td>int FK → Users</td>
+                            <td>ShopOwner sở hữu POI này</td>
+                        </tr>
+                        <tr>
+                            <td><code>Category</code></td>
+                            <td>string</td>
+                            <td>Loại: Restaurant, Museum, Temple, ...</td>
+                        </tr>
+                        <tr>
+                            <td><code>FoodType</code></td>
+                            <td>enum (0-6)</td>
+                            <td>Other, Seafood, Vegetarian, BBQ, FastFood, Dessert, Street</td>
+                        </tr>
+                        <tr>
+                            <td><code>PriceMin, PriceMax</code></td>
+                            <td>decimal</td>
+                            <td>Khoảng giá (VND)</td>
+                        </tr>
+                        <tr>
+                            <td><code>ImageUrl</code></td>
+                            <td>string</td>
+                            <td>URL ảnh trên Supabase Storage</td>
+                        </tr>
+                        <tr>
+                            <td><code>Contents</code></td>
+                            <td>ICollection&lt;POIContent&gt;</td>
+                            <td>Nội dung đa ngôn ngữ (navigation property)</td>
+                        </tr>
+                        <tr>
+                            <td><code>IsActive</code></td>
+                            <td>bool</td>
+                            <td>Ẩn/hiện trên map và danh sách</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">POIContent — Đa Ngôn Ngữ</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>📝 TextContent + TTS</h3>
+                    <ul>
+                        <li>Mỗi POI có tối đa 3 bản nội dung: <code>vi</code>, <code>en</code>, <code>zh</code></li>
+                        <li><code>ContentType = 1</code>: đọc <code>TextContent</code> qua TTS realtime</li>
+                        <li><code>ContentType = 2</code>: dùng file audio <code>AudioUrl</code> pre-recorded</li>
+                        <li>Mobile ưu tiên <code>AudioUrl</code> nếu có, fallback TTS</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>🌍 Language Fallback</h3>
+                    <ul>
+                        <li>Chọn content theo ngôn ngữ user (<code>SettingsPage</code>)</li>
+                        <li>Fallback: <code>vi</code> → <code>en</code> → bỏ qua phát audio</li>
+                        <li>ShopOwner có thể edit từng ngôn ngữ riêng</li>
+                        <li>Admin có thể bulk-set content</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>🖼️ Image Upload Flow</h3>
+                    <ul>
+                        <li>Admin chọn file → <code>SupabaseStorageService.UploadAsync()</code></li>
+                        <li>Upload lên Supabase bucket → nhận public URL</li>
+                        <li>Lưu URL vào <code>POI.ImageUrl</code></li>
+                        <li>Mobile/Web load ảnh trực tiếp từ Supabase CDN</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">POI CRUD API Endpoints</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Mô tả</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>GET</code></td><td><code>/api/poi</code></td><td>Public</td><td>Lấy tất cả active POI (Mobile dùng)</td></tr>
+                        <tr><td><code>GET</code></td><td><code>/api/poi/{id}</code></td><td>Public</td><td>Chi tiết 1 POI kèm Contents</td></tr>
+                        <tr><td><code>POST</code></td><td><code>/api/poi</code></td><td>Admin/ShopOwner</td><td>Tạo POI mới</td></tr>
+                        <tr><td><code>PUT</code></td><td><code>/api/poi/{id}</code></td><td>Admin/ShopOwner</td><td>Cập nhật POI (ShopOwner chỉ được update của mình)</td></tr>
+                        <tr><td><code>DELETE</code></td><td><code>/api/poi/{id}</code></td><td>Admin / ShopOwner (POI của mình)</td><td>Xóa POI + cascade Contents</td></tr>
+                        <tr><td><code>GET</code></td><td><code>/api/poi/{id}/content/{language}</code></td><td>Public</td><td>Lấy nội dung theo ngôn ngữ</td></tr>
+                        <tr><td><code>GET</code></td><td><code>/api/poi/my-pois</code></td><td>ShopOwner</td><td>Chỉ POI của chủ shop</td></tr>
+                        <tr><td colspan="4"><em>Ảnh POI: upload qua Web (Supabase), không có endpoint riêng <code>/image</code> trong API hiện tại.</em></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== NARRATION / TTS ===== -->
+    <div class="section-wrap" id="narration">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#f3e5f5;color:#7b1fa2;">🔊</div>
+                <div>
+                    <div class="section-num">Chapter 05</div>
+                    <h2>Hệ Thống Thuyết Minh Audio (TTS)</h2>
+                </div>
+            </div>
+
+            <p>Mobile sử dụng .NET MAUI built-in <code>ITextToSpeech</code> — không cần API key, không phát sinh chi
+                phí. Hỗ trợ các giọng đọc platform-native trên Android và iOS.</p>
+
+            <h3>NarrationService — Kiến Trúc Queue</h3>
+            <div class="code-block">
+<span class="comment">// NarrationService.cs — single-slot priority queue</span>
+<span class="keyword">public class</span> <span class="type">NarrationService</span>
+{
+    <span class="keyword">private</span> <span class="type">CancellationTokenSource</span> _cts;
+    <span class="keyword">private readonly</span> <span class="type">Queue&lt;POI&gt;</span> _queue = <span class="keyword">new</span>();
+
+    <span class="keyword">public async</span> <span class="type">Task</span> <span class="fn">EnqueueAsync</span>(<span class="type">POI</span> poi, <span class="type">string</span> language)
+    {
+        _cts?.Cancel(); <span class="comment">// stop current narration</span>
+        _cts = <span class="keyword">new</span> CancellationTokenSource();
+        <span class="keyword">var</span> content = poi.Contents.FirstOrDefault(c => c.Language == language)
+                      ?? poi.Contents.FirstOrDefault(c => c.Language == <span class="string">"vi"</span>);
+        <span class="keyword">if</span> (content == <span class="keyword">null</span>) <span class="keyword">return</span>;
+        <span class="keyword">await</span> TextToSpeech.<span class="fn">SpeakAsync</span>(content.TextContent, <span class="keyword">new</span> SpeechOptions {
+            Locale = <span class="fn">GetLocale</span>(language), Volume = <span class="number">1.0f</span>
+        }, _cts.Token);
+    }
+}
+            </div>
+
+            <h3 style="margin-top:1.5rem;">Voice Settings (VoicePreferenceService)</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>🇻🇳 Tiếng Việt</h3>
+                    <p>Locale: <code>vi-VN</code>. Giọng platform: Android chọn Google TTS Vietnamese, iOS chọn Siri
+                        Linh.</p>
+                </div>
+                <div class="card">
+                    <h3>🇬🇧 English</h3>
+                    <p>Locale: <code>en-US</code>. Giọng platform: Android Google TTS US English, iOS Samantha.</p>
+                </div>
+                <div class="card">
+                    <h3>🇨🇳 中文</h3>
+                    <p>Locale: <code>zh-CN</code>. Giọng platform: Android Google TTS Mandarin, iOS Tingting.</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">Luồng Phát Thuyết Minh Đầy Đủ</h3>
+            <div class="flow">
+                <span class="flow-step warning">Geofence Trigger</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">Lookup POIContent (lang)</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step alt">Language Fallback</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">NarrationService.Enqueue</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step success">ITextToSpeech.SpeakAsync</span>
+            </div>
+
+            <div class="highlight success" style="margin-top:1rem;">
+                <strong>AudioUrl Priority:</strong> Nếu <code>POIContent.AudioUrl</code> có giá trị
+                (pre-recorded file), Mobile phát file âm thanh thay vì TTS. Chất lượng cao hơn, không phụ
+                thuộc platform voice.
+            </div>
+
+            <h3 style="margin-top:1.5rem;">TourGeneratorService</h3>
+            <p>Tạo tự động hành trình tham quan dựa trên vị trí hiện tại và danh sách POI. Sắp xếp theo độ ưu tiên và
+                khoảng cách → tạo <code>Tour</code> với ordered POI list → phát thuyết minh theo thứ tự khi đi.</p>
+        </section>
+    </div>
+
+    <!-- ===== ANALYTICS ===== -->
+    <div class="section-wrap" id="analytics">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#e8f5e9;color:#2e7d32;">📊</div>
+                <div>
+                    <div class="section-num">Chapter 06</div>
+                    <h2>Analytics &amp; Báo Cáo</h2>
+                </div>
+            </div>
+
+            <p>Hệ thống analytics gồm 2 tầng: <strong>VisitLog</strong> ghi nhận raw event, <strong>Analytics</strong>
+                aggregate theo ngày. n8n workflow đọc báo cáo hàng ngày để tự động hóa các tác vụ downstream.</p>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h3>📝 VisitLog (Raw Events)</h3>
+                    <ul>
+                        <li>Ghi mỗi lần khách ghé thăm POI</li>
+                        <li>Fields: POIId, UserId, VisitTime, Lat/Lng, VisitType, DurationSeconds</li>
+                        <li>UserId nullable (anonymous tracking)</li>
+                        <li>Fire-and-forget từ Mobile → không block UX</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>📈 Analytics (Daily Aggregation)</h3>
+                    <ul>
+                        <li>Aggregate theo ngày và POI</li>
+                        <li>Fields: VisitCount, UniqueVisitors, AverageDuration</li>
+                        <li><code>VisitByType</code>: JSON field chứa breakdown theo type</li>
+                        <li>Tính từ VisitLogs → upsert daily record</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>🤖 Daily Report API</h3>
+                    <ul>
+                        <li><code>GET /api/report/daily?date=&amp;token=</code></li>
+                        <li>Bảo vệ bởi <code>REPORT_TOKEN</code> header</li>
+                        <li>Trả JSON tổng hợp cho n8n</li>
+                        <li>n8n webhook → email/Slack/certificate</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>👣 User Daily Visits</h3>
+                    <ul>
+                        <li>Đếm số POI unique mỗi user ghé trong ngày</li>
+                        <li>Dùng để cấp chứng nhận du lịch (n8n)</li>
+                        <li>Endpoint: <code>GET /api/report/user-visits</code></li>
+                        <li>PostgreSQL: load → LINQ-to-Objects (tránh COUNT DISTINCT *)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">Admin Analytics Dashboard — Các Metrics</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>Metric</th><th>Cách tính</th><th>Hiển thị</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Total Visits (Today)</td>
+                            <td>COUNT VisitLogs WHERE date = today</td>
+                            <td>Số lớn trên dashboard</td>
+                        </tr>
+                        <tr>
+                            <td>Geofence %</td>
+                            <td>COUNT VisitType=1 / Total * 100</td>
+                            <td>Progress bar</td>
+                        </tr>
+                        <tr>
+                            <td>Top 5 POIs</td>
+                            <td>GROUP BY POIId, ORDER BY COUNT DESC, TAKE 5</td>
+                            <td>Bar chart</td>
+                        </tr>
+                        <tr>
+                            <td>Hourly Distribution</td>
+                            <td>GROUP BY HOUR(VisitTime)</td>
+                            <td>Line chart</td>
+                        </tr>
+                        <tr>
+                            <td>Growth %</td>
+                            <td>(Today - Yesterday) / Yesterday * 100</td>
+                            <td>Badge up/down</td>
+                        </tr>
+                        <tr>
+                            <td>ShopOwner Stats</td>
+                            <td>WHERE POI.OwnerId = currentUser</td>
+                            <td>Filtered dashboard</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight">
+                <strong>PostgreSQL Pitfall:</strong> <code>COUNT(DISTINCT *)</code> không được hỗ trợ trong PostgreSQL.
+                Giải pháp: load data vào memory trước bằng <code>.ToListAsync()</code>, sau đó dùng
+                LINQ-to-Objects <code>.GroupBy().Count()</code>.
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== ADMIN WEB PANEL ===== -->
+    <div class="section-wrap" id="admin">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#ede7f6;color:#4527a0;">🖥️</div>
+                <div>
+                    <div class="section-num">Chapter 07</div>
+                    <h2>Admin &amp; ShopOwner Web Panel</h2>
+                </div>
+            </div>
+
+            <h3>Layout Hierarchy</h3>
+            <div class="tier-list">
+                <div class="tier-item">
+                    <div class="tier-label" style="background:#e91e63;">Admin</div>
+                    <div class="tier-content">
+                        <strong>_AdminLayout.cshtml — Sidebar + Topbar</strong>
+                        <span>Sidebar với navigation links, topbar với username + logout. Tất cả Admin views dùng
+                            <code>Layout = "_AdminLayout"</code>.</span>
+                    </div>
+                </div>
+                <div class="tier-item">
+                    <div class="tier-label" style="background:#ff9800;">ShopOwner</div>
+                    <div class="tier-content">
+                        <strong>_Layout.cshtml — Base + Own Navbar</strong>
+                        <span>Minimal base layout với navbar riêng. ShopOwner views inject navbar vào
+                            <code>@section Navbar</code>.</span>
+                    </div>
+                </div>
+                <div class="tier-item">
+                    <div class="tier-label" style="background:#607d8b;">Login</div>
+                    <div class="tier-content">
+                        <strong>Layout = null — Standalone</strong>
+                        <span>Login page và Index page không dùng layout. Full-page standalone form.</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">Web Controllers & Views</h3>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>HomeController <span class="tag">Admin</span></h3>
+                    <ul>
+                        <li><code>Dashboard</code>: tổng lượt ghé, top POIs, geofence %</li>
+                        <li>Gọi <code>GET /api/analytics/summary</code></li>
+                        <li>Chart.js bar chart cho top 5 POIs</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>POIController <span class="tag">Admin</span></h3>
+                    <ul>
+                        <li><code>Index</code>: danh sách + filter + search</li>
+                        <li><code>Create/Edit</code>: form với multilingual content tabs</li>
+                        <li><code>Details</code>: xem analytics per POI</li>
+                        <li><code>Delete</code>: confirm dialog</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>ShopOwnerController <span class="tag orange">ShopOwner</span></h3>
+                    <ul>
+                        <li><code>Dashboard</code>: chỉ POI của mình + visit stats</li>
+                        <li><code>Edit</code>: name, description, price, content</li>
+                        <li><code>Statistics</code>: bar chart + unique visitors</li>
+                        <li>Authorize: <code>[Authorize(Roles = "ShopOwner")]</code></li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>AnalyticsController <span class="tag">Admin</span></h3>
+                    <ul>
+                        <li>Bảng chi tiết tất cả visit logs</li>
+                        <li>Filter theo date range, POI, visit type</li>
+                        <li>Export trigger cho n8n daily report</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">Razor Pitfall — Tag Helpers + Option Attributes</h3>
+            <div class="code-block">
+<span class="comment">// ❌ SAI: Không thể dùng @(...) trong option attribute khi tag helpers active</span>
+&lt;<span class="keyword">option</span> value="<span class="string">vi</span>" selected=<span class="string">"@(Model.Language == "vi")"</span>&gt;Tiếng Việt&lt;/<span class="keyword">option</span>&gt;
+
+<span class="comment">// ✅ ĐÚNG: Dùng JavaScript để set value sau khi DOM load</span>
+&lt;<span class="keyword">select</span> id=<span class="string">"languageSelect"</span>&gt;
+    &lt;<span class="keyword">option</span> value=<span class="string">"vi"</span>&gt;Tiếng Việt&lt;/<span class="keyword">option</span>&gt;
+    &lt;<span class="keyword">option</span> value=<span class="string">"en"</span>&gt;English&lt;/<span class="keyword">option</span>&gt;
+&lt;/<span class="keyword">select</span>&gt;
+&lt;<span class="keyword">script</span>&gt;
+    document.getElementById(<span class="string">'languageSelect'</span>).value = <span class="string">'@Model.Language'</span>;
+&lt;/<span class="keyword">script</span>&gt;
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== MOBILE APP ===== -->
+    <div class="section-wrap" id="mobile">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#e3f2fd;color:var(--primary);">📱</div>
+                <div>
+                    <div class="section-num">Chapter 08</div>
+                    <h2>Mobile App — .NET MAUI</h2>
+                </div>
+            </div>
+
+            <h3>Pages &amp; Navigation</h3>
+            <div class="arch-grid">
+                <div class="arch-module">
+                    <div class="mod-icon">🔐</div>
+                    <div class="mod-name">AuthPage</div>
+                    <div class="mod-desc">Login + Register tabs. JWT lưu SecureStorage. Validate form.</div>
+                </div>
+                <div class="arch-module">
+                    <div class="mod-icon">🏠</div>
+                    <div class="mod-name">MainPage</div>
+                    <div class="mod-desc">Home screen. Quick stats, nearby POI preview, quick actions.</div>
+                </div>
+                <div class="arch-module">
+                    <div class="mod-icon">🗺️</div>
+                    <div class="mod-name">MapPage</div>
+                    <div class="mod-desc">Leaflet + OSM trong WebView. POI markers, user location dot, tap-to-detail.</div>
+                </div>
+                <div class="arch-module">
+                    <div class="mod-icon">📋</div>
+                    <div class="mod-name">POIListPage</div>
+                    <div class="mod-desc">Scrollable list, search bar, category filter. MVVM binding.</div>
+                </div>
+                <div class="arch-module">
+                    <div class="mod-icon">📖</div>
+                    <div class="mod-name">POIDetailPage</div>
+                    <div class="mod-desc">Ảnh, mô tả, giá, nút phát thuyết minh, chỉ đường.</div>
+                </div>
+                <div class="arch-module">
+                    <div class="mod-icon">⚙️</div>
+                    <div class="mod-name">SettingsPage</div>
+                    <div class="mod-desc">Chọn ngôn ngữ TTS, volume, voice preferences, logout.</div>
+                </div>
+                <div class="arch-module">
+                    <div class="mod-icon">🍜</div>
+                    <div class="mod-name">TourDetailPage</div>
+                    <div class="mod-desc">Chi tiết tour, danh sách quán, nút Bắt đầu Tour → MapPage.</div>
+                </div>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">Leaflet Map — WebView Integration</h3>
+            <div class="code-block">
+<span class="comment">// MapPage.xaml — Leaflet trong BlazorWebView / WebView</span>
+<span class="comment">// HTML embeds Leaflet.js + OpenStreetMap tiles (free, no API key)</span>
+<span class="comment">// JavaScript bridge: C# → JS để update user location</span>
+
+<span class="keyword">await</span> mapWebView.<span class="fn">EvaluateJavaScriptAsync</span>(
+    $<span class="string">"updateUserLocation({lat}, {lng});"</span>
+);
+
+<span class="comment">// JS → C# callback khi user tap POI marker:</span>
+<span class="comment">// WebView.Navigating event → parse URL scheme poi://id=123</span>
+<span class="comment">// → Navigate to POIDetailPage</span>
+            </div>
+
+            <h3>Services Architecture</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>Service</th><th>Chức năng</th><th>Dependency</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>ApiService</code></td>
+                            <td>HTTP client wrapper, retry logic, 45s timeout</td>
+                            <td>HttpClient, MobileAuthService</td>
+                        </tr>
+                        <tr>
+                            <td><code>MobileAuthService</code></td>
+                            <td>JWT store/retrieve, IsAuthenticated, Logout</td>
+                            <td>SecureStorage</td>
+                        </tr>
+                        <tr>
+                            <td><code>LocationService</code></td>
+                            <td>GPS tracking, LocationChanged event, permission</td>
+                            <td>Geolocation, Permissions</td>
+                        </tr>
+                        <tr>
+                            <td><code>GeofenceService</code></td>
+                            <td>Zone detection, cooldown timer, trigger narration</td>
+                            <td>LocationService, NarrationService</td>
+                        </tr>
+                        <tr>
+                            <td><code>NarrationService</code></td>
+                            <td>TTS queue, cancel current, language selection</td>
+                            <td>ITextToSpeech, VoicePreferenceService</td>
+                        </tr>
+                        <tr>
+                            <td><code>POIService</code></td>
+                            <td>SQLite local cache, sync từ API, offline-first</td>
+                            <td>ApiService, SQLiteConnection</td>
+                        </tr>
+                        <tr>
+                            <td><code>TourGeneratorService</code></td>
+                            <td>Tạo tour tự động theo vị trí + POI list</td>
+                            <td>POIService, LocationService</td>
+                        </tr>
+                        <tr>
+                            <td><code>ILocalizationService</code></td>
+                            <td>App UI localization (menus, labels, messages)</td>
+                            <td>Settings, Resource files</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">API Endpoints từ Mobile</h3>
+            <div class="highlight">
+                <strong>Debug:</strong> Android Emulator → <code>10.0.2.2:5000</code>, iOS Simulator / Physical Device →
+                <code>localhost:5000</code>.<br>
+                <strong>Production:</strong> <code>https://heristep.onrender.com/api/</code>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h3>📡 Online Flow</h3>
+                    <p>App gọi <code>GET /api/poi</code> → nhận JSON → cập nhật SQLite → render UI. Lỗi mạng →
+                        fallback về SQLite cache.</p>
+                </div>
+                <div class="card">
+                    <h3>💾 Offline Flow</h3>
+                    <p>Load <code>pois.db</code> local ngay khi mở app (0ms). Hiển thị cached data. Background
+                        thread sync từ API nếu có mạng.</p>
+                </div>
+                <div class="card">
+                    <h3>🔢 Visit Logging</h3>
+                    <p><code>POST /api/analytics/visit</code> với VisitType, POIId, lat/lng. Fire-and-forget —
+                        failure không ảnh hưởng đến UX.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== TOUR + SQLITE ===== -->
+    <div class="section-wrap" id="tour-sqlite">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#fff8e1;color:#f57f17;">🍜</div>
+                <div>
+                    <div class="section-num">Chapter 08b</div>
+                    <h2>Tour gợi ý &amp; SQLite trên Mobile</h2>
+                </div>
+            </div>
+
+            <h3>Tour — “Bắt đầu Tour”</h3>
+            <p>Trên <strong>MainPage</strong>, người dùng chọn một tour (ví dụ ẩm thực đường phố) → điều hướng
+                <strong>TourDetailPage</strong> (route đăng ký Shell). Màn hình hiển thị danh sách POI trong tour,
+                tổng thời gian, khoảng giá ước tính.</p>
+            <div class="flow" style="margin:1rem 0;">
+                <span class="flow-step warning">Chọn tour</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step">TourDetailPage</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step alt">Bắt đầu Tour</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-step success">MapPage</span>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>🎯 TourSelectionService (Singleton)</h3>
+                    <p>Thuộc tính <code>SelectedTour</code> lưu <strong>tour hiện tại</strong> trong bộ nhớ (không
+                        persist SQLite). Khi bấm <strong>Bắt đầu Tour</strong>, ViewModel gán
+                        <code>SelectedTour = Tour</code> rồi <code>Shell.Current.GoToAsync("//MapPage")</code>.</p>
+                </div>
+                <div class="card">
+                    <h3>🗺️ Lọc POI trên bản đồ</h3>
+                    <p><code>MapPageViewModel.LoadPOIsAsync()</code>: nếu <code>SelectedTour</code> có danh sách
+                        <code>POIs</code> → chỉ hiển thị &amp; khởi tạo geofence cho các POI đó; ngược lại dùng toàn
+                        bộ POI từ SQLite (sync từ API).</p>
+                </div>
+                <div class="card">
+                    <h3>⚠️ Lưu ý triển khai</h3>
+                    <p>Nếu user <strong>đã mở tab Bản đồ trước</strong> khi bấm Bắt đầu tour, <code>LoadPOIsAsync</code>
+                        có thể đã chạy khi <code>SelectedTour</code> còn null — bản đồ vẫn hiện tất cả POI cho đến
+                        khi có bước reload (có thể cải tiến: gọi lại load khi <code>OnAppearing</code> Map).</p>
+                </div>
+            </div>
+
+            <h3 style="margin-top:2rem;">SQLite — <code>pois.db</code></h3>
+            <div class="highlight success">
+                <strong>Chỉ trên Mobile:</strong> Web/API dùng PostgreSQL. App dùng <strong>sqlite-net-pcl</strong>
+                + <strong>SQLitePCLRaw.bundle_e_sqlite3</strong>. File:
+                <code>FileSystem.AppDataDirectory/pois.db</code>.
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>Bảng</th><th>Vai trò</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>POI</code></td><td>Bản sao địa điểm (tọa độ, ảnh, category, giá, …)</td></tr>
+                        <tr><td><code>POIContent</code></td><td>Nội dung theo ngôn ngữ, liên kết <code>POId</code></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p><strong>Đồng bộ:</strong> <code>POIService.SyncPOIsFromServerAsync()</code> gọi
+                <code>GET /api/poi</code> → nếu response <code>null</code> hoặc rỗng thì <strong>giữ nguyên</strong>
+                cache local; nếu có dữ liệu thì xóa bảng và insert lại (full replace).</p>
+            <p><strong>TourGeneratorService:</strong> gợi ý hành trình theo vị trí + danh sách POI; kết hợp với
+                <code>TourDetailPage</code> để trải nghiệm “chuỗi điểm” trên bản đồ.</p>
+        </section>
+    </div>
+
+    <!-- ===== PRD / GOALS ===== -->
+    <div class="section-wrap" id="product">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#e8f5e9;color:#1b5e20;">📋</div>
+                <div>
+                    <div class="section-num">Chapter 08c</div>
+                    <h2>PRD — Mục tiêu &amp; Phạm vi (tóm tắt)</h2>
+                </div>
+            </div>
+            <p>Tài liệu chi tiết: <code>docs/PRODUCT_REQUIREMENTS.md</code>. Dưới đây là phần trích cho thuyết trình.</p>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>🎯 Vấn đề → Giải pháp</h3>
+                    <ul>
+                        <li>Khách cần thông tin &amp; thuyết minh <strong>khi đến gần điểm</strong> mà không thao tác
+                            nhiều.</li>
+                        <li><strong>Geofence + TTS</strong> tự động; Admin/ShopOwner quản lý POI &amp; nội dung qua Web;
+                            Analytics từ <code>VisitLogs</code>.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>📊 Chỉ số gợi ý</h3>
+                    <ul>
+                        <li>Tỷ lệ sync POI thành công (API → SQLite).</li>
+                        <li>Số visit / ngày (hợp lệ).</li>
+                        <li>Độ trễ API (P95) khi vận hành thực tế.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>📦 Phạm vi giao hàng</h3>
+                    <ul>
+                        <li><strong>API</strong> REST + JWT + EF Core.</li>
+                        <li><strong>Web</strong> Admin (qua API) + ShopOwner (một phần DbContext).</li>
+                        <li><strong>Mobile</strong> MAUI: map, list, tour, offline POI cache.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== RISKS ===== -->
+    <div class="section-wrap" id="risks">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#ffebee;color:#c62828;">⚠️</div>
+                <div>
+                    <div class="section-num">Chapter 08d</div>
+                    <h2>Rủi ro &amp; Hạn chế đã biết</h2>
+                </div>
+            </div>
+            <div class="tier-list">
+                <div class="tier-item">
+                    <div class="tier-label" style="background:#6a1b9a;">Arch</div>
+                    <div class="tier-content">
+                        <strong>Hai đường dữ liệu Web</strong>
+                        <span>Admin gọi API; ShopOwner có luồng đọc DB trực tiếp (DbContext). Cần đồng bộ logic &amp;
+                            connection string khi triển khai.</span>
+                    </div>
+                </div>
+                <div class="tier-item">
+                    <div class="tier-label" style="background:#0277bd;">Data</div>
+                    <div class="tier-content">
+                        <strong>Full sync SQLite</strong>
+                        <span>Mỗi lần sync thành công xóa hết POI local rồi insert lại — cần theo dõi hiệu năng khi số
+                            POI rất lớn.</span>
+                    </div>
+                </div>
+                <div class="tier-item">
+                    <div class="tier-label" style="background:#ef6c00;">UX</div>
+                    <div class="tier-content">
+                        <strong>Tour + Map</strong>
+                        <span>Thứ tự mở tab Bản đồ / Bắt đầu tour ảnh hưởng việc lọc POI (xem mục Tour ở trên).</span>
+                    </div>
+                </div>
+                <div class="tier-item">
+                    <div class="tier-label" style="background:#37474f;">Ops</div>
+                    <div class="tier-content">
+                        <strong>Quyền vị trí (Android/iOS)</strong>
+                        <span>Geofence nền phụ thuộc cấp quyền; từ chối background location vẫn có thể dùng khi app
+                            foreground.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== DATABASE ===== -->
+    <div class="section-wrap" id="database">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#e8eaf6;color:#3949ab;">🐘</div>
+                <div>
+                    <div class="section-num">Chapter 09</div>
+                    <h2>Database Schema — PostgreSQL</h2>
+                </div>
+            </div>
+
+            <h3>5 Bảng Chính</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>Bảng</th><th>Mô tả</th><th>Quan hệ</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Users</code></td>
+                            <td>Tài khoản người dùng, BCrypt hash, role enum</td>
+                            <td>1 User → N POIs (Owner)</td>
+                        </tr>
+                        <tr>
+                            <td><code>POIs</code></td>
+                            <td>Điểm tham quan: tọa độ, bán kính, giá, category, owner</td>
+                            <td>1 POI → N POIContents, N VisitLogs, N Analytics</td>
+                        </tr>
+                        <tr>
+                            <td><code>POIContents</code></td>
+                            <td>Nội dung đa ngôn ngữ: vi/en/zh, TextContent, AudioUrl</td>
+                            <td>N POIContents → 1 POI (cascade delete)</td>
+                        </tr>
+                        <tr>
+                            <td><code>VisitLogs</code></td>
+                            <td>Raw visit events: time, location, type, duration</td>
+                            <td>N VisitLogs → 1 POI</td>
+                        </tr>
+                        <tr>
+                            <td><code>Analytics</code></td>
+                            <td>Daily aggregated stats per POI: counts, avg duration, JSON breakdown</td>
+                            <td>N Analytics → 1 POI (compound unique: POIId + Date)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">Users Table</h3>
+            <div class="code-block">
+<span class="keyword">public class</span> <span class="type">User</span>
+{
+    <span class="keyword">public int</span> Id { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public string</span> Username { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public string</span> Email { <span class="keyword">get</span>; <span class="keyword">set</span>; }    <span class="comment">// unique index</span>
+    <span class="keyword">public string</span> PasswordHash { <span class="keyword">get</span>; <span class="keyword">set</span>; } <span class="comment">// BCrypt</span>
+    <span class="keyword">public string</span> FullName { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public string</span> Phone { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public int</span> Role { <span class="keyword">get</span>; <span class="keyword">set</span>; } <span class="comment">// 1=Admin, 2=ShopOwner, 3=Tourist</span>
+    <span class="keyword">public bool</span> IsActive { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public DateTime</span> CreatedAt { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public</span> ICollection&lt;<span class="type">POI</span>&gt; OwnedPOIs { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+}
+            </div>
+
+            <h3>Analytics Table — JSON Field</h3>
+            <div class="code-block">
+<span class="keyword">public class</span> <span class="type">Analytics</span>
+{
+    <span class="keyword">public int</span> Id { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public int</span> POIId { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public DateTime</span> Date { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public int</span> VisitCount { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public int</span> UniqueVisitors { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public double</span> AverageDuration { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public string</span> VisitByType { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="comment">// JSON: {"Geofence": 45, "MapClick": 12, "QRCode": 3}</span>
+}
+            </div>
+
+            <h3 style="margin-top:1.5rem;">EF Core Connection String Handling</h3>
+            <div class="code-block">
+<span class="comment">// Hỗ trợ cả 2 format PostgreSQL:</span>
+<span class="comment">// URI format: postgresql://user:pass@host:5432/db</span>
+<span class="comment">// Key-value: Host=...;Port=5432;Database=...;Username=...;Password=...</span>
+
+<span class="keyword">var</span> connStr = Environment.<span class="fn">GetEnvironmentVariable</span>(<span class="string">"SUPABASE_CONNECTION_STRING"</span>);
+<span class="keyword">if</span> (connStr.StartsWith(<span class="string">"postgresql://"</span>))
+    connStr = <span class="fn">ConvertUriToKeyValue</span>(connStr); <span class="comment">// Npgsql requires key-value</span>
+
+options.<span class="fn">UseNpgsql</span>(connStr);
+            </div>
+
+            <div class="highlight warning">
+                <strong>PostgreSQL vs LINQ:</strong> Không dùng <code>COUNT(DISTINCT *)</code> trong PostgreSQL.
+                Thay bằng: <code>await db.VisitLogs.ToListAsync()</code> rồi LINQ-to-Objects
+                <code>.GroupBy(v => v.UserId).Count()</code>.
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== DEPLOYMENT ===== -->
+    <div class="section-wrap" id="deploy">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#fff3e0;color:#e65100;">🐳</div>
+                <div>
+                    <div class="section-num">Chapter 10</div>
+                    <h2>Triển Khai &amp; Môi Trường</h2>
+                </div>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h3>🌐 Production (Render.com)</h3>
+                    <ul>
+                        <li>API: <code>Dockerfile</code> → Docker deploy trên Render</li>
+                        <li>Web: <code>Dockerfile.Web</code> → Docker deploy</li>
+                        <li>DB: Supabase PostgreSQL (free tier)</li>
+                        <li>Storage: Supabase S3 bucket</li>
+                        <li>Port: API=5000, Web=5001 (configure bởi <code>PORT</code> env)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>🛠️ Development</h3>
+                    <ul>
+                        <li>Local PostgreSQL hoặc Supabase dev project</li>
+                        <li>EF Core auto-migrate on startup</li>
+                        <li>CORS: AllowAll (dev mode)</li>
+                        <li>Mobile: Android Emulator → <code>10.0.2.2:5000</code></li>
+                        <li><code>dotnet watch run</code> cho API + Web</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>🔑 Environment Variables</h3>
+                    <ul>
+                        <li><code>SUPABASE_CONNECTION_STRING</code></li>
+                        <li><code>JWT_SECRET_KEY</code> (≥32 bytes)</li>
+                        <li><code>JWT_ISSUER</code>, <code>JWT_AUDIENCE</code></li>
+                        <li><code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code></li>
+                        <li><code>SUPABASE_SERVICE_ROLE_KEY</code></li>
+                        <li><code>REPORT_TOKEN</code> (n8n auth)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>🔄 n8n Automation</h3>
+                    <ul>
+                        <li>Workflow configs trong <code>n8n/</code></li>
+                        <li>Daily trigger: <code>GET /api/report/daily</code></li>
+                        <li>User visits check → certificate generation</li>
+                        <li>Email/Slack notification on milestones</li>
+                        <li>Auth bởi <code>REPORT_TOKEN</code> header</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="margin-top:1.5rem;">Docker Compose (Dev)</h3>
+            <div class="code-block">
+<span class="comment"># Khởi động toàn bộ stack:</span>
+docker compose up
+
+<span class="comment"># Hoặc chạy riêng từng service:</span>
+dotnet run --project src/HeriStepAI.API     <span class="comment"># port 5000</span>
+dotnet run --project src/HeriStepAI.Web     <span class="comment"># port 5001</span>
+
+<span class="comment"># Kill process đang lock file (Windows):</span>
+taskkill //F //PID &lt;pid&gt;
+
+<span class="comment"># EF Core migration:</span>
+dotnet ef migrations add &lt;Name&gt; --project src/HeriStepAI.API
+dotnet ef database update --project src/HeriStepAI.API
+            </div>
+
+            <h3>Tech Stack Summary</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>Component</th><th>Technology</th><th>Chi tiết</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Backend API</td><td>ASP.NET Core 8.0</td><td>REST API, JWT, EF Core, CORS</td></tr>
+                        <tr><td>Web Frontend</td><td>ASP.NET Core MVC 8.0</td><td>Razor Views, Cookie Auth, IHttpClientFactory</td></tr>
+                        <tr><td>Mobile App</td><td>.NET MAUI 8.0</td><td>Android + iOS, MVVM, WebView Leaflet</td></tr>
+                        <tr><td>Database</td><td>PostgreSQL (Npgsql)</td><td>Supabase hosted, EF Core ORM, 5 tables</td></tr>
+                        <tr><td>File Storage</td><td>Supabase Storage</td><td>S3-compatible, POI images CDN</td></tr>
+                        <tr><td>Maps</td><td>Leaflet + OpenStreetMap</td><td>Free, no API key, mobile WebView</td></tr>
+                        <tr><td>Authentication</td><td>JWT + BCrypt</td><td>HS256, 24h TTL, SecureStorage/Cookie</td></tr>
+                        <tr><td>Mobile DB</td><td>SQLite (sqlite-net-pcl)</td><td>Offline cache, auto-sync</td></tr>
+                        <tr><td>TTS</td><td>.NET ITextToSpeech</td><td>Platform-native voice, 3 languages</td></tr>
+                        <tr><td>Automation</td><td>n8n</td><td>Daily reports, webhook, certificate gen</td></tr>
+                        <tr><td>Container</td><td>Docker + Render.com</td><td>API + Web separate Dockerfiles</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===== SƠ ĐỒ HỆ THỐNG ===== -->
+    <div class="section-wrap" id="diagrams">
+        <section>
+            <div class="section-header">
+                <div class="icon" style="background:#e0f2f1;color:var(--accent);">🔀</div>
+                <div>
+                    <div class="section-num">Chapter 11</div>
+                    <h2>Sơ Đồ Luồng Hệ Thống</h2>
+                </div>
+            </div>
+            <p>Các sơ đồ dưới đây minh họa đầy đủ luồng dữ liệu, sequence và kiến trúc hệ thống HeriStepAI.
+                Nhấn nút để xem toàn màn hình với zoom/pan.</p>
+
+            <!-- Sơ đồ 1 -->
+            <h3 style="margin-top:1.5rem;">Sơ đồ 1 — Tổng Quan Thành Phần &amp; Luồng Dữ Liệu</h3>
+            <p>Ba nhóm người dùng, ba project, hai cách Web lấy dữ liệu (API vs DbContext trực tiếp).</p>
+            <div class="diagram-btns">
+                <button class="diagram-btn" onclick="openDiagram('diag1','Sơ đồ 1 — Tổng quan luồng dữ liệu')">
+                    🗺️ Xem toàn màn hình
+                </button>
+            </div>
+            <div class="mermaid-inline">
+                <div class="mermaid" id="diag1">
+flowchart TB
+    subgraph Users["👤 Người dùng"]
+        A[Admin - Web]
+        S[ShopOwner - Web]
+        U[Khách du lịch - App]
+    end
+
+    subgraph Web["HeriStepAI.Web :5001"]
+        W[MVC, Cookie + JWT cookie]
+    end
+
+    subgraph API["HeriStepAI.API :5000"]
+        AP[REST, JWT Bearer]
+    end
+
+    subgraph Storage["Lưu trữ"]
+        DB[(PostgreSQL\nUsers, POIs, POIContents, VisitLogs)]
+        SUP[Supabase Storage\nẢnh POI]
+    end
+
+    A -->|"1. Mở / 2. POST /Auth/Login\n3. Dashboard, POI, Analytics"| W
+    S -->|"Đăng nhập, Dashboard, Edit POI, Thống kê"| W
+    U -->|"Đăng nhập, GET poi\nPOST analytics/visit"| AP
+
+    W -->|"Bearer JWT (cookie)\nauth/login, poi, analytics/summary, top-pois"| AP
+    W -.->|"DbContext (ShopOwner)\nPOIs, VisitLogs"| DB
+    W -->|"Upload ảnh POI"| SUP
+    AP -->|"EF Core\nAuth, POI, VisitLogs"| DB
+                </div>
+            </div>
+
+            <!-- Sơ đồ 2 -->
+            <h3 style="margin-top:2rem;">Sơ đồ 2 — Flow Đăng Nhập Web (Admin / ShopOwner)</h3>
+            <p>Sequence đăng nhập qua Web → API → PostgreSQL → redirect theo role.</p>
+            <div class="diagram-btns">
+                <button class="diagram-btn" onclick="openDiagram('diag2','Sơ đồ 2 — Login Web sequence')">
+                    🔐 Xem toàn màn hình
+                </button>
+            </div>
+            <div class="mermaid-inline">
+                <div class="mermaid" id="diag2">
+sequenceDiagram
+    participant User
+    participant Web as HeriStepAI.Web
+    participant API as HeriStepAI.API
+    participant DB as PostgreSQL
+
+    User->>Web: GET / (hoặc /Home/Index)
+    Web->>User: 302 → /Auth/Login
+    User->>Web: GET /Auth/Login
+    Web->>User: Form đăng nhập
+    User->>Web: POST /Auth/Login (email, password)
+    Web->>API: POST api/auth/login (JSON)
+    API->>DB: Kiểm tra Users (BCrypt verify)
+    DB-->>API: User + Role
+    API->>API: Tạo JWT (HS256, 24h)
+    API-->>Web: 200 { token, userId, role }
+    Web->>Web: Set Cookie AuthToken (JWT)
+    Web->>User: 302 → /Home/Dashboard (Admin) hoặc /ShopOwner/Dashboard
+                </div>
+            </div>
+
+            <!-- Sơ đồ 3 -->
+            <h3 style="margin-top:2rem;">Sơ đồ 3 — Flow Dashboard Admin (Web → API Song Song)</h3>
+            <p>Admin Dashboard gọi 3 API song song để tối ưu thời gian load trang.</p>
+            <div class="diagram-btns">
+                <button class="diagram-btn" onclick="openDiagram('diag3','Sơ đồ 3 — Admin Dashboard parallel API calls')">
+                    📊 Xem toàn màn hình
+                </button>
+            </div>
+            <div class="mermaid-inline">
+                <div class="mermaid" id="diag3">
+sequenceDiagram
+    participant User
+    participant Web as HeriStepAI.Web
+    participant API as HeriStepAI.API
+    participant DB as PostgreSQL
+
+    User->>Web: GET /Home/Dashboard (Cookie)
+    Web->>Web: Đọc AuthToken từ cookie
+    par Gọi song song
+        Web->>API: GET api/analytics/summary (Bearer)
+        API->>DB: SELECT VisitLogs (count, VisitType)
+        DB-->>API: Kết quả
+        API-->>Web: TotalVisits, Geofence%, ...
+    and
+        Web->>API: GET api/analytics/top-pois?count=10 (Bearer)
+        API->>DB: GroupBy POIId, Count, Order DESC
+        API-->>Web: [{ poiId, name, count }, ...]
+    and
+        Web->>API: GET api/poi (Bearer)
+        API->>DB: SELECT POIs WHERE IsActive=true
+        API-->>Web: [ POI list ]
+    end
+    Web->>Web: ViewBag.TotalVisits, TopPOIs, POIs
+    Web->>User: Dashboard.cshtml (charts + table)
+                </div>
+            </div>
+
+            <!-- Sơ đồ 4 -->
+            <h3 style="margin-top:2rem;">Sơ đồ 4 — Flow Mobile: Đăng Nhập &amp; Ghi Visit</h3>
+            <p>Mobile app khởi động, restore session từ SecureStorage, và ghi visit khi geofence trigger.</p>
+            <div class="diagram-btns">
+                <button class="diagram-btn" onclick="openDiagram('diag4','Sơ đồ 4 — Mobile Login & Visit Log')">
+                    📱 Xem toàn màn hình
+                </button>
+            </div>
+            <div class="mermaid-inline">
+                <div class="mermaid" id="diag4">
+sequenceDiagram
+    participant User
+    participant App as HeriStepAI.Mobile
+    participant API as HeriStepAI.API
+    participant DB as PostgreSQL
+
+    User->>App: Mở app
+    App->>App: TryRestoreSession (SecureStorage)
+    alt Có session hợp lệ
+        App->>User: AppShell (MapPage / MainPage)
+    else Không session
+        App->>User: AuthPage (Login/Register)
+        User->>App: Email, password
+        App->>API: POST api/auth/login
+        API->>DB: Kiểm tra Users
+        API-->>App: JWT + userId + role
+        App->>App: SecureStorage.Set(jwt_token)
+        App->>User: AppShell
+    end
+
+    App->>App: LocationService bắt đầu track GPS
+    App->>App: POIService.SyncPOIsFromServerAsync()
+    Note over App,DB: SQLite local cache cập nhật
+
+    Note over App,API: User vào vùng POI (geofence)
+    App->>App: GeofenceService detects POI entry
+    App->>App: NarrationService.EnqueueAsync(poi, lang)
+    App->>App: ITextToSpeech.SpeakAsync(content)
+    App->>API: POST api/analytics/visit (POIId, VisitType=1) Bearer
+    API-->>App: 202 Accepted
+    API->>DB: INSERT VisitLog (background)
+                </div>
+            </div>
+
+            <!-- Sơ đồ 5 -->
+            <h3 style="margin-top:2rem;">Sơ đồ 5 — Phân Tách Nguồn Dữ Liệu (Web)</h3>
+            <p>Admin luôn đi qua API, ShopOwner truy cập DB trực tiếp qua DbContext.</p>
+            <div class="diagram-btns">
+                <button class="diagram-btn" onclick="openDiagram('diag5','Sơ đồ 5 — Data source separation')">
+                    🔀 Xem toàn màn hình
+                </button>
+            </div>
+            <div class="mermaid-inline">
+                <div class="mermaid" id="diag5">
+flowchart LR
+    subgraph AdminWeb["Admin Web"]
+        D[Dashboard]
+        P[POI CRUD]
+        AN[Analytics]
+    end
+
+    subgraph ShopOwnerWeb["ShopOwner Web"]
+        SD[ShopOwner Dashboard]
+        SE[Edit POI]
+        ST[Statistics]
+    end
+
+    API[HeriStepAI.API :5000]
+    DB[(PostgreSQL)]
+
+    D --> API
+    P --> API
+    AN --> API
+    API --> DB
+
+    SD -->|DbContext trực tiếp| DB
+    SE -->|DbContext trực tiếp| DB
+    ST -->|DbContext trực tiếp| DB
+                </div>
+            </div>
+
+            <!-- Sơ đồ 6 -->
+            <h3 style="margin-top:2rem;">Sơ đồ 6 — End-to-End: Từ Mở App đến Nghe Thuyết Minh</h3>
+            <p>Luồng đầy đủ từ khi tourist mở app đến khi TTS phát xong, bao gồm offline fallback.</p>
+            <div class="diagram-btns">
+                <button class="diagram-btn" onclick="openDiagram('diag6','Sơ đồ 6 — End-to-End Mobile Flow')">
+                    🎯 Xem toàn màn hình
+                </button>
+            </div>
+            <div class="mermaid-inline">
+                <div class="mermaid" id="diag6">
+sequenceDiagram
+    participant User
+    participant App as Mobile App
+    participant SQLite as SQLite (local)
+    participant GPS as LocationService
+    participant Geo as GeofenceService
+    participant TTS as NarrationService
+    participant API as API :5000
+
+    User->>App: Mở app
+    App->>SQLite: Load pois.db (offline-first, 0ms)
+    SQLite-->>App: POI list cache
+
+    App->>API: GET api/poi (sync background)
+    API-->>App: POI list + POIContents
+    App->>SQLite: Update cache
+
+    App->>GPS: StartListeningForegroundAsync()
+    GPS-->>App: LocationChanged events
+
+    loop Mỗi khi GPS cập nhật
+        App->>Geo: checkGeofences(lat, lng)
+        alt Trong bán kính POI (≤ Radius)
+            Geo->>Geo: Cooldown 5 phút? skip
+            Geo->>TTS: EnqueueAsync(poi, language)
+            TTS->>SQLite: Load POIContent by language
+            alt Content tìm thấy
+                TTS->>User: ITextToSpeech.SpeakAsync(text)
+            else Fallback "vi"
+                TTS->>User: SpeakAsync(content_vi)
+            end
+            Geo->>API: POST analytics/visit (fire-and-forget)
+        end
+    end
+                </div>
+            </div>
+
+            <!-- Sơ đồ 7 -->
+            <h3 style="margin-top:2rem;">Sơ đồ 7 — Entity Relationship (Database Schema)</h3>
+            <p>Quan hệ giữa 5 bảng chính trong PostgreSQL.</p>
+            <div class="diagram-btns">
+                <button class="diagram-btn" onclick="openDiagram('diag7','Sơ đồ 7 — Database ER Diagram')">
+                    🐘 Xem toàn màn hình
+                </button>
+            </div>
+            <div class="mermaid-inline">
+                <div class="mermaid" id="diag7">
+erDiagram
+    Users {
+        int Id PK
+        string Username
+        string Email
+        string PasswordHash
+        string FullName
+        int Role
+        bool IsActive
+        datetime CreatedAt
+    }
+    POIs {
+        int Id PK
+        string Name
+        double Latitude
+        double Longitude
+        int Radius
+        int OwnerId FK
+        string Category
+        int FoodType
+        decimal PriceMin
+        decimal PriceMax
+        string ImageUrl
+        bool IsActive
+    }
+    POIContents {
+        int Id PK
+        int POIId FK
+        string Language
+        string TextContent
+        string AudioUrl
+        int ContentType
+        datetime CreatedAt
+    }
+    VisitLogs {
+        int Id PK
+        int POIId FK
+        string UserId
+        datetime VisitTime
+        double Latitude
+        double Longitude
+        int VisitType
+        int DurationSeconds
+    }
+    Users ||--o{ POIs : "owns"
+    POIs ||--o{ POIContents : "has"
+    POIs ||--o{ VisitLogs : "logged in"
+                </div>
+            </div>
+
+            <!-- Sơ đồ 8 -->
+            <h3 style="margin-top:2rem;">Sơ đồ 8 — Tour: Bắt đầu hành trình → Bản đồ lọc POI</h3>
+            <p><code>TourSelectionService</code> lưu tour đang chọn; <code>MapPageViewModel</code> ưu tiên POI trong tour.</p>
+            <div class="diagram-btns">
+                <button class="diagram-btn" onclick="openDiagram('diag8','Sơ đồ 8 — Tour → Map')">
+                    🍜 Xem toàn màn hình
+                </button>
+            </div>
+            <div class="mermaid-inline">
+                <div class="mermaid" id="diag8">
+sequenceDiagram
+    participant User
+    participant Main as MainPage
+    participant TD as TourDetailPage
+    participant TS as TourSelectionService
+    participant Map as MapPageViewModel
+
+    User->>Main: Chọn tour
+    Main->>TD: GoTo TourDetailPage (Query Tour)
+    User->>TD: Bấm Bắt đầu Tour
+    TD->>TS: SelectedTour = Tour
+    TD->>TD: GoTo //MapPage
+    Map->>TS: Đọc SelectedTour
+    alt Tour có POIs
+        Map->>Map: POIs = Tour.POIs
+    else Không có tour
+        Map->>Map: POIs = SQLite (GetAllPOIsAsync)
+    end
+    Map->>Map: GeofenceService.Initialize(POIs)
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- DIAGRAM MODAL OVERLAY -->
+    <div class="diagram-overlay" id="diagOverlay">
+        <div class="diagram-modal">
+            <div class="dm-header">
+                <h3 id="diagTitle">Sơ đồ</h3>
+                <div class="dm-ctrl">
+                    <button onclick="zoom(-0.2)">−</button>
+                    <span class="zpct" id="zpct">100%</span>
+                    <button onclick="zoom(+0.2)">+</button>
+                    <button onclick="resetZoom()">⊡</button>
+                    <button onclick="closeDiagram()">✕</button>
+                </div>
+            </div>
+            <div class="dm-body" id="dmBody">
+                <div class="vp" id="dmVp"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <strong>HeriStepAI</strong> — Hệ thống hướng dẫn du lịch tự động · ASP.NET Core 8.0 · .NET MAUI · PostgreSQL ·
+        Supabase · n8n<br>
+        <span style="margin-top:.4rem;display:block;">API: port 5000 · Web: port 5001 · Mobile: Android + iOS</span>
+    </footer>
+
+    <!-- Mermaid.js -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+    </script>
+
+    <script>
+        // ===== ACTIVE NAV =====
+        const sections = document.querySelectorAll('[id]');
+        const navLinks = document.querySelectorAll('nav .nav-links a');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(sec => {
+                if (sec.getBoundingClientRect().top <= 80) current = sec.id;
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) link.classList.add('active');
+            });
+        });
+
+        // ===== DIAGRAM MODAL =====
+        let scale = 1, startX = 0, startY = 0, transX = 0, transY = 0, dragging = false;
+        const overlay  = document.getElementById('diagOverlay');
+        const dmVp     = document.getElementById('dmVp');
+        const dmBody   = document.getElementById('dmBody');
+        const zpctEl   = document.getElementById('zpct');
+        const diagTitle = document.getElementById('diagTitle');
+
+        function openDiagram(id, title) {
+            const src = document.getElementById(id);
+            if (!src) return;
+            diagTitle.textContent = title;
+            dmVp.innerHTML = '';
+            const clone = src.cloneNode(true);
+            clone.removeAttribute('id');
+            clone.style.minWidth = '600px';
+            dmVp.appendChild(clone);
+            // re-render mermaid in clone
+            if (window.mermaid) mermaid.run({ nodes: [clone] });
+            scale = 1; transX = 0; transY = 0;
+            applyTransform();
+            overlay.classList.add('active');
+        }
+
+        function closeDiagram() { overlay.classList.remove('active'); }
+
+        function zoom(delta) {
+            scale = Math.max(0.3, Math.min(4, scale + delta));
+            applyTransform();
+        }
+        function resetZoom() { scale = 1; transX = 0; transY = 0; applyTransform(); }
+        function applyTransform() {
+            dmVp.style.transform = `translate(${transX}px,${transY}px) scale(${scale})`;
+            zpctEl.textContent = Math.round(scale * 100) + '%';
+        }
+
+        dmBody.addEventListener('mousedown', e => {
+            dragging = true; startX = e.clientX - transX; startY = e.clientY - transY;
+        });
+        window.addEventListener('mousemove', e => {
+            if (!dragging) return;
+            transX = e.clientX - startX; transY = e.clientY - startY; applyTransform();
+        });
+        window.addEventListener('mouseup', () => { dragging = false; });
+        dmBody.addEventListener('wheel', e => {
+            e.preventDefault();
+            zoom(e.deltaY < 0 ? 0.1 : -0.1);
+        }, { passive: false });
+        overlay.addEventListener('click', e => { if (e.target === overlay) closeDiagram(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDiagram(); });
+    </script>
+
+</body>
+</html>
