@@ -1,5 +1,6 @@
 using HeriStepAI.Mobile.Helpers;
 using HeriStepAI.Mobile.Services;
+using HeriStepAI.Mobile.ViewModels;
 using HeriStepAI.Mobile.Views;
 
 namespace HeriStepAI.Mobile;
@@ -18,8 +19,17 @@ public partial class App : Application
             InitializeComponent();
             ResponsiveHelper.Initialize();
 
-            // Go straight to AppShell — no login required
-            MainPage = serviceProvider.GetRequiredService<AppShell>();
+            // Gate on subscription: show payment page if not active
+            var subscription = serviceProvider.GetRequiredService<ISubscriptionService>();
+            if (subscription.IsActive)
+            {
+                MainPage = serviceProvider.GetRequiredService<AppShell>();
+            }
+            else
+            {
+                var vm = serviceProvider.GetRequiredService<SubscriptionViewModel>();
+                MainPage = new SubscriptionPage(vm);
+            }
 
             // Sync POIs in background
             _ = Task.Run(async () =>

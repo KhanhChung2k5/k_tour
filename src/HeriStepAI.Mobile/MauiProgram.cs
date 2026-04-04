@@ -34,6 +34,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
         builder.Services.AddSingleton<ITourGeneratorService, TourGeneratorService>();
         builder.Services.AddSingleton<IAnalyticsService, LocalAnalyticsService>();
+        builder.Services.AddSingleton<ISubscriptionService, SubscriptionService>();
 
         // ViewModels
         builder.Services.AddSingleton<AuthViewModel>();       // merged login+register
@@ -45,6 +46,7 @@ public static class MauiProgram
         builder.Services.AddTransient<SettingsPageViewModel>();
         builder.Services.AddTransient<TourDetailViewModel>();
         builder.Services.AddTransient<POIDetailViewModel>();
+        builder.Services.AddTransient<SubscriptionViewModel>();
 
         // Shell & Views
         builder.Services.AddSingleton<AppShell>();
@@ -57,6 +59,7 @@ public static class MauiProgram
         builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddTransient<TourDetailPage>();
         builder.Services.AddTransient<POIDetailPage>();
+        builder.Services.AddTransient<SubscriptionPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
