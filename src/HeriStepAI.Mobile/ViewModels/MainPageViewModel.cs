@@ -18,6 +18,8 @@ public partial class MainPageViewModel : ObservableObject
     private readonly ITourSelectionService _tourSelectionService;
     private readonly ILocalizationService _localizationService;
     private readonly ITourGeneratorService _tourGenerator;
+    private readonly IAnalyticsService _analytics;
+    private Location? _lastLocation;
 
     // Location state
     [ObservableProperty]
@@ -54,6 +56,11 @@ public partial class MainPageViewModel : ObservableObject
     [ObservableProperty]
     private Tour? selectedTour;
 
+    [ObservableProperty]
+    private Tour? featuredTour;
+
+    public bool HasFeaturedTour => FeaturedTour != null;
+
     public MainPageViewModel(
         ILocationService locationService,
         IGeofenceService geofenceService,
@@ -62,7 +69,8 @@ public partial class MainPageViewModel : ObservableObject
         IApiService apiService,
         ITourSelectionService tourSelectionService,
         ILocalizationService localizationService,
-        ITourGeneratorService tourGenerator)
+        ITourGeneratorService tourGenerator,
+        IAnalyticsService analytics)
     {
         _locationService = locationService;
         _geofenceService = geofenceService;
@@ -72,6 +80,7 @@ public partial class MainPageViewModel : ObservableObject
         _tourSelectionService = tourSelectionService;
         _localizationService = localizationService;
         _tourGenerator = tourGenerator;
+        _analytics = analytics;
 
         _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
 
@@ -197,6 +206,8 @@ public partial class MainPageViewModel : ObservableObject
                     Tours.Add(tour);
                     RecentTours.Add(tour);
                 }
+                FeaturedTour = Tours.FirstOrDefault();
+                OnPropertyChanged(nameof(HasFeaturedTour));
             });
 
             AppLog.Info($"Loaded {builtTours.Count} smart tours");
@@ -211,7 +222,15 @@ public partial class MainPageViewModel : ObservableObject
     private void OnLocationChanged(object? sender, Location location)
     {
         CurrentLocationText = $"Lat: {location.Latitude:F6}, Lng: {location.Longitude:F6}";
-        
+
+        // Track distance
+        if (_lastLocation != null)
+        {
+            double meters = Location.CalculateDistance(_lastLocation, location, DistanceUnits.Kilometers) * 1000;
+            _analytics.AddDistance(meters);
+        }
+        _lastLocation = location;
+
         // Check geofence
         var poi = _geofenceService.CheckGeofence(location);
         if (poi != null)
@@ -223,10 +242,12 @@ public partial class MainPageViewModel : ObservableObject
     private async void OnPOIEntered(object? sender, POI poi)
     {
         CurrentPOI = poi;
+        _analytics.RecordPOIVisit(poi);
         // Note: LogVisitAsync is handled by MapPageViewModel.OnGeofencePOIEntered (avoids duplicate log)
 
         // Play narration - dùng ngôn ngữ app
         await _narrationService.PlayNarrationAsync(poi, NarrationLanguage);
+        _analytics.RecordNarration();
     }
 
     [RelayCommand]

@@ -62,6 +62,7 @@ public class POIService : IPOIService
     public async Task<POI?> UpdatePOIAsync(int id, POI poi)
     {
         Console.WriteLine($"[POIService] UpdatePOIAsync called for ID: {id}");
+        Console.WriteLine($"[POIService] Incoming ImageUrl: {poi.ImageUrl ?? "NULL"}");
 
         var existing = await _context.POIs
             .Include(p => p.Contents)
@@ -96,6 +97,7 @@ public class POIService : IPOIService
         else
             existing.Address = poi.Address;
 
+        Console.WriteLine($"[POIService] Setting ImageUrl: {existing.ImageUrl} -> {poi.ImageUrl}");
         existing.UpdatedAt = DateTime.UtcNow;
 
         // Update Contents - remove old and add new

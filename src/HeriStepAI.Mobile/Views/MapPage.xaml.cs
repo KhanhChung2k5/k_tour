@@ -13,6 +13,7 @@ public partial class MapPage : ContentPage
     public MapPage() : this(GetViewModel()) { }
 
     private bool _mapLoaded;
+    private int? _lastLoadedTourId = -2; // sentinel: never matches any real tour id or null
     private bool _isBottomSheetExpanded = true;
     private double _bottomSheetPanStartY;
 
@@ -175,11 +176,25 @@ public partial class MapPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        var currentTourId = _viewModel.CurrentTourId;
         if (!_mapLoaded)
         {
             _mapLoaded = true;
+            _lastLoadedTourId = currentTourId;
             LoadMapAsync();
         }
+        else if (currentTourId != _lastLoadedTourId)
+        {
+            // Tour changed — reload POIs then re-render map
+            _lastLoadedTourId = currentTourId;
+            _ = ReloadForTourAsync();
+        }
+    }
+
+    private async Task ReloadForTourAsync()
+    {
+        await _viewModel.ReloadPOIsAsync();
+        LoadMapAsync();
     }
 
     private void OnMapNeedsUpdate(object? sender, EventArgs e)

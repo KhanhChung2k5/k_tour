@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HeriStepAI.Mobile.Services;
-using HeriStepAI.Mobile.Views;
+using System.Collections.ObjectModel;
 
 namespace HeriStepAI.Mobile.ViewModels;
 
@@ -11,7 +11,7 @@ public partial class SettingsPageViewModel : ObservableObject
     private readonly ILocationService _locationService;
     private readonly ILocalizationService _localizationService;
     private readonly IVoicePreferenceService _voicePreference;
-    private readonly IAuthService _authService;
+    private readonly IAnalyticsService _analytics;
 
     [ObservableProperty]
     private string selectedLanguage = "Tiếng Việt";
@@ -43,56 +43,134 @@ public partial class SettingsPageViewModel : ObservableObject
     public string LblContactSupport => _localizationService.GetString("ContactSupport");
     public string LblSyncData => _localizationService.GetString("SyncData");
     public string LblAccount => _localizationService.GetString("Account");
-    public string LblLogout => _localizationService.GetString("Logout");
 
-    [ObservableProperty]
-    private string accountDisplayName = "";
+    // ── Profile labels ──
+    public string LblProfileTitle => _localizationService.GetString("ProfileTitle");
+    public string LblGuestName => _localizationService.GetString("GuestName");
+    public string LblGuestTitle => _localizationService.GetString("GuestTitle");
+    public string LblLevelProgress => _localizationService.GetString("LevelProgress");
+    public string LblBadgesEarned => _localizationService.GetString("BadgesEarned");
+    public string LblBadgeChampion => _localizationService.GetString("BadgeChampion");
+    public string LblBadgeExplorer => _localizationService.GetString("BadgeExplorer");
+    public string LblBadgeLegend => _localizationService.GetString("BadgeLegend");
+    public string LblNarrationNotification => _localizationService.GetString("NarrationNotification");
+    public string LblVolumeVoice => _localizationService.GetString("VolumeVoice");
 
-    [ObservableProperty]
-    private string accountEmail = "";
+    // ── Stats section labels ──
+    public string LblStatsSection => _localizationService.GetString("StatsSection");
+    public string LblShopsVisitedLabel => _localizationService.GetString("LblShopsVisited");
+    public string LblDistanceLabel => _localizationService.GetString("LblDistance");
+    public string LblToursCompletedLabel => _localizationService.GetString("LblToursCompleted");
+    public string LblNarrationCountLabel => _localizationService.GetString("LblNarrationCount");
+    public string LblWeeklyActivityTitle => _localizationService.GetString("WeeklyActivityTitle");
+    public string LblSevenDays => _localizationService.GetString("SevenDays");
+    public string LblTopPlacesTitle => _localizationService.GetString("TopPlacesTitle");
+    public string LblNoDataYet => _localizationService.GetString("NoDataYet");
+
+    // ── Week day abbreviations ──
+    public string LblDayMon => _localizationService.GetString("DayMon");
+    public string LblDayTue => _localizationService.GetString("DayTue");
+    public string LblDayWed => _localizationService.GetString("DayWed");
+    public string LblDayThu => _localizationService.GetString("DayThu");
+    public string LblDayFri => _localizationService.GetString("DayFri");
+    public string LblDaySat => _localizationService.GetString("DaySat");
+    public string LblDaySun => _localizationService.GetString("DaySun");
+
+    // Analytics stats — from LocalAnalyticsService (Preferences-backed)
+    public string ShopsVisited => _analytics.ShopsVisited.ToString();
+    public string TotalDistanceText => _analytics.TotalDistanceMeters >= 1000
+        ? $"{_analytics.TotalDistanceMeters / 1000:F1} km"
+        : $"{(int)_analytics.TotalDistanceMeters} m";
+    public string ToursCompleted => _analytics.ToursCompleted.ToString();
+    public string NarrationCount => _analytics.NarrationCount.ToString();
+
+    // Weekly bar chart heights (0–55 px, proportional to max day)
+    public double BarMonHeight => GetBarHeight(0);
+    public double BarTueHeight => GetBarHeight(1);
+    public double BarWedHeight => GetBarHeight(2);
+    public double BarThuHeight => GetBarHeight(3);
+    public double BarFriHeight => GetBarHeight(4);
+    public double BarSatHeight => GetBarHeight(5);
+    public double BarSunHeight => GetBarHeight(6);
+
+    // Today's column uses Accent color, others use Primary
+    public Color BarMonColor => GetBarColor(0);
+    public Color BarTueColor => GetBarColor(1);
+    public Color BarWedColor => GetBarColor(2);
+    public Color BarThuColor => GetBarColor(3);
+    public Color BarFriColor => GetBarColor(4);
+    public Color BarSatColor => GetBarColor(5);
+    public Color BarSunColor => GetBarColor(6);
+
+    // Top POIs — display wrapper để format VisitCountText theo ngôn ngữ
+    public ObservableCollection<POIVisitDisplayItem> TopPOIsList { get; } = new();
+
+    private double GetBarHeight(int dayIndex)
+    {
+        var weekly = _analytics.WeeklyActivity;
+        int max = weekly.Max();
+        if (max == 0) return 5;
+        double height = (weekly[dayIndex] / (double)max) * 55;
+        return Math.Max(5, height);
+    }
+
+    private Color GetBarColor(int dayIndex)
+    {
+        int todayIndex = ((int)DateTime.Now.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+        return dayIndex == todayIndex
+            ? Color.FromArgb("#C4A24A")  // Accent
+            : Color.FromArgb("#2C2416"); // Primary
+    }
 
     public SettingsPageViewModel(
         IPOIService poiService,
         ILocationService locationService,
         ILocalizationService localizationService,
         IVoicePreferenceService voicePreference,
-        IAuthService authService)
+        IAnalyticsService analytics)
     {
         _poiService = poiService;
         _locationService = locationService;
         _localizationService = localizationService;
         _voicePreference = voicePreference;
-        _authService = authService;
+        _analytics = analytics;
+        RefreshTopPOIs();
 
         _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
-        _authService.UserProfileUpdated += (_, _) => MainThread.BeginInvokeOnMainThread(RefreshAccountInfo);
 
         SelectedLanguage = LanguageCodeToDisplay(_localizationService.CurrentLanguage);
         SelectedVoiceGender = _voicePreference.VoiceGender == VoiceGender.Male
             ? _localizationService.GetString("Male")
             : _localizationService.GetString("Female");
         UpdateGpsStatus();
-        RefreshAccountInfo();
     }
 
-    /// <summary>Gọi khi màn Cài đặt hiển thị để load lại tên/email từ session.</summary>
-    public void RefreshAccountInfo()
+    public void RefreshAnalytics()
     {
-        var user = _authService.CurrentUser;
-        if (user != null)
-        {
-            AccountDisplayName = !string.IsNullOrWhiteSpace(user.FullName)
-                ? user.FullName
-                : !string.IsNullOrWhiteSpace(user.Username)
-                    ? user.Username
-                    : _localizationService.GetString("LoggedIn"); // "Đã đăng nhập"
-            AccountEmail = !string.IsNullOrWhiteSpace(user.Email) ? user.Email : "—";
-        }
-        else
-        {
-            AccountDisplayName = "—";
-            AccountEmail = "—";
-        }
+        OnPropertyChanged(nameof(ShopsVisited));
+        OnPropertyChanged(nameof(TotalDistanceText));
+        OnPropertyChanged(nameof(ToursCompleted));
+        OnPropertyChanged(nameof(NarrationCount));
+        OnPropertyChanged(nameof(BarMonHeight)); OnPropertyChanged(nameof(BarMonColor));
+        OnPropertyChanged(nameof(BarTueHeight)); OnPropertyChanged(nameof(BarTueColor));
+        OnPropertyChanged(nameof(BarWedHeight)); OnPropertyChanged(nameof(BarWedColor));
+        OnPropertyChanged(nameof(BarThuHeight)); OnPropertyChanged(nameof(BarThuColor));
+        OnPropertyChanged(nameof(BarFriHeight)); OnPropertyChanged(nameof(BarFriColor));
+        OnPropertyChanged(nameof(BarSatHeight)); OnPropertyChanged(nameof(BarSatColor));
+        OnPropertyChanged(nameof(BarSunHeight)); OnPropertyChanged(nameof(BarSunColor));
+        RefreshTopPOIs();
+    }
+
+    private void RefreshTopPOIs()
+    {
+        var fmt = _localizationService.GetString("VisitCountFmt");
+        var top = _analytics.TopPOIs;
+        TopPOIsList.Clear();
+        foreach (var item in top)
+            TopPOIsList.Add(new POIVisitDisplayItem(
+                item.Name,
+                string.Format(fmt, item.VisitCount),
+                item.Rating));
     }
 
     private void RefreshTranslations()
@@ -113,10 +191,38 @@ public partial class SettingsPageViewModel : ObservableObject
             OnPropertyChanged(nameof(LblContactSupport));
             OnPropertyChanged(nameof(LblSyncData));
             OnPropertyChanged(nameof(LblAccount));
-            OnPropertyChanged(nameof(LblLogout));
-            RefreshAccountInfo();
-            // Refresh voice gender picker
+            // Profile section
+            OnPropertyChanged(nameof(LblProfileTitle));
+            OnPropertyChanged(nameof(LblGuestName));
+            OnPropertyChanged(nameof(LblGuestTitle));
+            OnPropertyChanged(nameof(LblLevelProgress));
+            OnPropertyChanged(nameof(LblBadgesEarned));
+            OnPropertyChanged(nameof(LblBadgeChampion));
+            OnPropertyChanged(nameof(LblBadgeExplorer));
+            OnPropertyChanged(nameof(LblBadgeLegend));
+            OnPropertyChanged(nameof(LblNarrationNotification));
+            OnPropertyChanged(nameof(LblVolumeVoice));
+            // Stats section
+            OnPropertyChanged(nameof(LblStatsSection));
+            OnPropertyChanged(nameof(LblShopsVisitedLabel));
+            OnPropertyChanged(nameof(LblDistanceLabel));
+            OnPropertyChanged(nameof(LblToursCompletedLabel));
+            OnPropertyChanged(nameof(LblNarrationCountLabel));
+            OnPropertyChanged(nameof(LblWeeklyActivityTitle));
+            OnPropertyChanged(nameof(LblSevenDays));
+            OnPropertyChanged(nameof(LblTopPlacesTitle));
+            OnPropertyChanged(nameof(LblNoDataYet));
+            // Day abbreviations
+            OnPropertyChanged(nameof(LblDayMon));
+            OnPropertyChanged(nameof(LblDayTue));
+            OnPropertyChanged(nameof(LblDayWed));
+            OnPropertyChanged(nameof(LblDayThu));
+            OnPropertyChanged(nameof(LblDayFri));
+            OnPropertyChanged(nameof(LblDaySat));
+            OnPropertyChanged(nameof(LblDaySun));
+            // Refresh voice gender picker + top POIs (format changes with lang)
             OnPropertyChanged(nameof(AvailableVoiceGenders));
+            RefreshTopPOIs();
             UpdateGpsStatus();
         });
     }
@@ -176,18 +282,6 @@ public partial class SettingsPageViewModel : ObservableObject
     };
 
     [RelayCommand]
-    private async Task Logout()
-    {
-        await _authService.LogoutAsync();
-        if (Application.Current != null && Application.Current.MainPage != null)
-        {
-            var authPage = IPlatformApplication.Current?.Services?.GetRequiredService<AuthPage>();
-            if (authPage != null)
-                Application.Current.MainPage = authPage;
-        }
-    }
-
-    [RelayCommand]
     private async Task SyncData()
     {
         if (IsSyncing) return;
@@ -207,5 +301,20 @@ public partial class SettingsPageViewModel : ObservableObject
         {
             IsSyncing = false;
         }
+    }
+}
+
+/// <summary>Display wrapper for a POI visit record with localized visit count text.</summary>
+public class POIVisitDisplayItem
+{
+    public string Name { get; init; } = "";
+    public string VisitCountText { get; init; } = "";
+    public double Rating { get; init; }
+
+    public POIVisitDisplayItem(string name, string visitCountText, double rating)
+    {
+        Name = name;
+        VisitCountText = visitCountText;
+        Rating = rating;
     }
 }

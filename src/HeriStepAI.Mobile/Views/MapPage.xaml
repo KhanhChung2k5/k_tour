@@ -12,12 +12,12 @@
 
         <!-- Top Bar with Search -->
         <Grid Grid.Row="0"
-              BackgroundColor="{StaticResource White}"
+              BackgroundColor="{StaticResource CardBackground}"
               x:Name="TopBar"
               Padding="16,48,16,12"
               ZIndex="10">
             <Grid.Shadow>
-                <Shadow Brush="{StaticResource Black}" Offset="0,2" Radius="6" Opacity="0.04" />
+                <Shadow Brush="{StaticResource Black}" Offset="0,2" Radius="8" Opacity="0.05" />
             </Grid.Shadow>
             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
                 <!-- Back Button -->
@@ -168,7 +168,7 @@
             </Grid.GestureRecognizers>
 
             <!-- Selected POI Info -->
-            <Frame BackgroundColor="{StaticResource White}"
+            <Frame BackgroundColor="{StaticResource CardBackground}"
                    CornerRadius="20"
                    Padding="0"
                    HasShadow="True"
@@ -249,25 +249,19 @@
                                 Text="{Binding LblListenNarration}"
                                 Command="{Binding PlayNarrationCommand}"
                                 TextColor="{StaticResource White}"
+                                BackgroundColor="{StaticResource Primary}"
                                 FontSize="12"
                                 FontAttributes="Bold"
                                 CornerRadius="20"
                                 HeightRequest="44"
-                                Padding="4,0">
-                            <Button.Background>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                    <GradientStop Color="#E8943A" Offset="0.0" />
-                                    <GradientStop Color="#C97B28" Offset="1.0" />
-                                </LinearGradientBrush>
-                            </Button.Background>
-                        </Button>
+                                Padding="4,0" />
                         <Button Grid.Column="1"
                                 Text="{Binding LblGetDirections}"
                                 Command="{Binding NavigateCommand}"
-                                BackgroundColor="{StaticResource White}"
+                                BackgroundColor="{StaticResource CardBackground}"
                                 TextColor="{StaticResource Primary}"
-                                BorderColor="{StaticResource Primary}"
-                                BorderWidth="1.5"
+                                BorderColor="{StaticResource WarmBorder}"
+                                BorderWidth="1"
                                 FontSize="12"
                                 CornerRadius="20"
                                 HeightRequest="44"
@@ -277,7 +271,7 @@
             </Frame>
 
             <!-- POI Quick List (when no POI selected) -->
-            <Frame BackgroundColor="{StaticResource White}"
+            <Frame BackgroundColor="{StaticResource CardBackground}"
                    CornerRadius="20"
                    Padding="0"
                    HasShadow="True"
@@ -310,7 +304,7 @@
                                                BindableLayout.ItemsSource="{Binding NearbyPOIs}">
                             <BindableLayout.ItemTemplate>
                                 <DataTemplate x:DataType="models:POI">
-                                    <Frame BackgroundColor="{StaticResource White}"
+                                    <Frame BackgroundColor="{StaticResource CardBackground}"
                                            CornerRadius="14"
                                            MinimumWidthRequest="120"
                                            WidthRequest="135"

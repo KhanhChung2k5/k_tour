@@ -5,6 +5,9 @@ using System.Text;
 using System.Text.Json;
 using HeriStepAI.Web.Models;
 using HeriStepAI.Web.Services;
+using HeriStepAI.API.Data;
+using HeriStepAI.API.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HeriStepAI.Web.Controllers;
 
@@ -13,51 +16,78 @@ public class POIController : Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ISupabaseStorageService _storageService;
+    private readonly ApplicationDbContext _context;
 
-    public POIController(IHttpClientFactory httpClientFactory, ISupabaseStorageService storageService)
+    public POIController(IHttpClientFactory httpClientFactory, ISupabaseStorageService storageService, ApplicationDbContext context)
     {
         _httpClientFactory = httpClientFactory;
         _storageService = storageService;
+        _context = context;
     }
 
     // GET: POI
     public async Task<IActionResult> Index()
     {
-        var client = CreateAuthenticatedClient();
-        var response = await client.GetAsync("poi");
-
-        if (response.IsSuccessStatusCode)
-        {
-            var content = await response.Content.ReadAsStringAsync();
-            var pois = JsonSerializer.Deserialize<List<POIViewModel>>(content, new JsonSerializerOptions
+        var pois = await _context.POIs
+            .OrderByDescending(p => p.CreatedAt)
+            .Select(p => new POIViewModel
             {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<POIViewModel>();
-            return View(pois);
-        }
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Address = p.Address,
+                Latitude = p.Latitude,
+                Longitude = p.Longitude,
+                ImageUrl = p.ImageUrl,
+                IsActive = p.IsActive,
+                Category = p.Category,
+                FoodType = p.FoodType,
+                PriceMin = p.PriceMin,
+                PriceMax = p.PriceMax,
+                Priority = p.Priority,
+                Rating = p.Rating,
+                ReviewCount = p.ReviewCount,
+                OwnerId = p.OwnerId,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt
+            })
+            .ToListAsync();
 
-        TempData["Error"] = "Không thể tải danh sách POI";
-        return View(new List<POIViewModel>());
+        return View(pois);
     }
 
     // GET: POI/Details/5
     public async Task<IActionResult> Details(int id)
     {
-        var client = CreateAuthenticatedClient();
-        var response = await client.GetAsync($"poi/{id}");
+        var p = await _context.POIs
+            .Include(x => x.Contents)
+            .FirstOrDefaultAsync(x => x.Id == id);
 
-        if (response.IsSuccessStatusCode)
+        if (p == null)
         {
-            var content = await response.Content.ReadAsStringAsync();
-            var poi = JsonSerializer.Deserialize<POIViewModel>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-            return View(poi);
+            TempData["Error"] = "Không tìm thấy POI";
+            return RedirectToAction(nameof(Index));
         }
 
-        TempData["Error"] = "Không tìm thấy POI";
-        return RedirectToAction(nameof(Index));
+        var poi = new POIViewModel
+        {
+            Id = p.Id, Name = p.Name, Description = p.Description,
+            Address = p.Address, Latitude = p.Latitude, Longitude = p.Longitude,
+            ImageUrl = p.ImageUrl, MapLink = p.MapLink, IsActive = p.IsActive,
+            Category = p.Category, FoodType = p.FoodType, PriceMin = p.PriceMin,
+            PriceMax = p.PriceMax, Priority = p.Priority, Rating = p.Rating,
+            ReviewCount = p.ReviewCount, OwnerId = p.OwnerId, TourId = p.TourId,
+            EstimatedMinutes = p.EstimatedMinutes, Radius = p.Radius,
+            CreatedAt = p.CreatedAt, UpdatedAt = p.UpdatedAt,
+            Contents = p.Contents?.Select(c => new POIContentViewModel
+            {
+                Id = c.Id, POId = c.POId, Language = c.Language,
+                TextContent = c.TextContent, AudioUrl = c.AudioUrl,
+                ContentType = (int)c.ContentType, CreatedAt = c.CreatedAt
+            }).ToList()
+        };
+
+        return View(poi);
     }
 
     // GET: POI/Create
@@ -208,34 +238,36 @@ public class POIController : Controller
     // GET: POI/Edit/5
     public async Task<IActionResult> Edit(int id)
     {
-        var client = CreateAuthenticatedClient();
-        var response = await client.GetAsync($"poi/{id}");
+        var p = await _context.POIs
+            .Include(x => x.Contents)
+            .FirstOrDefaultAsync(x => x.Id == id);
 
-        if (response.IsSuccessStatusCode)
+        if (p == null)
         {
-            var content = await response.Content.ReadAsStringAsync();
-            var poi = JsonSerializer.Deserialize<POIViewModel>(content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            // Extract Contents to form fields
-            if (poi != null && poi.Contents != null)
-            {
-                poi.TextContent_vi = poi.Contents.FirstOrDefault(c => c.Language == "vi")?.TextContent;
-                poi.TextContent_en = poi.Contents.FirstOrDefault(c => c.Language == "en")?.TextContent;
-                poi.TextContent_ko = poi.Contents.FirstOrDefault(c => c.Language == "ko")?.TextContent;
-                poi.TextContent_zh = poi.Contents.FirstOrDefault(c => c.Language == "zh")?.TextContent;
-                poi.TextContent_ja = poi.Contents.FirstOrDefault(c => c.Language == "ja")?.TextContent;
-                poi.TextContent_th = poi.Contents.FirstOrDefault(c => c.Language == "th")?.TextContent;
-                poi.TextContent_fr = poi.Contents.FirstOrDefault(c => c.Language == "fr")?.TextContent;
-            }
-
-            return View(poi);
+            TempData["Error"] = "Không tìm thấy POI";
+            return RedirectToAction(nameof(Index));
         }
 
-        TempData["Error"] = "Không tìm thấy POI";
-        return RedirectToAction(nameof(Index));
+        var poi = new POIViewModel
+        {
+            Id = p.Id, Name = p.Name, Description = p.Description,
+            Address = p.Address, Latitude = p.Latitude, Longitude = p.Longitude,
+            ImageUrl = p.ImageUrl, MapLink = p.MapLink, IsActive = p.IsActive,
+            Category = p.Category, FoodType = p.FoodType, PriceMin = p.PriceMin,
+            PriceMax = p.PriceMax, Priority = p.Priority, Rating = p.Rating,
+            ReviewCount = p.ReviewCount, OwnerId = p.OwnerId, TourId = p.TourId,
+            EstimatedMinutes = p.EstimatedMinutes, Radius = p.Radius,
+            CreatedAt = p.CreatedAt, UpdatedAt = p.UpdatedAt,
+            TextContent_vi = p.Contents?.FirstOrDefault(c => c.Language == "vi")?.TextContent,
+            TextContent_en = p.Contents?.FirstOrDefault(c => c.Language == "en")?.TextContent,
+            TextContent_ko = p.Contents?.FirstOrDefault(c => c.Language == "ko")?.TextContent,
+            TextContent_zh = p.Contents?.FirstOrDefault(c => c.Language == "zh")?.TextContent,
+            TextContent_ja = p.Contents?.FirstOrDefault(c => c.Language == "ja")?.TextContent,
+            TextContent_th = p.Contents?.FirstOrDefault(c => c.Language == "th")?.TextContent,
+            TextContent_fr = p.Contents?.FirstOrDefault(c => c.Language == "fr")?.TextContent
+        };
+
+        return View(poi);
     }
 
     // POST: POI/Edit/5
@@ -248,6 +280,16 @@ public class POIController : Controller
             return View(model);
         }
 
+        var existing = await _context.POIs
+            .Include(p => p.Contents)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (existing == null)
+        {
+            TempData["Error"] = "Không tìm thấy POI";
+            return RedirectToAction(nameof(Index));
+        }
+
         // Upload new image if provided
         if (ImageFile != null && ImageFile.Length > 0)
         {
@@ -255,12 +297,39 @@ public class POIController : Controller
             var imageUrl = await _storageService.UploadImageAsync(stream, ImageFile.FileName, ImageFile.ContentType);
             if (imageUrl != null)
             {
-                model.ImageUrl = imageUrl;
+                existing.ImageUrl = imageUrl;
+                Console.WriteLine($"[POIController] Image updated to: {imageUrl}");
+            }
+            else
+            {
+                TempData["Error"] = "Lỗi khi upload hình ảnh lên Supabase. Vui lòng thử lại.";
+                return View(model);
             }
         }
 
-        // Build Contents list from form inputs
-        model.Contents = new List<POIContentViewModel>();
+        // Update basic fields directly on the tracked entity
+        existing.Name = model.Name;
+        existing.Description = model.Description;
+        existing.Latitude = model.Latitude;
+        existing.Longitude = model.Longitude;
+        existing.Address = model.Address;
+        existing.Radius = model.Radius;
+        existing.Priority = model.Priority;
+        existing.MapLink = model.MapLink;
+        existing.IsActive = model.IsActive;
+        existing.Category = model.Category;
+        existing.FoodType = model.FoodType;
+        existing.PriceMin = model.PriceMin;
+        existing.PriceMax = model.PriceMax;
+        existing.EstimatedMinutes = model.EstimatedMinutes;
+        existing.TourId = model.TourId;
+        existing.UpdatedAt = DateTime.UtcNow;
+
+        // Rebuild Contents
+        if (existing.Contents != null && existing.Contents.Any())
+        {
+            _context.Set<POIContent>().RemoveRange(existing.Contents);
+        }
 
         var langFields = new[]
         {
@@ -273,36 +342,27 @@ public class POIController : Controller
             ("fr", model.TextContent_fr)
         };
 
+        existing.Contents = new List<POIContent>();
         foreach (var (lang, text) in langFields)
         {
             if (!string.IsNullOrWhiteSpace(text))
             {
-                model.Contents.Add(new POIContentViewModel
+                existing.Contents.Add(new POIContent
                 {
+                    POId = existing.Id,
                     Language = lang,
                     TextContent = text,
-                    ContentType = 1 // TTS
+                    ContentType = ContentType.TTS,
+                    CreatedAt = DateTime.UtcNow
                 });
             }
         }
 
-        var client = CreateAuthenticatedClient();
-        var json = JsonSerializer.Serialize(model);
+        await _context.SaveChangesAsync();
+        Console.WriteLine($"[POIController] POI {id} saved directly to DB. ImageUrl: {existing.ImageUrl}");
 
-        Console.WriteLine($"[POIController] Updating POI ID {id}: {model.Name}");
-
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-        var response = await client.PutAsync($"poi/{id}", content);
-
-        if (response.IsSuccessStatusCode)
-        {
-            TempData["Success"] = "Cập nhật POI thành công!";
-            return RedirectToAction(nameof(Index));
-        }
-
-        var errorContent = await response.Content.ReadAsStringAsync();
-        TempData["Error"] = $"Lỗi khi cập nhật POI: {errorContent}";
-        return View(model);
+        TempData["Success"] = "Cập nhật POI thành công!";
+        return RedirectToAction(nameof(Index));
     }
 
     // POST: POI/Delete/5
@@ -310,18 +370,17 @@ public class POIController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
-        var client = CreateAuthenticatedClient();
-        var response = await client.DeleteAsync($"poi/{id}");
-
-        if (response.IsSuccessStatusCode)
+        var poi = await _context.POIs.FindAsync(id);
+        if (poi != null)
         {
+            poi.IsActive = false;
+            await _context.SaveChangesAsync();
             TempData["Success"] = "Xóa POI thành công";
         }
         else
         {
-            TempData["Error"] = "Lỗi khi xóa POI";
+            TempData["Error"] = "Không tìm thấy POI";
         }
-
         return RedirectToAction(nameof(Index));
     }
 
@@ -330,39 +389,16 @@ public class POIController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleActive(int id)
     {
-        var client = CreateAuthenticatedClient();
-
-        // Get current POI
-        var getResponse = await client.GetAsync($"poi/{id}");
-        if (!getResponse.IsSuccessStatusCode)
+        var poi = await _context.POIs.FindAsync(id);
+        if (poi == null)
         {
             TempData["Error"] = "Không tìm thấy POI";
             return RedirectToAction(nameof(Index));
         }
 
-        var content = await getResponse.Content.ReadAsStringAsync();
-        var poi = JsonSerializer.Deserialize<POIViewModel>(content, new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        });
-
-        if (poi != null)
-        {
-            poi.IsActive = !poi.IsActive;
-            var json = JsonSerializer.Serialize(poi);
-            var updateContent = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await client.PutAsync($"poi/{id}", updateContent);
-
-            if (response.IsSuccessStatusCode)
-            {
-                TempData["Success"] = poi.IsActive ? "Đã kích hoạt POI" : "Đã vô hiệu hóa POI";
-            }
-            else
-            {
-                TempData["Error"] = "Lỗi khi cập nhật trạng thái POI";
-            }
-        }
-
+        poi.IsActive = !poi.IsActive;
+        await _context.SaveChangesAsync();
+        TempData["Success"] = poi.IsActive ? "Đã kích hoạt POI" : "Đã vô hiệu hóa POI";
         return RedirectToAction(nameof(Index));
     }
 

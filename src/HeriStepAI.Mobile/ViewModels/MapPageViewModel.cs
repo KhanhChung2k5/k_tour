@@ -61,6 +61,9 @@ public partial class MapPageViewModel : ObservableObject
     public string LblListenNarration => $"🔊 {_localizationService.GetString("ListenNarration")}";
     public string LblGetDirections => $"🗺️ {_localizationService.GetString("GetDirections")}";
 
+    /// <summary>Exposes the current selected tour ID so MapPage can detect tour changes.</summary>
+    public int? CurrentTourId => _tourSelectionService.SelectedTour?.Id;
+
     // Event to notify map update
     public event EventHandler? MapNeedsUpdate;
 
@@ -199,6 +202,9 @@ public partial class MapPageViewModel : ObservableObject
             }
         });
     }
+
+    /// <summary>Re-reads SelectedTour and refreshes POIs. Called by MapPage when tour changes.</summary>
+    public async Task ReloadPOIsAsync() => await LoadPOIsAsync();
 
     private async Task LoadPOIsAsync()
     {

@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="HeriStepAI.Mobile.Views.SettingsPage"
              xmlns:viewmodel="clr-namespace:HeriStepAI.Mobile.ViewModels"
+             xmlns:services="clr-namespace:HeriStepAI.Mobile.Services"
+             xmlns:local="clr-namespace:HeriStepAI.Mobile.ViewModels"
              x:DataType="viewmodel:SettingsPageViewModel"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{StaticResource PageBackground}">
@@ -10,309 +12,408 @@
     <ScrollView>
         <VerticalStackLayout Padding="0" Spacing="0">
 
-            <!-- Hero Header with Amber Gradient -->
-            <Grid x:Name="SettingsHeader" Padding="16,48,16,22">
-                <Grid.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#C97B28" Offset="0.0" />
-                        <GradientStop Color="#E8943A" Offset="0.6" />
-                        <GradientStop Color="#F5A84E" Offset="1.0" />
-                    </LinearGradientBrush>
-                </Grid.Background>
-                <VerticalStackLayout Spacing="3">
-                    <Label Text="{Binding LblSettingsTitle}"
-                           TextColor="{StaticResource White}"
-                           FontSize="22"
-                           FontAttributes="Bold" />
-                    <Label Text="{Binding LblSettingsSubtitle}"
-                           TextColor="{StaticResource White}"
-                           FontSize="12"
-                           Opacity="0.85" />
+            <!-- ── Profile Hero (cream-white, editorial) ── -->
+            <Grid x:Name="SettingsHeader" Padding="20,52,20,20"
+                  BackgroundColor="{StaticResource CardBackground}">
+                <Grid.Shadow>
+                    <Shadow Brush="Black" Offset="0,1" Radius="6" Opacity="0.04" />
+                </Grid.Shadow>
+                <VerticalStackLayout Spacing="16">
+
+                    <!-- Page label -->
+                    <Label Text="{Binding LblProfileTitle}" TextColor="{StaticResource TextMuted}"
+                           FontSize="9" CharacterSpacing="1.5" FontAttributes="Bold" />
+
+                    <!-- Profile row -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                        <!-- Avatar (dark brown circle with initials) -->
+                        <Border Grid.Column="0"
+                                BackgroundColor="{StaticResource Primary}"
+                                StrokeShape="RoundRectangle 30"
+                                WidthRequest="58" HeightRequest="58"
+                                Stroke="#44C4B99A" StrokeThickness="1.5">
+                            <Label Text="MT" TextColor="{StaticResource CreamDark}"
+                                   FontSize="20" FontAttributes="Bold"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                            <Label Text="{Binding LblGuestName}"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   FontSize="16" FontAttributes="Bold" />
+                            <Label Text="{Binding LblGuestTitle}"
+                                   TextColor="{StaticResource TextFaint}" FontSize="11" />
+                        </VerticalStackLayout>
+                        <!-- Level badge -->
+                        <Border Grid.Column="2"
+                                BackgroundColor="{StaticResource WarmCream}"
+                                Stroke="{StaticResource WarmBorder}"
+                                StrokeShape="RoundRectangle 10"
+                                Padding="10,5" VerticalOptions="Start">
+                            <Label Text="+ Explorer" TextColor="{StaticResource TextSecondary}"
+                                   FontSize="11" FontAttributes="Bold" />
+                        </Border>
+                    </Grid>
+
+                    <!-- Progress bar — Cấp 6 -->
+                    <VerticalStackLayout Spacing="6">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Text="{Binding LblLevelProgress}"
+                                   TextColor="{StaticResource TextSecondary}" FontSize="12" />
+                            <Label Grid.Column="1" Text="720/1000 xp"
+                                   TextColor="{StaticResource TextMuted}" FontSize="12" />
+                        </Grid>
+                        <!-- Track -->
+                        <Grid HeightRequest="5">
+                            <BoxView Color="{StaticResource WarmBorder}" CornerRadius="3"
+                                     HeightRequest="5" />
+                            <BoxView Color="{StaticResource Primary}" CornerRadius="3"
+                                     HeightRequest="5"
+                                     HorizontalOptions="Start" WidthRequest="160" />
+                        </Grid>
+                    </VerticalStackLayout>
+
+                    <!-- Badges -->
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="{Binding LblBadgesEarned}"
+                               TextColor="{StaticResource TextMuted}"
+                               FontSize="9" CharacterSpacing="1.2" FontAttributes="Bold" />
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                            <Border Grid.Column="0"
+                                    BackgroundColor="{StaticResource WarmCream}"
+                                    Stroke="{StaticResource WarmBorder}"
+                                    StrokeShape="RoundRectangle 12" Padding="10,10">
+                                <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                    <Label Text="🏆" FontSize="22" HorizontalOptions="Center" />
+                                    <Label Text="{Binding LblBadgeChampion}" TextColor="{StaticResource TextSecondary}"
+                                           FontSize="9" FontAttributes="Bold"
+                                           HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Grid.Column="1"
+                                    BackgroundColor="{StaticResource WarmCream}"
+                                    Stroke="{StaticResource WarmBorder}"
+                                    StrokeShape="RoundRectangle 12" Padding="10,10">
+                                <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                    <Label Text="🗺️" FontSize="22" HorizontalOptions="Center" />
+                                    <Label Text="{Binding LblBadgeExplorer}" TextColor="{StaticResource TextSecondary}"
+                                           FontSize="9" FontAttributes="Bold"
+                                           HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Grid.Column="2"
+                                    BackgroundColor="{StaticResource WarmCream}"
+                                    Stroke="{StaticResource WarmBorder}"
+                                    StrokeShape="RoundRectangle 12" Padding="10,10"
+                                    Opacity="0.4">
+                                <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                                    <Label Text="⭐" FontSize="22" HorizontalOptions="Center" />
+                                    <Label Text="{Binding LblBadgeLegend}" TextColor="{StaticResource TextFaint}"
+                                           FontSize="9" FontAttributes="Bold"
+                                           HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </Grid>
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
             </Grid>
 
-            <VerticalStackLayout Padding="16,14" Spacing="12">
+            <!-- ── Settings rows ── -->
+            <VerticalStackLayout Padding="16,14" Spacing="0">
 
-                <!-- Tài khoản Section -->
-                <Label Text="{Binding LblAccount}"
-                       TextColor="{StaticResource TextPrimary}"
-                       FontSize="15"
-                       FontAttributes="Bold"
-                       Margin="0,0,0,2" />
+                <!-- Thông báo thuyết minh -->
+                <Grid ColumnDefinitions="Auto,*,Auto" Padding="4,14" ColumnSpacing="14">
+                    <Border Grid.Column="0"
+                            BackgroundColor="#FFF4E0"
+                            StrokeShape="RoundRectangle 10"
+                            WidthRequest="36" HeightRequest="36"
+                            Padding="0" Stroke="Transparent">
+                        <Label Text="🔔" FontSize="17"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Grid.Column="1" Text="{Binding LblNarrationNotification}"
+                           FontSize="14" TextColor="{StaticResource TextPrimary}"
+                           VerticalOptions="Center" />
+                    <!-- Toggle visual -->
+                    <Border Grid.Column="2"
+                            BackgroundColor="{StaticResource Primary}"
+                            StrokeShape="RoundRectangle 10"
+                            WidthRequest="42" HeightRequest="24"
+                            Padding="0" Stroke="Transparent">
+                        <Ellipse WidthRequest="18" HeightRequest="18"
+                                 Fill="{StaticResource White}"
+                                 HorizontalOptions="End"
+                                 VerticalOptions="Center"
+                                 Margin="0,0,3,0" />
+                    </Border>
+                </Grid>
+                <BoxView Color="{StaticResource WarmBorder}" HeightRequest="0.5" Margin="54,0,0,0" />
 
-                <Frame BackgroundColor="{StaticResource White}"
-                       CornerRadius="16"
-                       Padding="14"
-                       HasShadow="True"
-                       BorderColor="{StaticResource WarmBorder}">
-                    <VerticalStackLayout Spacing="12">
-                        <Grid ColumnDefinitions="Auto,*">
-                            <Frame BackgroundColor="{StaticResource WarmCream}"
-                                   CornerRadius="12"
-                                   WidthRequest="40"
-                                   HeightRequest="40"
-                                   Padding="0"
-                                   HasShadow="False"
-                                   BorderColor="{StaticResource WarmBorder}">
-                                <Label Text="👤"
-                                       FontSize="18"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center" />
-                            </Frame>
-                            <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
-                                <Label Text="{Binding AccountDisplayName}"
-                                       FontSize="14"
-                                       FontAttributes="Bold"
-                                       TextColor="{StaticResource TextPrimary}" />
-                                <Label Text="{Binding AccountEmail}"
-                                       FontSize="12"
-                                       TextColor="{StaticResource TextMuted}" />
-                            </VerticalStackLayout>
-                        </Grid>
-                        <BoxView Color="{StaticResource WarmBorder}" HeightRequest="1" Margin="-14,0" />
-                        <Button Text="{Binding LblLogout}"
-                                Command="{Binding LogoutCommand}"
-                                TextColor="#DC2626"
-                                FontSize="14"
-                                FontAttributes="Bold"
-                                BackgroundColor="Transparent"
-                                BorderColor="#FECACA"
-                                BorderWidth="1"
-                                CornerRadius="12"
-                                HeightRequest="44" />
-                    </VerticalStackLayout>
-                </Frame>
+                <!-- Ngôn ngữ thuyết minh -->
+                <Grid ColumnDefinitions="Auto,*,Auto" Padding="4,14" ColumnSpacing="14">
+                    <Border Grid.Column="0"
+                            BackgroundColor="#E8F0FF"
+                            StrokeShape="RoundRectangle 10"
+                            WidthRequest="36" HeightRequest="36"
+                            Padding="0" Stroke="Transparent">
+                        <Label Text="🌐" FontSize="17"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Grid.Column="1" Text="{Binding LblNarrationLanguage}"
+                           FontSize="14" TextColor="{StaticResource TextPrimary}"
+                           VerticalOptions="Center" />
+                    <HorizontalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
+                        <Picker ItemsSource="{Binding AvailableLanguages}"
+                                SelectedItem="{Binding SelectedLanguage}"
+                                MinimumWidthRequest="70"
+                                TextColor="{StaticResource TextMuted}"
+                                FontSize="13" />
+                        <Label Text="›" TextColor="{StaticResource TextFaint}" FontSize="16" />
+                    </HorizontalStackLayout>
+                </Grid>
+                <BoxView Color="{StaticResource WarmBorder}" HeightRequest="0.5" Margin="54,0,0,0" />
 
-                <!-- Narration Section Header -->
-                <Label Text="{Binding LblNarration}"
-                       TextColor="{StaticResource TextPrimary}"
-                       FontSize="15"
-                       FontAttributes="Bold"
-                       Margin="0,0,0,2" />
-
-                <!-- Language Setting -->
-                <Frame BackgroundColor="{StaticResource White}"
-                       CornerRadius="16"
-                       Padding="14"
-                       HasShadow="True"
-                       BorderColor="{StaticResource WarmBorder}">
-                    <Grid RowDefinitions="Auto,Auto" RowSpacing="12">
-                        <Grid ColumnDefinitions="Auto,*,Auto">
-                            <Frame BackgroundColor="{StaticResource WarmCream}"
-                                   CornerRadius="12"
-                                   WidthRequest="40"
-                                   HeightRequest="40"
-                                   Padding="0"
-                                   HasShadow="False"
-                                   BorderColor="{StaticResource WarmBorder}">
-                                <Label Text="🗣️"
-                                       FontSize="18"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center" />
-                            </Frame>
-                            <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
-                                <Label Text="{Binding LblNarrationLanguage}"
-                                       FontSize="13"
-                                       FontAttributes="Bold"
-                                       TextColor="{StaticResource TextPrimary}" />
-                                <Label Text="{Binding LblNarrationLanguageHint}"
-                                       FontSize="11"
-                                       TextColor="{StaticResource TextMuted}" />
-                            </VerticalStackLayout>
-                            <Picker Grid.Column="2"
-                                    ItemsSource="{Binding AvailableLanguages}"
-                                    SelectedItem="{Binding SelectedLanguage}"
-                                    HorizontalOptions="End"
-                                    MinimumWidthRequest="90"
-                                    TextColor="{StaticResource TextPrimary}" />
-                        </Grid>
-
-                        <BoxView Grid.Row="1"
-                                 Color="{StaticResource WarmBorder}"
-                                 HeightRequest="1"
-                                 Margin="-14,0" />
-                    </Grid>
-                </Frame>
-
-                <!-- Voice Gender Setting -->
-                <Frame BackgroundColor="{StaticResource White}"
-                       CornerRadius="16"
-                       Padding="14"
-                       HasShadow="True"
-                       BorderColor="{StaticResource WarmBorder}">
-                    <Grid ColumnDefinitions="Auto,*,Auto">
-                        <Frame BackgroundColor="#E8F5E9"
-                               CornerRadius="12"
-                               WidthRequest="40"
-                               HeightRequest="40"
-                               Padding="0"
-                               HasShadow="False"
-                               BorderColor="#C8E6C9">
-                            <Label Text="🎙️"
-                                   FontSize="18"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center" />
-                        </Frame>
-                        <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
-                            <Label Text="{Binding LblVoiceGender}"
-                                   FontSize="13"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource TextPrimary}" />
-                            <Label Text="{Binding LblVoiceGenderHint}"
-                                   FontSize="11"
-                                   TextColor="{StaticResource TextMuted}" />
-                        </VerticalStackLayout>
-                        <Picker Grid.Column="2"
-                                ItemsSource="{Binding AvailableVoiceGenders}"
+                <!-- Âm lượng & Giọng đọc -->
+                <Grid ColumnDefinitions="Auto,*,Auto" Padding="4,14" ColumnSpacing="14">
+                    <Border Grid.Column="0"
+                            BackgroundColor="#F0F0F0"
+                            StrokeShape="RoundRectangle 10"
+                            WidthRequest="36" HeightRequest="36"
+                            Padding="0" Stroke="Transparent">
+                        <Label Text="🎧" FontSize="17"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Grid.Column="1" Text="{Binding LblVolumeVoice}"
+                           FontSize="14" TextColor="{StaticResource TextPrimary}"
+                           VerticalOptions="Center" />
+                    <HorizontalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
+                        <Picker ItemsSource="{Binding AvailableVoiceGenders}"
                                 SelectedItem="{Binding SelectedVoiceGender}"
-                                HorizontalOptions="End"
-                                MinimumWidthRequest="90"
-                                TextColor="{StaticResource TextPrimary}" />
-                    </Grid>
-                </Frame>
+                                MinimumWidthRequest="70"
+                                TextColor="{StaticResource TextMuted}"
+                                FontSize="13" />
+                        <Label Text="›" TextColor="{StaticResource TextFaint}" FontSize="16" />
+                    </HorizontalStackLayout>
+                </Grid>
+                <BoxView Color="{StaticResource WarmBorder}" HeightRequest="0.5" Margin="54,0,0,0" />
 
-                <!-- Location Section Header -->
-                <Label Text="{Binding LblLocation}"
-                       TextColor="{StaticResource TextPrimary}"
-                       FontSize="15"
-                       FontAttributes="Bold"
-                       Margin="0,4,0,2" />
+                <!-- ── Analytics Section ── -->
+                <VerticalStackLayout Spacing="0" Margin="0,8,0,0">
+                    <Label Text="{Binding LblStatsSection}" TextColor="{StaticResource TextMuted}"
+                           FontSize="9" CharacterSpacing="1.5" FontAttributes="Bold"
+                           Margin="4,0,0,10" />
+
+                    <!-- 2×2 stat grid -->
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" ColumnSpacing="10" RowSpacing="10" Margin="0,0,0,14">
+                        <Border Grid.Row="0" Grid.Column="0"
+                                BackgroundColor="{StaticResource WarmCream}"
+                                Stroke="{StaticResource WarmBorder}"
+                                StrokeShape="RoundRectangle 14" Padding="14,12">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="🏪" FontSize="20" />
+                                <Label Text="{Binding ShopsVisited}" FontSize="22" FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="{Binding LblShopsVisitedLabel}" FontSize="11"
+                                       TextColor="{StaticResource TextMuted}" />
+                            </VerticalStackLayout>
+                        </Border>
+                        <Border Grid.Row="0" Grid.Column="1"
+                                BackgroundColor="{StaticResource WarmCream}"
+                                Stroke="{StaticResource WarmBorder}"
+                                StrokeShape="RoundRectangle 14" Padding="14,12">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="🗺️" FontSize="20" />
+                                <Label Text="{Binding TotalDistanceText}" FontSize="22" FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="{Binding LblDistanceLabel}" FontSize="11"
+                                       TextColor="{StaticResource TextMuted}" />
+                            </VerticalStackLayout>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="0"
+                                BackgroundColor="{StaticResource WarmCream}"
+                                Stroke="{StaticResource WarmBorder}"
+                                StrokeShape="RoundRectangle 14" Padding="14,12">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="✅" FontSize="20" />
+                                <Label Text="{Binding ToursCompleted}" FontSize="22" FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="{Binding LblToursCompletedLabel}" FontSize="11"
+                                       TextColor="{StaticResource TextMuted}" />
+                            </VerticalStackLayout>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="1"
+                                BackgroundColor="{StaticResource WarmCream}"
+                                Stroke="{StaticResource WarmBorder}"
+                                StrokeShape="RoundRectangle 14" Padding="14,12">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="🎧" FontSize="20" />
+                                <Label Text="{Binding NarrationCount}" FontSize="22" FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="{Binding LblNarrationCountLabel}" FontSize="11"
+                                       TextColor="{StaticResource TextMuted}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
+
+                    <!-- Weekly bar chart -->
+                    <Border BackgroundColor="{StaticResource WarmCream}"
+                            Stroke="{StaticResource WarmBorder}"
+                            StrokeShape="RoundRectangle 14" Padding="14,14" Margin="0,0,0,14">
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="{Binding LblWeeklyActivityTitle}"
+                                       FontSize="13" FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Grid.Column="1" Text="{Binding LblSevenDays}"
+                                       FontSize="11" TextColor="{StaticResource TextMuted}"
+                                       VerticalOptions="Center" />
+                            </Grid>
+                            <Grid ColumnDefinitions="*,*,*,*,*,*,*" ColumnSpacing="6" HeightRequest="60">
+                                <VerticalStackLayout Grid.Column="0" VerticalOptions="End" Spacing="3">
+                                    <BoxView Color="{Binding BarMonColor}" CornerRadius="2"
+                                             HeightRequest="{Binding BarMonHeight}" HorizontalOptions="Fill" />
+                                    <Label Text="{Binding LblDayMon}" FontSize="9" TextColor="{StaticResource TextFaint}"
+                                           HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="End" Spacing="3">
+                                    <BoxView Color="{Binding BarTueColor}" CornerRadius="2"
+                                             HeightRequest="{Binding BarTueHeight}" HorizontalOptions="Fill" />
+                                    <Label Text="{Binding LblDayTue}" FontSize="9" TextColor="{StaticResource TextFaint}"
+                                           HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="2" VerticalOptions="End" Spacing="3">
+                                    <BoxView Color="{Binding BarWedColor}" CornerRadius="2"
+                                             HeightRequest="{Binding BarWedHeight}" HorizontalOptions="Fill" />
+                                    <Label Text="{Binding LblDayWed}" FontSize="9" TextColor="{StaticResource TextFaint}"
+                                           HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="3" VerticalOptions="End" Spacing="3">
+                                    <BoxView Color="{Binding BarThuColor}" CornerRadius="2"
+                                             HeightRequest="{Binding BarThuHeight}" HorizontalOptions="Fill" />
+                                    <Label Text="{Binding LblDayThu}" FontSize="9" TextColor="{StaticResource TextFaint}"
+                                           HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="4" VerticalOptions="End" Spacing="3">
+                                    <BoxView Color="{Binding BarFriColor}" CornerRadius="2"
+                                             HeightRequest="{Binding BarFriHeight}" HorizontalOptions="Fill" />
+                                    <Label Text="{Binding LblDayFri}" FontSize="9" TextColor="{StaticResource TextFaint}"
+                                           HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="5" VerticalOptions="End" Spacing="3">
+                                    <BoxView Color="{Binding BarSatColor}" CornerRadius="2"
+                                             HeightRequest="{Binding BarSatHeight}" HorizontalOptions="Fill" />
+                                    <Label Text="{Binding LblDaySat}" FontSize="9" TextColor="{StaticResource TextFaint}"
+                                           HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="6" VerticalOptions="End" Spacing="3">
+                                    <BoxView Color="{Binding BarSunColor}" CornerRadius="2"
+                                             HeightRequest="{Binding BarSunHeight}" HorizontalOptions="Fill" />
+                                    <Label Text="{Binding LblDaySun}" FontSize="9" TextColor="{StaticResource TextFaint}"
+                                           HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Top POIs -->
+                    <Label Text="{Binding LblTopPlacesTitle}" TextColor="{StaticResource TextMuted}"
+                           FontSize="9" CharacterSpacing="1.5" FontAttributes="Bold"
+                           Margin="4,0,0,10" />
+                    <VerticalStackLayout Spacing="8" Margin="0,0,0,14"
+                                        BindableLayout.ItemsSource="{Binding TopPOIsList}">
+                        <BindableLayout.EmptyView>
+                            <Label Text="{Binding LblNoDataYet}"
+                                   FontSize="12" TextColor="{StaticResource TextMuted}"
+                                   HorizontalOptions="Center" Margin="0,8" />
+                        </BindableLayout.EmptyView>
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="local:POIVisitDisplayItem">
+                                <Border BackgroundColor="{StaticResource WarmCream}"
+                                        Stroke="{StaticResource WarmBorder}"
+                                        StrokeShape="RoundRectangle 12" Padding="12,10">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                        <Border Grid.Column="0"
+                                                BackgroundColor="{StaticResource Primary}"
+                                                StrokeShape="RoundRectangle 8"
+                                                WidthRequest="28" HeightRequest="28" Stroke="Transparent" Padding="0">
+                                            <Label Text="{Binding VisitCountText}"
+                                                   TextColor="{StaticResource White}"
+                                                   FontSize="12" FontAttributes="Bold"
+                                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                                        </Border>
+                                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                                            <Label Text="{Binding Name}" FontSize="13" FontAttributes="Bold"
+                                                   TextColor="{StaticResource TextPrimary}" />
+                                            <Label Text="{Binding VisitCountText}"
+                                                   FontSize="11" TextColor="{StaticResource TextMuted}" />
+                                        </VerticalStackLayout>
+                                        <Label Grid.Column="2"
+                                               Text="{Binding Rating, StringFormat='⭐ {0:F1}'}"
+                                               FontSize="12" FontAttributes="Bold"
+                                               TextColor="{StaticResource Accent}" VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+                <BoxView Color="{StaticResource WarmBorder}" HeightRequest="0.5" />
 
                 <!-- GPS Status -->
-                <Frame BackgroundColor="{StaticResource White}"
-                       CornerRadius="16"
-                       Padding="14"
-                       HasShadow="True"
-                       BorderColor="{StaticResource WarmBorder}">
-                    <Grid ColumnDefinitions="Auto,*,Auto">
-                        <Frame BackgroundColor="{Binding IsLocationEnabled, Converter={StaticResource BoolToColorConverter}}"
-                               CornerRadius="12"
-                               WidthRequest="40"
-                               HeightRequest="40"
-                               Padding="0"
-                               HasShadow="False"
-                               BorderColor="Transparent">
-                            <Label Text="📍"
-                                   FontSize="18"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center" />
-                        </Frame>
-                        <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
-                            <Label Text="{Binding LblGpsStatus}"
-                                   FontSize="13"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource TextPrimary}" />
-                            <Label Text="{Binding GpsStatusText}"
-                                   FontSize="11"
-                                   TextColor="{StaticResource TextMuted}" />
-                        </VerticalStackLayout>
-                        <Frame Grid.Column="2"
-                               BackgroundColor="{Binding IsLocationEnabled, Converter={StaticResource BoolToColorConverter}}"
-                               CornerRadius="10"
-                               Padding="10,5"
-                               HasShadow="False"
-                               BorderColor="Transparent">
-                            <Label Text="{Binding IsLocationEnabled, Converter={StaticResource BoolToStatusConverter}}"
-                                   TextColor="{StaticResource White}"
-                                   FontSize="11"
-                                   FontAttributes="Bold" />
-                        </Frame>
-                    </Grid>
-                </Frame>
-
-                <!-- About Section Header -->
-                <Label Text="{Binding LblInfo}"
-                       TextColor="{StaticResource TextPrimary}"
-                       FontSize="15"
-                       FontAttributes="Bold"
-                       Margin="0,4,0,2" />
-
-                <!-- App Info Card -->
-                <Frame BackgroundColor="{StaticResource White}"
-                       CornerRadius="16"
-                       Padding="14"
-                       HasShadow="True"
-                       BorderColor="{StaticResource WarmBorder}">
-                    <VerticalStackLayout Spacing="14">
-                        <!-- Version Row -->
-                        <Grid ColumnDefinitions="Auto,*,Auto">
-                            <Frame BackgroundColor="#EDE7F6"
-                                   CornerRadius="12"
-                                   WidthRequest="40"
-                                   HeightRequest="40"
-                                   Padding="0"
-                                   HasShadow="False"
-                                   BorderColor="#D1C4E9">
-                                <Label Text="ℹ️"
-                                       FontSize="18"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center" />
-                            </Frame>
-                            <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
-                                <Label Text="{Binding LblVersion}"
-                                       FontSize="13"
-                                       FontAttributes="Bold"
-                                       TextColor="{StaticResource TextPrimary}" />
-                                <Label Text="HeriStepAI Mobile"
-                                       FontSize="11"
-                                       TextColor="{StaticResource TextMuted}" />
-                            </VerticalStackLayout>
-                            <Label Grid.Column="2"
-                                   Text="1.0.3"
-                                   FontSize="12"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource Primary}"
-                                   VerticalOptions="Center" />
-                        </Grid>
-
-                        <BoxView Color="{StaticResource WarmBorder}"
-                                 HeightRequest="1"
-                                 Margin="-14,0" />
-
-                        <!-- Contact Row -->
-                        <Grid ColumnDefinitions="Auto,*">
-                            <Frame BackgroundColor="#E3F2FD"
-                                   CornerRadius="12"
-                                   WidthRequest="40"
-                                   HeightRequest="40"
-                                   Padding="0"
-                                   HasShadow="False"
-                                   BorderColor="#BBDEFB">
-                                <Label Text="📧"
-                                       FontSize="18"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center" />
-                            </Frame>
-                            <VerticalStackLayout Grid.Column="1" Margin="12,0" VerticalOptions="Center">
-                                <Label Text="{Binding LblContactSupport}"
-                                       FontSize="13"
-                                       FontAttributes="Bold"
-                                       TextColor="{StaticResource TextPrimary}" />
-                                <Label Text="support@heristepai.com"
-                                       FontSize="11"
-                                       TextColor="{StaticResource TextMuted}" />
-                            </VerticalStackLayout>
-                        </Grid>
+                <Grid ColumnDefinitions="Auto,*,Auto" Padding="4,14" ColumnSpacing="14">
+                    <Border Grid.Column="0"
+                            BackgroundColor="{Binding IsLocationEnabled, Converter={StaticResource BoolToColorConverter}}"
+                            StrokeShape="RoundRectangle 10"
+                            WidthRequest="36" HeightRequest="36"
+                            Padding="0" Stroke="Transparent">
+                        <Label Text="📍" FontSize="17"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                        <Label Text="{Binding LblGpsStatus}" FontSize="14"
+                               TextColor="{StaticResource TextPrimary}" />
+                        <Label Text="{Binding GpsStatusText}" FontSize="11"
+                               TextColor="{StaticResource TextMuted}" />
                     </VerticalStackLayout>
-                </Frame>
+                    <Border Grid.Column="2"
+                            BackgroundColor="{Binding IsLocationEnabled, Converter={StaticResource BoolToColorConverter}}"
+                            StrokeShape="RoundRectangle 8" Padding="10,5" Stroke="Transparent">
+                        <Label Text="{Binding IsLocationEnabled, Converter={StaticResource BoolToStatusConverter}}"
+                               TextColor="{StaticResource White}" FontSize="11" FontAttributes="Bold" />
+                    </Border>
+                </Grid>
+                <BoxView Color="{StaticResource WarmBorder}" HeightRequest="0.5" />
 
-                <!-- Sync Button -->
-                <Button Text="{Binding LblSyncData}"
-                        Command="{Binding SyncDataCommand}"
-                        TextColor="{StaticResource White}"
-                        FontSize="14"
-                        FontAttributes="Bold"
-                        CornerRadius="24"
-                        HeightRequest="48"
-                        Margin="0,8,0,0">
-                    <Button.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#E8943A" Offset="0.0" />
-                            <GradientStop Color="#C97B28" Offset="1.0" />
-                        </LinearGradientBrush>
-                    </Button.Background>
-                </Button>
+                <!-- Version -->
+                <Grid ColumnDefinitions="Auto,*,Auto" Padding="4,14" ColumnSpacing="14">
+                    <Border Grid.Column="0"
+                            BackgroundColor="{StaticResource WarmCream}"
+                            StrokeShape="RoundRectangle 10"
+                            WidthRequest="36" HeightRequest="36"
+                            Padding="0" Stroke="{StaticResource WarmBorder}">
+                        <Label Text="ℹ️" FontSize="17"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                        <Label Text="{Binding LblVersion}" FontSize="14"
+                               TextColor="{StaticResource TextPrimary}" />
+                        <Label Text="HeriStepAI Mobile" FontSize="11"
+                               TextColor="{StaticResource TextMuted}" />
+                    </VerticalStackLayout>
+                    <Label Grid.Column="2" Text="1.0.3" FontSize="13" FontAttributes="Bold"
+                           TextColor="{StaticResource Accent}" VerticalOptions="Center" />
+                </Grid>
+                <BoxView Color="{StaticResource WarmBorder}" HeightRequest="0.5" />
 
+                <!-- Action buttons -->
+                <VerticalStackLayout Spacing="10" Margin="0,18,0,0">
+                    <Button Text="{Binding LblSyncData}" Command="{Binding SyncDataCommand}"
+                            TextColor="{StaticResource Primary}" FontSize="14" FontAttributes="Bold"
+                            BackgroundColor="{StaticResource WarmCream}"
+                            BorderColor="{StaticResource WarmBorder}" BorderWidth="1"
+                            CornerRadius="14" HeightRequest="48" />
+                </VerticalStackLayout>
+
+                <BoxView HeightRequest="20" Color="Transparent" />
             </VerticalStackLayout>
         </VerticalStackLayout>
     </ScrollView>

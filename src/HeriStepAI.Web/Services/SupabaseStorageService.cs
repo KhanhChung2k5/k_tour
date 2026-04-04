@@ -59,18 +59,19 @@ public class SupabaseStorageService : ISupabaseStorageService
             using var content = new StreamContent(fileStream);
             content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
 
+            Console.WriteLine($"[SupabaseStorage] Uploading to: {url}");
             var response = await _httpClient.PostAsync(url, content);
 
             if (response.IsSuccessStatusCode)
             {
                 // Return public URL
                 var publicUrl = $"{_supabaseUrl}/storage/v1/object/public/{_bucket}/{safeName}";
-                Console.WriteLine($"[SupabaseStorage] Uploaded: {publicUrl}");
+                Console.WriteLine($"[SupabaseStorage] Upload success → {publicUrl}");
                 return publicUrl;
             }
 
             var error = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"[SupabaseStorage] Upload failed ({response.StatusCode}): {error}");
+            Console.WriteLine($"[SupabaseStorage] Upload FAILED ({(int)response.StatusCode} {response.StatusCode}): {error}");
             return null;
         }
         catch (Exception ex)

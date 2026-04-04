@@ -16,11 +16,12 @@ public partial class SettingsPage : ContentPage
         SettingsHeader.Padding = ResponsiveHelper.HeaderPadding();
     }
 
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
         if (BindingContext is SettingsPageViewModel vm)
-            vm.RefreshAccountInfo();
+            vm.RefreshAnalytics();
     }
 
     static SettingsPageViewModel GetViewModel() =>

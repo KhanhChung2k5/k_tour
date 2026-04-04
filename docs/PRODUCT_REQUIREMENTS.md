@@ -1,4 +1,4 @@
-﻿# Product Requirements Document (PRD) — HeriStepAI v1.0
+# Product Requirements Document (PRD) — HeriStepAI v1.0
 
 | Thuộc tính | Giá trị |
 |------------|---------|
@@ -372,8 +372,6 @@ sequenceDiagram
 
 # Sơ đồ flow hệ thống HeriStepAI (Mermaid)
 
-Mở file này trong editor hỗ trợ Mermaid (VS Code với extension, GitHub, GitLab, Notion, draw.io có thể import Mermaid) hoặc paste đoạn code dưới vào https://mermaid.live/.
-
 ---
 
 ## Sơ đồ 1: Tổng quan thành phần và luồng dữ liệu
@@ -613,8 +611,6 @@ Sơ đồ này nhấn mạnh **hai cách Web lấy dữ liệu** tùy vai trò:
 
 # Sơ đồ flow hệ thống HeriStepAI (Mermaid)
 
-Mở file này trong editor hỗ trợ Mermaid (VS Code với extension, GitHub, GitLab, Notion, draw.io có thể import Mermaid) hoặc paste đoạn code dưới vào https://mermaid.live/.
-
 ---
 
 ## Sơ đồ 1: Tổng quan thành phần và luồng dữ liệu
@@ -850,3 +846,151 @@ Sơ đồ này nhấn mạnh **hai cách Web lấy dữ liệu** tùy vai trò:
 - **ShopOwner:** Đọc/ghi DB qua DbContext (cùng DB với API), không gọi API cho Dashboard/Edit/Statistics.
 - **App:** JWT trong SecureStorage; gọi API trực tiếp (auth, poi, analytics/visit).
 
+
+---
+
+## Phụ lục C — Sơ đồ hoạt động (Activity Diagrams)
+
+> Sơ đồ hoạt động mô tả **luồng xử lý nghiệp vụ** của từng use case: các bước, điểm quyết định, rẽ nhánh và điều kiện kết thúc.
+
+---
+
+### C.1 Đăng nhập Web (Admin / ShopOwner)
+
+```mermaid
+flowchart TD
+    Start([Bắt đầu]) --> OpenLogin[Mở /Auth/Login]
+    OpenLogin --> EnterCreds[Nhập email & mật khẩu]
+    EnterCreds --> Submit[Submit form]
+    Submit --> ValidateLocal{Validate\nclient-side}
+    ValidateLocal -->|Thiếu field| ShowValidationErr[Hiển thị lỗi validation]
+    ShowValidationErr --> EnterCreds
+    ValidateLocal -->|Hợp lệ| CallAPI[POST api/auth/login]
+    CallAPI --> APICheck{API trả kết quả?}
+    APICheck -->|401 / sai credentials| ShowLoginErr[ViewBag.Error: sai email/mật khẩu]
+    ShowLoginErr --> EnterCreds
+    APICheck -->|500 / network| ShowServerErr[ViewBag.Error: lỗi hệ thống]
+    ShowServerErr --> End2([Kết thúc — thử lại sau])
+    APICheck -->|200 OK + JWT| SaveCookie[Lưu cookie session\n+ AuthToken JWT]
+    SaveCookie --> CheckRole{Role?}
+    CheckRole -->|Admin - Role=1| GoAdmin[Redirect /Home/Dashboard]
+    CheckRole -->|ShopOwner - Role=2| GoShop[Redirect /ShopOwner/Dashboard]
+    GoAdmin --> End([Kết thúc])
+    GoShop --> End
+```
+
+---
+
+### C.2 Admin tạo POI mới (Web)
+
+```mermaid
+flowchart TD
+    Start([Bắt đầu]) --> OpenCreate[Mở /POI/Create]
+    OpenCreate --> FillForm[Điền thông tin POI\nTên, mô tả, tọa độ, category, radius...]
+    FillForm --> HasImage{Có ảnh\nmuốn upload?}
+    HasImage -->|Có| UploadImg[Upload ảnh lên Supabase Storage]
+    UploadImg --> ImgOK{Upload\nthành công?}
+    ImgOK -->|Lỗi| ShowImgErr[Hiển thị lỗi upload]
+    ShowImgErr --> FillForm
+    ImgOK -->|OK| SetImageUrl[Gán ImageUrl vào form]
+    SetImageUrl --> HasOwner
+    HasImage -->|Không| HasOwner{Chọn ShopOwner\nhiện có hay tạo mới?}
+    HasOwner -->|Tạo mới| FillOwner[Điền thông tin owner mới\nemail, mật khẩu]
+    HasOwner -->|Chọn hiện có| SubmitPOI[Submit tạo POI]
+    FillOwner --> SubmitPOI
+    SubmitPOI --> ValidateForm{Validate\nserver-side}
+    ValidateForm -->|Thiếu field bắt buộc| ShowFormErr[TempData lỗi; hiện lại form]
+    ShowFormErr --> FillForm
+    ValidateForm -->|Hợp lệ| CallCreateAPI[POST /api/poi\n+ tạo owner nếu cần]
+    CallCreateAPI --> APIResult{API trả\nkết quả?}
+    APIResult -->|Lỗi 4xx/5xx| ShowAPIErr[TempData.Error; quay lại form]
+    ShowAPIErr --> FillForm
+    APIResult -->|201 Created| ShowSuccess[TempData.Success\nRedirect /POI danh sách]
+    ShowSuccess --> End([Kết thúc])
+```
+
+---
+
+### C.3 Mobile — Khởi động app & đồng bộ POI
+
+```mermaid
+flowchart TD
+    Start([Mở app]) --> RestoreSession[TryRestoreSession\nđọc SecureStorage]
+    RestoreSession --> HasSession{Có session\nhợp lệ?}
+    HasSession -->|Không| ShowLogin[Hiển thị AuthPage]
+    ShowLogin --> UserLogin[Nhập email / mật khẩu]
+    UserLogin --> PostLogin[POST api/auth/login]
+    PostLogin --> LoginOK{Đăng nhập\nthành công?}
+    LoginOK -->|Lỗi| ShowLoginErr[Hiển thị lỗi\nthử lại]
+    ShowLoginErr --> UserLogin
+    LoginOK -->|OK| SaveSession[Lưu JWT vào SecureStorage\nPreferences has_session = true]
+    SaveSession --> LoadShell
+    HasSession -->|Có| LoadShell[Hiển thị AppShell\nMainPage]
+    LoadShell --> LoadSQLite[Đọc POI từ SQLite cache\nhiển thị ngay]
+    LoadSQLite --> FetchAPI[GET api/poi]
+    FetchAPI --> APIAvail{API khả\ndụng?}
+    APIAvail -->|Lỗi / timeout| KeepCache[Giữ nguyên SQLite cache\nHiển thị POI cũ]
+    KeepCache --> End([Kết thúc sync])
+    APIAvail -->|OK + dữ liệu hợp lệ| ReplaceCache[Ghi đè SQLite\nvới dữ liệu mới]
+    ReplaceCache --> UpdateUI[Cập nhật UI\nPOI mới nhất]
+    UpdateUI --> End
+```
+
+---
+
+### C.4 Mobile — Geofence kích hoạt thuyết minh
+
+```mermaid
+flowchart TD
+    Start([Khách đang đi\nGPS cập nhật mỗi 5s]) --> GetLocation[LocationService\nlấy vị trí GPS]
+    GetLocation --> SimMode{Đang\nSimulate?}
+    SimMode -->|Có| UseSimLoc[Dùng vị trí giả lập]
+    SimMode -->|Không| UseRealLoc[Dùng vị trí GPS thật]
+    UseSimLoc --> CheckGeofence
+    UseRealLoc --> CheckGeofence[GeofenceService\nCheckGeofence]
+    CheckGeofence --> InsidePOI{Trong vùng\nbán kính POI?}
+    InsidePOI -->|Không POI nào| ResetCurrent[Reset currentPOI = null]
+    ResetCurrent --> Wait[Chờ 5 giây]
+    Wait --> GetLocation
+    InsidePOI -->|Có POI| SamePOI{Cùng POI\nđang ở?}
+    SamePOI -->|Có — đứng yên| Wait
+    SamePOI -->|POI mới| CheckCooldown{Còn\ncooldown 5 phút?}
+    CheckCooldown -->|Còn cooldown| Wait
+    CheckCooldown -->|Hết cooldown| TriggerPOI[Cập nhật currentPOI\nGhi cooldown timestamp]
+    TriggerPOI --> LogVisit[POST api/analytics/visit\nVisitType=Geofence — best effort]
+    LogVisit --> HasAudio{POIContent có\nAudioUrl?}
+    HasAudio -->|Có| PlayAudio[Phát file audio]
+    HasAudio -->|Không| HasText{Có\nTextContent?}
+    HasText -->|Có| TTS[NarrationService\nTTS TextContent]
+    HasText -->|Không| ShowNotif[Hiển thị tên POI\nkhông có audio]
+    PlayAudio --> Wait
+    TTS --> Wait
+    ShowNotif --> Wait
+```
+
+---
+
+### C.5 Mobile — Chọn Tour và bắt đầu khám phá
+
+```mermaid
+flowchart TD
+    Start([Khách mở MainPage]) --> LoadTours[TourGeneratorService\ntạo danh sách Tour từ POI SQLite]
+    LoadTours --> HasTours{Có tour\nđược tạo?}
+    HasTours -->|Không| ShowEmpty[Hiển thị trống\nhoặc thông báo không có tour]
+    ShowEmpty --> End([Kết thúc])
+    HasTours -->|Có| ShowTourCards[Hiển thị danh sách Tour cards\nMainPage]
+    ShowTourCards --> SelectTour[Khách chọn một Tour]
+    SelectTour --> OpenDetail[Mở TourDetailPage\nDanh sách POI trong tour]
+    OpenDetail --> ReadDetail[Xem thông tin POI:\ntên, ảnh, thời gian, giá ước tính]
+    ReadDetail --> UserDecide{Quyết định?}
+    UserDecide -->|Quay lại| ShowTourCards
+    UserDecide -->|Bắt đầu Tour| SetTourSelection[TourSelectionService\nSelectedTour = tour này]
+    SetTourSelection --> NavigateMap[Điều hướng //MapPage]
+    NavigateMap --> MapLoadPOI[MapPage: LoadPOIsAsync\nưu tiên POI của SelectedTour]
+    MapLoadPOI --> HasSelectedTour{SelectedTour\nđã set?}
+    HasSelectedTour -->|Có| FilterPOI[Chỉ hiển thị POI\ntrong tour trên bản đồ]
+    HasSelectedTour -->|Không — race condition| ShowAllPOI[Hiển thị toàn bộ POI\nSQLite cache]
+    FilterPOI --> StartTracking[Bắt đầu LocationService\nGeofence theo POI tour]
+    ShowAllPOI --> StartTracking
+    StartTracking --> End2([Kết thúc — đang tour])
+```

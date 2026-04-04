@@ -9,345 +9,334 @@
              BackgroundColor="{StaticResource PageBackground}">
 
     <ScrollView>
-        <Grid RowDefinitions="Auto,*" Padding="0">
+        <VerticalStackLayout Spacing="0">
 
-            <!-- Hero Header with Amber Gradient -->
-            <Grid Grid.Row="0" x:Name="MainHeader" Padding="16,48,16,20">
-                <Grid.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#C97B28" Offset="0.0" />
-                        <GradientStop Color="#E8943A" Offset="0.6" />
-                        <GradientStop Color="#F5A84E" Offset="1.0" />
-                    </LinearGradientBrush>
-                </Grid.Background>
-
-                <VerticalStackLayout Spacing="14">
-
-                    <!-- Top Bar: Logo + Lang + Location -->
-                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-                        <VerticalStackLayout Grid.Column="0" Spacing="1" VerticalOptions="Center">
-                            <Label Text="HERISTEP AI"
-                                   TextColor="{StaticResource White}"
-                                   FontSize="19"
-                                   FontAttributes="Bold"
-                                   CharacterSpacing="1" />
-                            <Label Text="ĐÀ NẴNG · VIỆT NAM"
-                                   TextColor="{StaticResource White}"
-                                   FontSize="10"
-                                   Opacity="0.85"
-                                   CharacterSpacing="0.5" />
-                        </VerticalStackLayout>
-
-                        <!-- Language Switch Button -->
-                        <Frame Grid.Column="1"
-                               BackgroundColor="#33FFFFFF"
-                               CornerRadius="14"
-                               Padding="0"
-                               HasShadow="False"
-                               BorderColor="Transparent"
-                               WidthRequest="44"
-                               HeightRequest="36"
-                               VerticalOptions="Center">
-                            <Button Text="{Binding LblLanguageSwitch}"
-                                    Command="{Binding SwitchLanguageCommand}"
-                                    BackgroundColor="Transparent"
-                                    TextColor="{StaticResource White}"
-                                    FontAttributes="Bold"
-                                    FontSize="13"
-                                    Padding="0" />
-                        </Frame>
-
-                        <!-- Location Icon -->
-                        <Frame Grid.Column="2"
-                               BackgroundColor="#33FFFFFF"
-                               CornerRadius="18"
-                               WidthRequest="36"
-                               HeightRequest="36"
-                               Padding="0"
-                               HasShadow="False"
-                               BorderColor="Transparent"
-                               VerticalOptions="Center">
-                            <Label Text="📍"
-                                   FontSize="15"
-                                   HorizontalOptions="Center"
-                                   VerticalOptions="Center" />
-                        </Frame>
-                    </Grid>
-
-                    <!-- Welcome Text -->
-                    <VerticalStackLayout Spacing="2">
+            <!-- ── Dashboard Header (cream-white, no gradient) ── -->
+            <Grid x:Name="MainHeader" Padding="20,52,20,14"
+                  BackgroundColor="{StaticResource CardBackground}">
+                <Grid.Shadow>
+                    <Shadow Brush="Black" Offset="0,1" Radius="6" Opacity="0.04" />
+                </Grid.Shadow>
+                <Grid ColumnDefinitions="*,Auto">
+                    <!-- Greeting + city -->
+                    <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
                         <Label Text="{Binding LblWelcome}"
-                               TextColor="{StaticResource White}"
-                               FontSize="13"
-                               Opacity="0.9" />
-                        <Label Text="{Binding LblAppTagline}"
-                               TextColor="{StaticResource White}"
-                               FontSize="11"
-                               Opacity="0.75" />
+                               TextColor="{StaticResource TextMuted}"
+                               FontSize="12" />
+                        <Label Text="Phố Hồ Thị Kỷ"
+                               TextColor="{StaticResource TextPrimary}"
+                               FontSize="22" FontAttributes="Bold" />
                     </VerticalStackLayout>
-
-                    <!-- Quick Stats Chips -->
-                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
-
-                        <!-- Total Tours -->
-                        <Frame BackgroundColor="#33FFFFFF"
-                               CornerRadius="14"
-                               Padding="8,10"
-                               HasShadow="False"
-                               BorderColor="Transparent">
-                            <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
-                                <Label Text="🎯"
-                                       FontSize="18"
-                                       HorizontalOptions="Center" />
-                                <Label Text="{Binding Tours.Count, StringFormat='{0}'}"
-                                       TextColor="{StaticResource White}"
-                                       FontSize="16"
-                                       FontAttributes="Bold"
-                                       HorizontalOptions="Center" />
-                                <Label Text="Tours"
-                                       TextColor="{StaticResource White}"
-                                       FontSize="9"
-                                       Opacity="0.8"
-                                       HorizontalOptions="Center" />
-                            </VerticalStackLayout>
-                        </Frame>
-
-                        <!-- Settings Chip -->
-                        <Frame Grid.Column="1"
-                               BackgroundColor="#33FFFFFF"
-                               CornerRadius="14"
-                               Padding="8,10"
-                               HasShadow="False"
-                               BorderColor="Transparent">
-                            <Frame.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnSettingsTapped" />
-                            </Frame.GestureRecognizers>
-                            <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
-                                <Label Text="⚙️"
-                                       FontSize="18"
-                                       HorizontalOptions="Center" />
-                                <Label Text="{Binding LblSettings}"
-                                       TextColor="{StaticResource White}"
-                                       FontSize="9"
-                                       Opacity="0.8"
-                                       HorizontalOptions="Center" />
-                            </VerticalStackLayout>
-                        </Frame>
-
-                        <!-- Refresh Chip -->
-                        <Frame Grid.Column="2"
-                               BackgroundColor="#33FFFFFF"
-                               CornerRadius="14"
-                               Padding="8,10"
-                               HasShadow="False"
-                               BorderColor="Transparent">
-                            <Frame.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding RefreshPOIsCommand}" />
-                            </Frame.GestureRecognizers>
-                            <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
-                                <Label Text="🔄"
-                                       FontSize="18"
-                                       HorizontalOptions="Center" />
-                                <Label Text="{Binding LblRefresh}"
-                                       TextColor="{StaticResource White}"
-                                       FontSize="9"
-                                       Opacity="0.8"
-                                       HorizontalOptions="Center" />
-                            </VerticalStackLayout>
-                        </Frame>
-                    </Grid>
-
-                </VerticalStackLayout>
+                    <!-- Avatar circle (MT) — tap navigates to profile -->
+                    <Border Grid.Column="1"
+                            BackgroundColor="{StaticResource Primary}"
+                            StrokeShape="RoundRectangle 22"
+                            WidthRequest="44" HeightRequest="44"
+                            Stroke="Transparent" VerticalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnSettingsTapped" />
+                        </Border.GestureRecognizers>
+                        <Label Text="MT" TextColor="{StaticResource CreamDark}"
+                               FontSize="15" FontAttributes="Bold"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                </Grid>
             </Grid>
 
-            <!-- Content Section on Cream Background -->
-            <VerticalStackLayout Grid.Row="1" Padding="16,14" Spacing="12">
+            <!-- ── Search Bar ── -->
+            <Grid Padding="16,12,16,0"
+                  BackgroundColor="{StaticResource CardBackground}">
+                <Border BackgroundColor="{StaticResource WarmCream}"
+                        Stroke="{StaticResource WarmBorder}"
+                        StrokeShape="RoundRectangle 20"
+                        Padding="14,0" HeightRequest="42">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Label Text="🔍" FontSize="12" TextColor="{StaticResource TextFaint}"
+                               VerticalOptions="Center" Margin="0,0,8,0" />
+                        <Label Grid.Column="1" Text="Tìm quán ăn, món ăn..."
+                               TextColor="{StaticResource TextFaint}"
+                               FontSize="13" VerticalOptions="Center" />
+                    </Grid>
+                </Border>
+            </Grid>
 
-                <!-- Tour Selection Section Header -->
-                <Grid ColumnDefinitions="*,Auto">
-                    <Label Grid.Column="0"
-                           Text="{Binding LblChooseTour}"
-                           TextColor="{StaticResource TextPrimary}"
-                           FontSize="16"
-                           FontAttributes="Bold"
-                           VerticalOptions="Center" />
-                    <Label Grid.Column="1"
-                           Text="Xem tất cả →"
-                           TextColor="{StaticResource Primary}"
-                           FontSize="13"
-                           VerticalOptions="Center" />
-                </Grid>
+            <!-- ── Thin divider ── -->
+            <BoxView Color="{StaticResource WarmBorder}" HeightRequest="0.5"
+                     BackgroundColor="{StaticResource CardBackground}" Margin="0,12,0,0" />
 
-                <!-- Tour Cards Horizontal Scroll -->
-                <ScrollView Orientation="Horizontal"
-                            HorizontalScrollBarVisibility="Never">
-                    <HorizontalStackLayout Spacing="10" BindableLayout.ItemsSource="{Binding Tours}">
-                        <BindableLayout.ItemTemplate>
+            <!-- ── Body content ── -->
+            <VerticalStackLayout Padding="16,14" Spacing="20">
+
+                <!-- TOUR HÔM NAY — Featured card (dark brown) -->
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="TOUR HÔM NAY"
+                           TextColor="{StaticResource TextMuted}"
+                           FontSize="10" CharacterSpacing="1.2" FontAttributes="Bold" />
+
+                    <!-- Featured tour card (binds to FeaturedTour — safe when empty) -->
+                    <Border StrokeShape="RoundRectangle 18"
+                            Stroke="Transparent" Padding="16"
+                            IsVisible="{Binding HasFeaturedTour}">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#1A1410" Offset="0.0" />
+                                <GradientStop Color="#2C2416" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding SelectTourCommand}"
+                                CommandParameter="{Binding FeaturedTour}" />
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="{Binding LblChooseTour}"
+                                   TextColor="{StaticResource CreamDark}"
+                                   FontSize="9" CharacterSpacing="1.2" FontAttributes="Bold"
+                                   TextTransform="Uppercase" />
+                            <Label Text="{Binding FeaturedTour.Name}"
+                                   TextColor="{StaticResource White}"
+                                   FontSize="18" FontAttributes="Bold"
+                                   LineBreakMode="WordWrap" />
+                            <Label Text="{Binding FeaturedTour.Description}"
+                                   TextColor="{StaticResource TextFaint}"
+                                   FontSize="11" MaxLines="2"
+                                   LineBreakMode="TailTruncation" />
+                            <HorizontalStackLayout Spacing="7" Margin="0,4,0,0">
+                                <Border BackgroundColor="#22FFFFFF" Stroke="Transparent"
+                                        StrokeShape="RoundRectangle 14" Padding="10,5">
+                                    <HorizontalStackLayout Spacing="4">
+                                        <Label Text="•" TextColor="{StaticResource CreamDark}" FontSize="9" />
+                                        <Label Text="{Binding FeaturedTour.POICountText}"
+                                               TextColor="{StaticResource CreamDark}" FontSize="10" />
+                                    </HorizontalStackLayout>
+                                </Border>
+                                <Border BackgroundColor="#22FFFFFF" Stroke="Transparent"
+                                        StrokeShape="RoundRectangle 14" Padding="10,5">
+                                    <HorizontalStackLayout Spacing="4">
+                                        <Label Text="•" TextColor="{StaticResource CreamDark}" FontSize="9" />
+                                        <Label Text="{Binding FeaturedTour.EstimatedTimeText}"
+                                               TextColor="{StaticResource CreamDark}" FontSize="10" />
+                                    </HorizontalStackLayout>
+                                </Border>
+                                <Border BackgroundColor="#22FFFFFF" Stroke="Transparent"
+                                        StrokeShape="RoundRectangle 14" Padding="10,5">
+                                    <HorizontalStackLayout Spacing="4">
+                                        <Label Text="•" TextColor="{StaticResource CreamDark}" FontSize="9" />
+                                        <Label Text="{Binding FeaturedTour.PriceRangeText}"
+                                               TextColor="{StaticResource CreamDark}" FontSize="10" />
+                                    </HorizontalStackLayout>
+                                </Border>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Placeholder shown while tours are loading -->
+                    <Border StrokeShape="RoundRectangle 18"
+                            Stroke="Transparent" Padding="16"
+                            IsVisible="{Binding HasFeaturedTour, Converter={StaticResource InvertBoolConverter}}">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#1A1410" Offset="0.0" />
+                                <GradientStop Color="#2C2416" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <VerticalStackLayout Spacing="8" Padding="0,8">
+                            <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                               IsVisible="{Binding IsLoading}"
+                                               Color="{StaticResource CreamDark}"
+                                               HorizontalOptions="Start" />
+                            <Label Text="Đang tải tour..."
+                                   IsVisible="{Binding IsLoading}"
+                                   TextColor="{StaticResource TextFaint}" FontSize="13" />
+                            <Label Text="Chưa có tour nào. Nhấn Làm mới để tải."
+                                   IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}"
+                                   TextColor="{StaticResource TextFaint}" FontSize="13" />
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- ĐIỂM NỔI BẬT GẦN ĐÂY — horizontal POI cards -->
+                <VerticalStackLayout Spacing="10">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="ĐIỂM NỔI BẬT GẦN ĐÂY"
+                               TextColor="{StaticResource TextMuted}"
+                               FontSize="10" CharacterSpacing="1.2" FontAttributes="Bold"
+                               VerticalOptions="Center" />
+                        <Label Grid.Column="1" Text="Xem tất cả →"
+                               TextColor="{StaticResource PrimaryLight}"
+                               FontSize="12" VerticalOptions="Center" />
+                    </Grid>
+
+                    <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                        <HorizontalStackLayout Spacing="10"
+                                               BindableLayout.ItemsSource="{Binding Tours}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:Tour">
+                                    <Border BackgroundColor="{StaticResource CardBackground}"
+                                            StrokeShape="RoundRectangle 16"
+                                            Stroke="{StaticResource WarmBorder}"
+                                            StrokeThickness="0.5"
+                                            WidthRequest="120"
+                                            Padding="0">
+                                        <Border.Shadow>
+                                            <Shadow Brush="Black" Offset="0,2" Radius="6" Opacity="0.04" />
+                                        </Border.Shadow>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MainPageViewModel}}, Path=SelectTourCommand}"
+                                                CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+                                        <Grid RowDefinitions="70,*">
+                                            <!-- Tour image or emoji fallback -->
+                                            <Border Grid.Row="0"
+                                                    StrokeShape="RoundRectangle 16,16,0,0"
+                                                    Stroke="Transparent" Padding="0">
+                                                <Image Source="{Binding ImageUrl}"
+                                                       Aspect="AspectFill"
+                                                       HeightRequest="70" />
+                                            </Border>
+                                            <VerticalStackLayout Grid.Row="1" Padding="8,7" Spacing="2">
+                                                <Label Text="{Binding Name}"
+                                                       FontSize="11" FontAttributes="Bold"
+                                                       TextColor="{StaticResource TextPrimary}"
+                                                       LineBreakMode="TailTruncation" MaxLines="2" />
+                                                <HorizontalStackLayout Spacing="3">
+                                                    <Label Text="⭐" FontSize="9"
+                                                           TextColor="{StaticResource Accent}" />
+                                                    <Label Text="{Binding POICountText}"
+                                                           FontSize="9"
+                                                           TextColor="{StaticResource TextMuted}" />
+                                                </HorizontalStackLayout>
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </HorizontalStackLayout>
+                    </ScrollView>
+                </VerticalStackLayout>
+
+                <!-- Tạo Tour mới -->
+                <Button Text="{Binding LblCreateNewTour}"
+                        Command="{Binding CreateTourCommand}"
+                        TextColor="{StaticResource White}"
+                        BackgroundColor="{StaticResource Primary}"
+                        FontSize="14" FontAttributes="Bold"
+                        CornerRadius="24" HeightRequest="50"
+                        Margin="0,2,0,0" />
+
+                <!-- TOUR GẦN ĐÂY -->
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="TOUR GẦN ĐÂY"
+                           TextColor="{StaticResource TextMuted}"
+                           FontSize="10" CharacterSpacing="1.2" FontAttributes="Bold" />
+
+                    <CollectionView ItemsSource="{Binding RecentTours}" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:Tour">
-                                <Frame CornerRadius="16"
-                                       HeightRequest="175"
-                                       WidthRequest="140"
-                                       Padding="0"
-                                       Margin="0,0,2,4"
-                                       HasShadow="True"
-                                       BorderColor="{StaticResource WarmBorder}"
-                                       BackgroundColor="{StaticResource White}">
-                                    <Frame.GestureRecognizers>
+                                <Border BackgroundColor="{StaticResource CardBackground}"
+                                        StrokeShape="RoundRectangle 16"
+                                        Stroke="{StaticResource WarmBorder}"
+                                        StrokeThickness="0.5"
+                                        Margin="0,0,0,10" Padding="0">
+                                    <Border.Shadow>
+                                        <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.04" />
+                                    </Border.Shadow>
+                                    <Border.GestureRecognizers>
                                         <TapGestureRecognizer
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MainPageViewModel}}, Path=SelectTourCommand}"
                                             CommandParameter="{Binding .}" />
-                                    </Frame.GestureRecognizers>
-                                    <Grid>
-                                        <!-- Tour Image -->
-                                        <Image Source="{Binding ImageUrl}"
-                                               Aspect="AspectFill"
-                                               Opacity="0.9" />
-                                        <!-- Dark gradient overlay -->
-                                        <Grid>
-                                            <Grid.Background>
-                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                                    <GradientStop Color="Transparent" Offset="0.3" />
-                                                    <GradientStop Color="#CC1E1612" Offset="1.0" />
-                                                </LinearGradientBrush>
-                                            </Grid.Background>
-                                        </Grid>
-                                        <!-- Tour Info at Bottom -->
-                                        <VerticalStackLayout VerticalOptions="End" Margin="10,10" Spacing="3">
+                                    </Border.GestureRecognizers>
+                                    <Grid ColumnDefinitions="88,*" MinimumHeightRequest="82">
+                                        <Border Grid.Column="0"
+                                                StrokeShape="RoundRectangle 16,0,0,16"
+                                                Stroke="Transparent" Padding="0">
+                                            <Image Source="{Binding ImageUrl}"
+                                                   Aspect="AspectFill"
+                                                   HeightRequest="82" WidthRequest="88" />
+                                        </Border>
+                                        <VerticalStackLayout Grid.Column="1"
+                                                             Padding="14,12"
+                                                             VerticalOptions="Center"
+                                                             Spacing="4">
                                             <Label Text="{Binding Name}"
-                                                   TextColor="{StaticResource White}"
-                                                   FontSize="12"
-                                                   FontAttributes="Bold"
-                                                   LineBreakMode="TailTruncation"
-                                                   MaxLines="2" />
+                                                   TextColor="{StaticResource TextPrimary}"
+                                                   FontSize="13" FontAttributes="Bold"
+                                                   LineBreakMode="TailTruncation" MaxLines="1" />
+                                            <HorizontalStackLayout Spacing="8">
+                                                <Label Text="{Binding EstimatedTimeText}"
+                                                       TextColor="{StaticResource TextMuted}" FontSize="11" />
+                                                <Label Text="·" TextColor="{StaticResource TextFaint}" FontSize="11" />
+                                                <Label Text="{Binding POICountText}"
+                                                       TextColor="{StaticResource TextMuted}" FontSize="11" />
+                                            </HorizontalStackLayout>
                                             <Label Text="{Binding PriceRangeText}"
-                                                   TextColor="{StaticResource PrimaryLight}"
-                                                   FontSize="10"
+                                                   FontSize="11" FontAttributes="Bold"
+                                                   TextColor="{StaticResource Secondary}"
                                                    IsVisible="{Binding PriceRangeText, Converter={StaticResource IsNotEmptyConverter}}" />
                                         </VerticalStackLayout>
                                     </Grid>
-                                </Frame>
+                                </Border>
                             </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </HorizontalStackLayout>
-                </ScrollView>
-
-                <!-- Create New Tour Button -->
-                <Button Text="{Binding LblCreateNewTour}"
-                        Command="{Binding CreateTourCommand}"
-                        CornerRadius="24"
-                        HeightRequest="48"
-                        FontSize="14"
-                        FontAttributes="Bold"
-                        TextColor="{StaticResource White}"
-                        Margin="0,2,0,0">
-                    <Button.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop Color="#E8943A" Offset="0.0" />
-                            <GradientStop Color="#C97B28" Offset="1.0" />
-                        </LinearGradientBrush>
-                    </Button.Background>
-                </Button>
-
-                <!-- Recent Tours Section Header -->
-                <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
-                    <Label Grid.Column="0"
-                           Text="{Binding LblRecentTours}"
-                           TextColor="{StaticResource TextPrimary}"
-                           FontSize="16"
-                           FontAttributes="Bold"
-                           VerticalOptions="Center" />
-                </Grid>
-
-                <!-- Recent Tour List -->
-                <CollectionView ItemsSource="{Binding RecentTours}"
-                                SelectionMode="None">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:Tour">
-                            <Frame BackgroundColor="{StaticResource White}"
-                                   CornerRadius="16"
-                                   Margin="0,0,0,10"
-                                   Padding="0"
-                                   HasShadow="True"
-                                   BorderColor="{StaticResource WarmBorder}">
-                                <Frame.GestureRecognizers>
-                                    <TapGestureRecognizer
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodel:MainPageViewModel}}, Path=SelectTourCommand}"
-                                        CommandParameter="{Binding .}" />
-                                </Frame.GestureRecognizers>
-                                <Grid ColumnDefinitions="90,*" MinimumHeightRequest="80">
-                                    <!-- Tour Image -->
-                                    <Image Source="{Binding ImageUrl}"
-                                           Aspect="AspectFill"
-                                           HorizontalOptions="FillAndExpand"
-                                           VerticalOptions="FillAndExpand">
-                                        <Image.Clip>
-                                            <RoundRectangleGeometry Rect="0,0,90,80" CornerRadius="16,0,0,16" />
-                                        </Image.Clip>
-                                    </Image>
-
-                                    <!-- Tour Info -->
-                                    <VerticalStackLayout Grid.Column="1"
-                                                         Padding="12,10"
-                                                         VerticalOptions="Center"
-                                                         Spacing="4">
-                                        <Label Text="{Binding Name}"
-                                               TextColor="{StaticResource TextPrimary}"
-                                               FontSize="13"
-                                               FontAttributes="Bold"
-                                               LineBreakMode="TailTruncation"
-                                               MaxLines="1" />
-                                        <HorizontalStackLayout Spacing="6">
-                                            <Label Text="⏱"
-                                                   TextColor="{StaticResource TextMuted}"
-                                                   FontSize="10" />
-                                            <Label Text="{Binding EstimatedTimeText}"
-                                                   TextColor="{StaticResource TextSecondary}"
-                                                   FontSize="11" />
-                                            <Label Text="📍"
-                                                   TextColor="{StaticResource TextMuted}"
-                                                   FontSize="10" />
-                                            <Label Text="{Binding POICountText}"
-                                                   TextColor="{StaticResource TextSecondary}"
-                                                   FontSize="11" />
-                                        </HorizontalStackLayout>
-                                        <Label Text="{Binding PriceRangeText}"
-                                               FontSize="11"
-                                               FontAttributes="Bold"
-                                               TextColor="{StaticResource Primary}"
-                                               LineBreakMode="TailTruncation"
-                                               MaxLines="1"
-                                               IsVisible="{Binding PriceRangeText, Converter={StaticResource IsNotEmptyConverter}}" />
-                                    </VerticalStackLayout>
-                                </Grid>
-                            </Frame>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
 
                 <!-- Location Status -->
-                <Frame BackgroundColor="#E8F5E9"
-                       Padding="12"
-                       CornerRadius="14"
-                       IsVisible="{Binding ShowLocationStatus}"
-                       HasShadow="False"
-                       BorderColor="#C8E6C9">
-                    <HorizontalStackLayout Spacing="8">
-                        <Label Text="📍" FontSize="16" />
+                <Border BackgroundColor="{StaticResource WarmCream}"
+                        Stroke="{StaticResource WarmBorder}"
+                        StrokeShape="RoundRectangle 14"
+                        IsVisible="{Binding ShowLocationStatus}"
+                        Padding="14,10">
+                    <HorizontalStackLayout Spacing="10">
+                        <Label Text="📍" FontSize="15" />
                         <Label Text="{Binding CurrentLocationText}"
-                               TextColor="{StaticResource TextPrimary}"
-                               FontSize="13"
-                               VerticalOptions="Center" />
+                               TextColor="{StaticResource TextSecondary}"
+                               FontSize="13" VerticalOptions="Center" />
                     </HorizontalStackLayout>
-                </Frame>
+                </Border>
 
-                <!-- Loading Indicator -->
+                <!-- Loading -->
                 <ActivityIndicator IsRunning="{Binding IsLoading}"
                                    IsVisible="{Binding IsLoading}"
                                    Color="{StaticResource Primary}"
                                    HorizontalOptions="Center" />
 
+                <!-- Quick actions row (Settings + Refresh) -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,0">
+                    <Border Grid.Column="0"
+                            BackgroundColor="{StaticResource CardBackground}"
+                            Stroke="{StaticResource WarmBorder}" StrokeThickness="0.5"
+                            StrokeShape="RoundRectangle 14" Padding="14,12">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnSettingsTapped" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                            <Label Text="⚙️" FontSize="16" />
+                            <Label Text="{Binding LblSettings}"
+                                   TextColor="{StaticResource TextSecondary}"
+                                   FontSize="13" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1"
+                            BackgroundColor="{StaticResource CardBackground}"
+                            Stroke="{StaticResource WarmBorder}" StrokeThickness="0.5"
+                            StrokeShape="RoundRectangle 14" Padding="14,12">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding RefreshPOIsCommand}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                            <Label Text="🔄" FontSize="16" />
+                            <Label Text="{Binding LblRefresh}"
+                                   TextColor="{StaticResource TextSecondary}"
+                                   FontSize="13" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </Border>
+                </Grid>
+
+                <BoxView HeightRequest="12" Color="Transparent" />
             </VerticalStackLayout>
-        </Grid>
+        </VerticalStackLayout>
     </ScrollView>
 
 </ContentPage>

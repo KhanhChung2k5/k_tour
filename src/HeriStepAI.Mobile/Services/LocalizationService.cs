@@ -166,6 +166,39 @@ public class LocalizationService : ILocalizationService
         ["RegionNorth"] = new() { ["vi"]="Miền Bắc", ["en"]="North", ["ko"]="북부", ["zh"]="北部", ["ja"]="北部", ["th"]="ภาคเหนือ", ["fr"]="Nord" },
         ["RegionCentral"] = new() { ["vi"]="Miền Trung", ["en"]="Central", ["ko"]="중부", ["zh"]="中部", ["ja"]="中部", ["th"]="ภาคกลาง", ["fr"]="Centre" },
         ["RegionSouth"] = new() { ["vi"]="Miền Nam", ["en"]="South", ["ko"]="남부", ["zh"]="南部", ["ja"]="南部", ["th"]="ภาคใต้", ["fr"]="Sud" },
+
+        // ── Settings Profile section ──
+        ["ProfileTitle"] = new() { ["vi"]="HỒ SƠ", ["en"]="PROFILE", ["ko"]="프로필", ["zh"]="个人资料", ["ja"]="プロフィール", ["th"]="โปรไฟล์", ["fr"]="PROFIL" },
+        ["GuestName"] = new() { ["vi"]="Khách", ["en"]="Guest", ["ko"]="게스트", ["zh"]="游客", ["ja"]="ゲスト", ["th"]="ผู้เยี่ยมชม", ["fr"]="Invité" },
+        ["GuestTitle"] = new() { ["vi"]="Thám tử ẩm thực · Cấp 5", ["en"]="Food Explorer · Level 5", ["ko"]="음식 탐험가 · 레벨 5", ["zh"]="美食探索者 · 等级5", ["ja"]="グルメ探偵 · レベル5", ["th"]="นักสำรวจอาหาร · ระดับ 5", ["fr"]="Explorateur culinaire · Niveau 5" },
+        ["LevelProgress"] = new() { ["vi"]="Tiến độ Cấp 6", ["en"]="Level 6 Progress", ["ko"]="레벨 6 진행도", ["zh"]="等级6进度", ["ja"]="レベル6の進捗", ["th"]="ความคืบหน้าระดับ 6", ["fr"]="Progression Niveau 6" },
+        ["BadgesEarned"] = new() { ["vi"]="HUY HIỆU ĐẠT ĐƯỢC", ["en"]="BADGES EARNED", ["ko"]="획득한 배지", ["zh"]="获得的徽章", ["ja"]="獲得したバッジ", ["th"]="ป้ายที่ได้รับ", ["fr"]="BADGES OBTENUS" },
+        ["BadgeChampion"] = new() { ["vi"]="Nhà vô địch", ["en"]="Champion", ["ko"]="챔피언", ["zh"]="冠军", ["ja"]="チャンピオン", ["th"]="แชมเปี้ยน", ["fr"]="Champion" },
+        ["BadgeExplorer"] = new() { ["vi"]="Người khám phá", ["en"]="Explorer", ["ko"]="탐험가", ["zh"]="探索者", ["ja"]="エクスプローラー", ["th"]="นักสำรวจ", ["fr"]="Explorateur" },
+        ["BadgeLegend"] = new() { ["vi"]="Huyền thoại", ["en"]="Legend", ["ko"]="전설", ["zh"]="传奇", ["ja"]="レジェンド", ["th"]="ตำนาน", ["fr"]="Légende" },
+        ["NarrationNotification"] = new() { ["vi"]="Thông báo thuyết minh", ["en"]="Narration Notifications", ["ko"]="해설 알림", ["zh"]="解说通知", ["ja"]="ナレーション通知", ["th"]="การแจ้งเตือนบรรยาย", ["fr"]="Notifications de narration" },
+        ["VolumeVoice"] = new() { ["vi"]="Âm lượng & Giọng đọc", ["en"]="Volume & Voice", ["ko"]="볼륨 & 음성", ["zh"]="音量和音色", ["ja"]="音量と音声", ["th"]="ระดับเสียงและเสียงอ่าน", ["fr"]="Volume & Voix" },
+
+        // ── Settings Stats section ──
+        ["StatsSection"] = new() { ["vi"]="THỐNG KÊ", ["en"]="STATISTICS", ["ko"]="통계", ["zh"]="统计", ["ja"]="統計", ["th"]="สถิติ", ["fr"]="STATISTIQUES" },
+        ["LblShopsVisited"] = new() { ["vi"]="Quán đã ghé", ["en"]="Shops Visited", ["ko"]="방문한 상점", ["zh"]="已访问店铺", ["ja"]="訪問した店", ["th"]="ร้านที่เยี่ยมชม", ["fr"]="Boutiques visitées" },
+        ["LblDistance"] = new() { ["vi"]="Quãng đường", ["en"]="Distance", ["ko"]="이동 거리", ["zh"]="距离", ["ja"]="移動距離", ["th"]="ระยะทาง", ["fr"]="Distance" },
+        ["LblToursCompleted"] = new() { ["vi"]="Tour hoàn thành", ["en"]="Tours Completed", ["ko"]="완료한 투어", ["zh"]="已完成路线", ["ja"]="完了したツアー", ["th"]="ทัวร์ที่เสร็จแล้ว", ["fr"]="Tours terminés" },
+        ["LblNarrationCount"] = new() { ["vi"]="Nghe thuyết minh", ["en"]="Narrations", ["ko"]="해설 청취", ["zh"]="已听解说", ["ja"]="ナレーション再生", ["th"]="ฟังบรรยาย", ["fr"]="Narrations" },
+        ["WeeklyActivityTitle"] = new() { ["vi"]="Hoạt động tuần này", ["en"]="This Week's Activity", ["ko"]="이번 주 활동", ["zh"]="本周活动", ["ja"]="今週の活動", ["th"]="กิจกรรมสัปดาห์นี้", ["fr"]="Activité de la semaine" },
+        ["SevenDays"] = new() { ["vi"]="7 ngày", ["en"]="7 days", ["ko"]="7일", ["zh"]="7天", ["ja"]="7日間", ["th"]="7 วัน", ["fr"]="7 jours" },
+        ["TopPlacesTitle"] = new() { ["vi"]="ĐIỂM ĐƯỢC YÊU THÍCH", ["en"]="FAVORITE PLACES", ["ko"]="즐겨찾는 장소", ["zh"]="最喜欢的地点", ["ja"]="お気に入りスポット", ["th"]="สถานที่โปรด", ["fr"]="LIEUX FAVORIS" },
+        ["NoDataYet"] = new() { ["vi"]="Chưa có dữ liệu. Hãy ghé thăm các địa điểm!", ["en"]="No data yet. Visit some places!", ["ko"]="아직 데이터가 없습니다. 장소를 방문해 보세요!", ["zh"]="暂无数据，请去参观一些地点！", ["ja"]="データがありません。スポットを訪問してください！", ["th"]="ยังไม่มีข้อมูล ลองไปเยี่ยมชมสถานที่ดูสิ!", ["fr"]="Pas encore de données. Visitez des lieux !" },
+        ["VisitCountFmt"] = new() { ["vi"]="{0} lần ghé thăm", ["en"]="{0} visits", ["ko"]="{0}번 방문", ["zh"]="访问 {0} 次", ["ja"]="{0}回訪問", ["th"]="เยี่ยมชม {0} ครั้ง", ["fr"]="{0} visites" },
+
+        // ── Week day abbreviations ──
+        ["DayMon"] = new() { ["vi"]="T2", ["en"]="Mon", ["ko"]="월", ["zh"]="周一", ["ja"]="月", ["th"]="จ", ["fr"]="Lun" },
+        ["DayTue"] = new() { ["vi"]="T3", ["en"]="Tue", ["ko"]="화", ["zh"]="周二", ["ja"]="火", ["th"]="อ", ["fr"]="Mar" },
+        ["DayWed"] = new() { ["vi"]="T4", ["en"]="Wed", ["ko"]="수", ["zh"]="周三", ["ja"]="水", ["th"]="พ", ["fr"]="Mer" },
+        ["DayThu"] = new() { ["vi"]="T5", ["en"]="Thu", ["ko"]="목", ["zh"]="周四", ["ja"]="木", ["th"]="พฤ", ["fr"]="Jeu" },
+        ["DayFri"] = new() { ["vi"]="T6", ["en"]="Fri", ["ko"]="금", ["zh"]="周五", ["ja"]="金", ["th"]="ศ", ["fr"]="Ven" },
+        ["DaySat"] = new() { ["vi"]="T7", ["en"]="Sat", ["ko"]="토", ["zh"]="周六", ["ja"]="土", ["th"]="ส", ["fr"]="Sam" },
+        ["DaySun"] = new() { ["vi"]="CN", ["en"]="Sun", ["ko"]="일", ["zh"]="周日", ["ja"]="日", ["th"]="อา", ["fr"]="Dim" },
     };
 
     // Helper: same text for all languages

@@ -8,224 +8,195 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{StaticResource PageBackground}">
 
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid RowDefinitions="Auto,Auto,Auto,*">
 
-        <!-- Search Bar Section -->
-        <Grid Grid.Row="0"
-              x:Name="SearchTopBar"
-              BackgroundColor="{StaticResource White}"
-              Padding="16,48,16,12">
-            <Grid.Shadow>
-                <Shadow Brush="{StaticResource Black}" Offset="0,2" Radius="6" Opacity="0.04" />
-            </Grid.Shadow>
-            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                <!-- Back Button -->
-                <Frame Grid.Column="0"
-                       BackgroundColor="{StaticResource WarmCream}"
-                       CornerRadius="16"
-                       WidthRequest="40"
-                       HeightRequest="40"
-                       Padding="0"
-                       HasShadow="False"
-                       BorderColor="{StaticResource WarmBorder}">
-                    <Frame.GestureRecognizers>
+        <!-- Dashboard Header -->
+        <Grid Grid.Row="0" x:Name="SearchTopBar" Padding="20,52,20,16">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#1A1410" Offset="0.0" />
+                    <GradientStop Color="#2C2416" Offset="1.0" />
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Grid ColumnDefinitions="*,Auto">
+                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                    <Label Text="Xin chào 👋"
+                           TextColor="{StaticResource TextFaint}"
+                           FontSize="12" />
+                    <Label Text="Phố Hồ Thị Kỷ"
+                           TextColor="{StaticResource White}"
+                           FontSize="20" FontAttributes="Bold" />
+                </VerticalStackLayout>
+                <!-- Back button -->
+                <Border Grid.Column="1"
+                        BackgroundColor="#22FFFFFF"
+                        StrokeShape="RoundRectangle 16"
+                        WidthRequest="38" HeightRequest="38"
+                        Padding="0" Stroke="Transparent"
+                        VerticalOptions="Start">
+                    <Border.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding GoBackCommand}" />
-                    </Frame.GestureRecognizers>
-                    <Label Text="←"
-                           TextColor="{StaticResource TextPrimary}"
-                           FontSize="16"
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center" />
-                </Frame>
-
-                <!-- Search Entry -->
-                <Frame Grid.Column="1"
-                       BackgroundColor="{StaticResource WarmCream}"
-                       CornerRadius="20"
-                       Padding="12,0"
-                       HasShadow="False"
-                       BorderColor="{StaticResource WarmBorder}"
-                       HeightRequest="40">
-                    <Grid ColumnDefinitions="Auto,*">
-                        <Label Text="🔍"
-                               FontSize="13"
-                               VerticalOptions="Center"
-                               TextColor="{StaticResource TextMuted}"
-                               Margin="0,0,6,0" />
-                        <Entry Grid.Column="1"
-                               Placeholder="{Binding LblSearchPlaces}"
-                               Text="{Binding SearchText}"
-                               BackgroundColor="Transparent"
-                               FontSize="13"
-                               VerticalOptions="Center"
-                               PlaceholderColor="{StaticResource TextMuted}"
-                               TextColor="{StaticResource TextPrimary}" />
-                    </Grid>
-                </Frame>
+                    </Border.GestureRecognizers>
+                    <Label Text="←" TextColor="{StaticResource White}" FontSize="16"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
             </Grid>
         </Grid>
 
-        <!-- Category Filter Tabs -->
-        <ScrollView Grid.Row="1"
+        <!-- Search Bar -->
+        <Grid Grid.Row="1" Padding="16,0,16,12" BackgroundColor="#2C2416">
+            <Border BackgroundColor="{StaticResource WarmCream}"
+                    Stroke="{StaticResource WarmBorder}"
+                    StrokeShape="RoundRectangle 20"
+                    Padding="12,0"
+                    HeightRequest="42">
+                <Grid ColumnDefinitions="Auto,*">
+                    <Label Text="🔍" FontSize="13" TextColor="{StaticResource TextFaint}"
+                           VerticalOptions="Center" Margin="0,0,6,0" />
+                    <Entry Grid.Column="1"
+                           Placeholder="{Binding LblSearchPlaces}"
+                           Text="{Binding SearchText}"
+                           BackgroundColor="Transparent"
+                           FontSize="13"
+                           VerticalOptions="Center"
+                           PlaceholderColor="{StaticResource TextFaint}"
+                           TextColor="{StaticResource TextPrimary}" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Category chips -->
+        <ScrollView Grid.Row="2"
                     Orientation="Horizontal"
                     HorizontalScrollBarVisibility="Never"
-                    BackgroundColor="{StaticResource White}">
-            <HorizontalStackLayout Padding="16,8,16,10" Spacing="8">
+                    BackgroundColor="{StaticResource CardBackground}">
+            <HorizontalStackLayout Padding="16,10,16,10" Spacing="7">
                 <Button Text="{Binding LblCatAll}"
-                        Command="{Binding SelectCategoryCommand}"
-                        CommandParameter="0"
-                        FontSize="12"
-                        HeightRequest="32"
-                        CornerRadius="16"
-                        Padding="14,0"
+                        Command="{Binding SelectCategoryCommand}" CommandParameter="0"
+                        FontSize="11" HeightRequest="30" CornerRadius="15" Padding="14,0"
                         BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='0'}"
                         TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='0'}" />
                 <Button Text="{Binding LblCatSightseeing}"
-                        Command="{Binding SelectCategoryCommand}"
-                        CommandParameter="1"
-                        FontSize="12"
-                        HeightRequest="32"
-                        CornerRadius="16"
-                        Padding="14,0"
+                        Command="{Binding SelectCategoryCommand}" CommandParameter="1"
+                        FontSize="11" HeightRequest="30" CornerRadius="15" Padding="14,0"
                         BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='1'}"
                         TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='1'}" />
                 <Button Text="{Binding LblCatFood}"
-                        Command="{Binding SelectCategoryCommand}"
-                        CommandParameter="2"
-                        FontSize="12"
-                        HeightRequest="32"
-                        CornerRadius="16"
-                        Padding="14,0"
+                        Command="{Binding SelectCategoryCommand}" CommandParameter="2"
+                        FontSize="11" HeightRequest="30" CornerRadius="15" Padding="14,0"
                         BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='2'}"
                         TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='2'}" />
                 <Button Text="{Binding LblCatAccommodation}"
-                        Command="{Binding SelectCategoryCommand}"
-                        CommandParameter="3"
-                        FontSize="12"
-                        HeightRequest="32"
-                        CornerRadius="16"
-                        Padding="14,0"
+                        Command="{Binding SelectCategoryCommand}" CommandParameter="3"
+                        FontSize="11" HeightRequest="30" CornerRadius="15" Padding="14,0"
                         BackgroundColor="{Binding SelectedCategory, Converter={StaticResource CategoryColorConverter}, ConverterParameter='3'}"
                         TextColor="{Binding SelectedCategory, Converter={StaticResource CategoryTextColorConverter}, ConverterParameter='3'}" />
             </HorizontalStackLayout>
         </ScrollView>
 
         <!-- POI List -->
-        <RefreshView Grid.Row="2"
+        <RefreshView Grid.Row="3"
                      Command="{Binding RefreshCommand}"
                      IsRefreshing="{Binding IsRefreshing}">
             <CollectionView ItemsSource="{Binding FilteredPOIs}"
                             SelectionMode="None"
-                            Margin="16,8">
+                            Margin="16,10,16,0">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:POI">
-                        <Frame BackgroundColor="{StaticResource White}"
-                               CornerRadius="16"
-                               Padding="0"
-                               Margin="0,0,0,10"
-                               HasShadow="True"
-                               BorderColor="{StaticResource WarmBorder}"
-                               IsClippedToBounds="True">
-                            <Frame.GestureRecognizers>
+                        <Border BackgroundColor="{StaticResource CardBackground}"
+                                StrokeShape="RoundRectangle 16"
+                                Stroke="{StaticResource WarmBorder}"
+                                StrokeThickness="0.5"
+                                Padding="0"
+                                Margin="0,0,0,10">
+                            <Border.Shadow>
+                                <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.04" />
+                            </Border.Shadow>
+                            <Border.GestureRecognizers>
                                 <TapGestureRecognizer
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectPOICommand}"
                                     CommandParameter="{Binding .}" />
-                            </Frame.GestureRecognizers>
+                            </Border.GestureRecognizers>
 
-                            <Grid ColumnDefinitions="95,*" MinimumHeightRequest="88">
+                            <Grid ColumnDefinitions="90,*" MinimumHeightRequest="90">
                                 <!-- POI Image -->
-                                <Image Grid.Column="0"
-                                       Source="{Binding ImageUrl}"
-                                       Aspect="AspectFill"
-                                       HorizontalOptions="FillAndExpand"
-                                       VerticalOptions="FillAndExpand">
-                                    <Image.Clip>
-                                        <RoundRectangleGeometry Rect="0,0,95,88" CornerRadius="16,0,0,16" />
-                                    </Image.Clip>
-                                </Image>
+                                <Border Grid.Column="0" StrokeShape="RoundRectangle 16,0,0,16"
+                                        Stroke="Transparent" Padding="0">
+                                    <Image Source="{Binding ImageUrl}"
+                                           Aspect="AspectFill"
+                                           HeightRequest="90" WidthRequest="90" />
+                                </Border>
 
                                 <!-- POI Info -->
                                 <VerticalStackLayout Grid.Column="1"
-                                                     Padding="12,10"
-                                                     Spacing="5"
+                                                     Padding="14,12"
+                                                     Spacing="4"
                                                      VerticalOptions="Center">
-                                    <Label Text="{Binding Name}"
-                                           FontSize="13"
+                                    <!-- Category tag -->
+                                    <Label Text="{Binding Category}"
+                                           TextColor="{StaticResource TextMuted}"
+                                           FontSize="9"
+                                           CharacterSpacing="0.8"
                                            FontAttributes="Bold"
+                                           TextTransform="Uppercase" />
+                                    <Label Text="{Binding Name}"
+                                           FontSize="14" FontAttributes="Bold"
                                            TextColor="{StaticResource TextPrimary}"
                                            LineBreakMode="TailTruncation"
                                            MaxLines="2" />
-
-                                    <HorizontalStackLayout Spacing="3">
-                                        <Label Text="⭐"
-                                               FontSize="10"
-                                               TextColor="{StaticResource StarColor}" />
+                                    <!-- Stars -->
+                                    <HorizontalStackLayout Spacing="4">
+                                        <Label Text="⭐" FontSize="10" TextColor="{StaticResource Accent}" />
                                         <Label Text="{Binding RatingText}"
-                                               FontSize="11"
-                                               TextColor="{StaticResource TextSecondary}" />
+                                               FontSize="11" TextColor="{StaticResource TextSecondary}" />
                                         <Label Text="{Binding ReviewCount, StringFormat='({0})'}"
-                                               FontSize="11"
-                                               TextColor="{StaticResource TextMuted}" />
+                                               FontSize="11" TextColor="{StaticResource TextFaint}" />
                                     </HorizontalStackLayout>
-
-                                    <HorizontalStackLayout Spacing="10">
-                                        <HorizontalStackLayout Spacing="3">
-                                            <Label Text="⏱"
-                                                   FontSize="10"
-                                                   TextColor="{StaticResource Primary}" />
+                                    <!-- Meta chips row -->
+                                    <HorizontalStackLayout Spacing="6" Margin="0,2,0,0">
+                                        <Border BackgroundColor="{StaticResource WarmCream}"
+                                                Stroke="{StaticResource WarmBorder}"
+                                                StrokeShape="RoundRectangle 6"
+                                                Padding="7,3">
                                             <Label Text="{Binding EstimatedTimeText}"
-                                                   FontSize="11"
-                                                   TextColor="{StaticResource TextSecondary}" />
-                                        </HorizontalStackLayout>
-                                        <HorizontalStackLayout Spacing="3">
-                                            <Label Text="📍"
-                                                   FontSize="10"
-                                                   TextColor="{StaticResource Primary}" />
+                                                   FontSize="10" TextColor="{StaticResource TextSecondary}" />
+                                        </Border>
+                                        <Border BackgroundColor="{StaticResource WarmCream}"
+                                                Stroke="{StaticResource WarmBorder}"
+                                                StrokeShape="RoundRectangle 6"
+                                                Padding="7,3">
                                             <Label Text="{Binding DistanceText}"
-                                                   FontSize="11"
-                                                   TextColor="{StaticResource TextSecondary}" />
-                                        </HorizontalStackLayout>
+                                                   FontSize="10" TextColor="{StaticResource TextSecondary}" />
+                                        </Border>
                                     </HorizontalStackLayout>
                                 </VerticalStackLayout>
                             </Grid>
-                        </Frame>
+                        </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
 
                 <!-- Empty State -->
                 <CollectionView.EmptyView>
-                    <VerticalStackLayout VerticalOptions="Center"
-                                         HorizontalOptions="Center"
-                                         Spacing="10"
-                                         Padding="40">
-                        <Label Text="📍"
-                               FontSize="40"
-                               HorizontalOptions="Center" />
+                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center"
+                                         Spacing="10" Padding="40">
+                        <Label Text="📍" FontSize="40" HorizontalOptions="Center" />
                         <Label Text="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.LblNoPlacesFound}"
-                               TextColor="{StaticResource TextPrimary}"
-                               FontSize="15"
-                               FontAttributes="Bold"
+                               TextColor="{StaticResource TextPrimary}" FontSize="15" FontAttributes="Bold"
                                HorizontalOptions="Center" />
                         <Label Text="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.LblTryDifferentSearch}"
-                               TextColor="{StaticResource TextSecondary}"
-                               FontSize="13"
-                               HorizontalOptions="Center"
-                               HorizontalTextAlignment="Center" />
+                               TextColor="{StaticResource TextMuted}" FontSize="13"
+                               HorizontalOptions="Center" HorizontalTextAlignment="Center" />
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
             </CollectionView>
         </RefreshView>
 
         <!-- Loading Overlay -->
-        <Grid Grid.RowSpan="3"
-              BackgroundColor="#80F7F2EC"
-              IsVisible="{Binding IsLoading}">
+        <Grid Grid.RowSpan="4" BackgroundColor="#80F5F0E8" IsVisible="{Binding IsLoading}">
             <ActivityIndicator IsRunning="{Binding IsLoading}"
                                Color="{StaticResource Primary}"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center"
-                               WidthRequest="44"
-                               HeightRequest="44" />
+                               HorizontalOptions="Center" VerticalOptions="Center"
+                               WidthRequest="44" HeightRequest="44" />
         </Grid>
     </Grid>
 

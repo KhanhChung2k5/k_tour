@@ -33,6 +33,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ITourSelectionService, TourSelectionService>();
         builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
         builder.Services.AddSingleton<ITourGeneratorService, TourGeneratorService>();
+        builder.Services.AddSingleton<IAnalyticsService, LocalAnalyticsService>();
 
         // ViewModels
         builder.Services.AddSingleton<AuthViewModel>();       // merged login+register

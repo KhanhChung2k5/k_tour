@@ -10,9 +10,35 @@ public partial class POIDetailViewModel : ObservableObject
 {
     private readonly INarrationService _narrationService;
     private readonly ILocalizationService _localizationService;
+    private readonly IAnalyticsService _analytics;
 
     [ObservableProperty]
     private POI selectedPoi = new();
+
+    /// <summary>
+    /// Mô tả POI theo ngôn ngữ hiện tại.
+    /// Tra trong Contents trước, fallback về Description (tiếng Việt).
+    /// </summary>
+    public string LocalizedDescription
+    {
+        get
+        {
+            var lang = _localizationService.CurrentLanguage;
+            var content = SelectedPoi.Contents
+                .FirstOrDefault(c => c.Language == lang && !string.IsNullOrWhiteSpace(c.TextContent));
+            if (content != null) return content.TextContent!;
+
+            // Fallback: thử "vi" trước
+            if (lang != "vi")
+            {
+                var vi = SelectedPoi.Contents
+                    .FirstOrDefault(c => c.Language == "vi" && !string.IsNullOrWhiteSpace(c.TextContent));
+                if (vi != null) return vi.TextContent!;
+            }
+
+            return SelectedPoi.Description;
+        }
+    }
 
     // Localized labels
     public string LblAddress => _localizationService.GetString("Address");
@@ -25,12 +51,19 @@ public partial class POIDetailViewModel : ObservableObject
 
     public POIDetailViewModel(
         INarrationService narrationService,
-        ILocalizationService localizationService)
+        ILocalizationService localizationService,
+        IAnalyticsService analytics)
     {
         _narrationService = narrationService;
         _localizationService = localizationService;
+        _analytics = analytics;
 
         _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
+    }
+
+    partial void OnSelectedPoiChanged(POI value)
+    {
+        OnPropertyChanged(nameof(LocalizedDescription));
     }
 
     private void RefreshTranslations()
@@ -44,6 +77,7 @@ public partial class POIDetailViewModel : ObservableObject
             OnPropertyChanged(nameof(LblDescription));
             OnPropertyChanged(nameof(LblListenNarration));
             OnPropertyChanged(nameof(LblGetDirections));
+            OnPropertyChanged(nameof(LocalizedDescription));
         });
     }
 
@@ -57,6 +91,8 @@ public partial class POIDetailViewModel : ObservableObject
     private async Task PlayNarration()
     {
         await _narrationService.PlayNarrationAsync(SelectedPoi, _localizationService.CurrentLanguage, forcePlay: true);
+        _analytics.RecordPOIVisit(SelectedPoi);
+        _analytics.RecordNarration();
     }
 
     [RelayCommand]
