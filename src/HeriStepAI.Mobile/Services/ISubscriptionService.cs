@@ -4,6 +4,7 @@ namespace HeriStepAI.Mobile.Services;
 
 public enum SubscriptionPlan
 {
+    Daily,    // 1 day
     Weekly,   // 7 days
     Monthly,  // 30 days
     Yearly    // 365 days

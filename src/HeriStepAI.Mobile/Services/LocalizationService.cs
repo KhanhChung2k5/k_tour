@@ -199,6 +199,47 @@ public class LocalizationService : ILocalizationService
         ["DayFri"] = new() { ["vi"]="T6", ["en"]="Fri", ["ko"]="금", ["zh"]="周五", ["ja"]="金", ["th"]="ศ", ["fr"]="Ven" },
         ["DaySat"] = new() { ["vi"]="T7", ["en"]="Sat", ["ko"]="토", ["zh"]="周六", ["ja"]="土", ["th"]="ส", ["fr"]="Sam" },
         ["DaySun"] = new() { ["vi"]="CN", ["en"]="Sun", ["ko"]="일", ["zh"]="周日", ["ja"]="日", ["th"]="อา", ["fr"]="Dim" },
+
+        // ── Subscription / Payment ──
+        ["SubHeroSubtitle"]    = new() { ["vi"]="Trải nghiệm du lịch thông minh", ["en"]="Smart travel experience", ["ko"]="스마트 여행 경험", ["zh"]="智能旅行体验", ["ja"]="スマートな旅行体験", ["th"]="ประสบการณ์การท่องเที่ยวอัจฉริยะ", ["fr"]="Expérience de voyage intelligente" },
+        ["SubHeroPrompt"]      = new() { ["vi"]="Chọn gói phù hợp để bắt đầu", ["en"]="Choose a plan to get started", ["ko"]="시작할 요금제를 선택하세요", ["zh"]="选择适合您的套餐", ["ja"]="プランを選んでください", ["th"]="เลือกแพ็กเกจที่เหมาะกับคุณ", ["fr"]="Choisissez un forfait pour commencer" },
+
+        ["PlanDaily"]          = new() { ["vi"]="Gói Ngày", ["en"]="Daily Plan", ["ko"]="일일 플랜", ["zh"]="日套餐", ["ja"]="デイプラン", ["th"]="แพ็กวัน", ["fr"]="Forfait journée" },
+        ["PlanDailyDesc"]      = new() { ["vi"]="1 ngày trải nghiệm thử", ["en"]="1-day trial experience", ["ko"]="1일 체험", ["zh"]="1天体验", ["ja"]="1日間体験", ["th"]="ทดลองใช้ 1 วัน", ["fr"]="1 jour d'essai" },
+        ["PlanDailyPeriod"]    = new() { ["vi"]="/1 ngày", ["en"]="/1 day", ["ko"]="/1일", ["zh"]="/1天", ["ja"]="/1日", ["th"]="/1 วัน", ["fr"]="/1 jour" },
+
+        ["PlanWeekly"]         = new() { ["vi"]="Gói Tuần", ["en"]="Weekly Plan", ["ko"]="주간 플랜", ["zh"]="周套餐", ["ja"]="ウィークリープラン", ["th"]="แพ็กสัปดาห์", ["fr"]="Forfait semaine" },
+        ["PlanWeeklyDesc"]     = new() { ["vi"]="7 ngày trải nghiệm đầy đủ", ["en"]="7-day full experience", ["ko"]="7일 완전 체험", ["zh"]="7天完整体验", ["ja"]="7日間フル体験", ["th"]="7 วันแบบเต็ม", ["fr"]="7 jours d'expérience complète" },
+        ["PlanWeeklyPeriod"]   = new() { ["vi"]="/7 ngày", ["en"]="/7 days", ["ko"]="/7일", ["zh"]="/7天", ["ja"]="/7日", ["th"]="/7 วัน", ["fr"]="/7 jours" },
+
+        ["PlanMonthly"]        = new() { ["vi"]="Gói Tháng", ["en"]="Monthly Plan", ["ko"]="월간 플랜", ["zh"]="月套餐", ["ja"]="マンスリープラン", ["th"]="แพ็กเดือน", ["fr"]="Forfait mensuel" },
+        ["PlanMonthlyDesc"]    = new() { ["vi"]="30 ngày không giới hạn", ["en"]="30 days unlimited", ["ko"]="30일 무제한", ["zh"]="30天无限制", ["ja"]="30日無制限", ["th"]="30 วันไม่จำกัด", ["fr"]="30 jours illimité" },
+        ["PlanMonthlyPeriod"]  = new() { ["vi"]="/30 ngày", ["en"]="/30 days", ["ko"]="/30일", ["zh"]="/30天", ["ja"]="/30日", ["th"]="/30 วัน", ["fr"]="/30 jours" },
+        ["BadgePopular"]       = new() { ["vi"]="PHỔ BIẾN", ["en"]="POPULAR", ["ko"]="인기", ["zh"]="热门", ["ja"]="人気", ["th"]="ยอดนิยม", ["fr"]="POPULAIRE" },
+
+        ["PlanYearly"]         = new() { ["vi"]="Gói Năm", ["en"]="Yearly Plan", ["ko"]="연간 플랜", ["zh"]="年套餐", ["ja"]="イヤリープラン", ["th"]="แพ็กปี", ["fr"]="Forfait annuel" },
+        ["PlanYearlyDesc"]     = new() { ["vi"]="365 ngày · Tiết kiệm hơn 40%", ["en"]="365 days · Save over 40%", ["ko"]="365일 · 40% 이상 절약", ["zh"]="365天 · 节省40%以上", ["ja"]="365日 · 40%以上お得", ["th"]="365 วัน · ประหยัดกว่า 40%", ["fr"]="365 jours · Économisez plus de 40%" },
+        ["PlanYearlyPeriod"]   = new() { ["vi"]="/365 ngày", ["en"]="/365 days", ["ko"]="/365일", ["zh"]="/365天", ["ja"]="/365日", ["th"]="/365 วัน", ["fr"]="/365 jours" },
+        ["BadgeSave"]          = new() { ["vi"]="TIẾT KIỆM", ["en"]="BEST VALUE", ["ko"]="절약", ["zh"]="超值", ["ja"]="お得", ["th"]="คุ้มค่า", ["fr"]="ÉCONOMIQUE" },
+
+        ["SubFeaturesTitle"]   = new() { ["vi"]="Bao gồm trong tất cả các gói:", ["en"]="Included in all plans:", ["ko"]="모든 요금제에 포함:", ["zh"]="所有套餐包含:", ["ja"]="全プランに含まれる:", ["th"]="รวมอยู่ในทุกแพ็กเกจ:", ["fr"]="Inclus dans tous les forfaits :" },
+        ["SubFeature1"]        = new() { ["vi"]="Bản đồ tương tác với OpenStreetMap", ["en"]="Interactive map with OpenStreetMap", ["ko"]="OpenStreetMap 인터랙티브 지도", ["zh"]="OpenStreetMap 互动地图", ["ja"]="OpenStreetMapインタラクティブマップ", ["th"]="แผนที่เชิงโต้ตอบด้วย OpenStreetMap", ["fr"]="Carte interactive OpenStreetMap" },
+        ["SubFeature2"]        = new() { ["vi"]="Thuyết minh tự động theo vị trí (7 ngôn ngữ)", ["en"]="Auto narration by location (7 languages)", ["ko"]="위치 기반 자동 해설 (7개 언어)", ["zh"]="按位置自动讲解（7种语言）", ["ja"]="位置情報による自動ナレーション（7言語）", ["th"]="การบรรยายอัตโนมัติตามตำแหน่ง (7 ภาษา)", ["fr"]="Narration automatique par position (7 langues)" },
+        ["SubFeature3"]        = new() { ["vi"]="Tạo tour AI thông minh", ["en"]="AI-powered smart tour creation", ["ko"]="AI 스마트 투어 생성", ["zh"]="AI智能创建路线", ["ja"]="AIスマートツア作成", ["th"]="สร้างทัวร์อัจฉริยะด้วย AI", ["fr"]="Création de tour intelligent par IA" },
+        ["SubFeature4"]        = new() { ["vi"]="Thống kê hành trình cá nhân", ["en"]="Personal journey statistics", ["ko"]="개인 여행 통계", ["zh"]="个人行程统计", ["ja"]="個人旅行統計", ["th"]="สถิติการเดินทางส่วนตัว", ["fr"]="Statistiques de voyage personnelles" },
+        ["SubFooterNote"]      = new() { ["vi"]="Thanh toán qua chuyển khoản ngân hàng · Không tự động gia hạn", ["en"]="Pay via bank transfer · No auto-renewal", ["ko"]="계좌이체로 결제 · 자동 갱신 없음", ["zh"]="银行转账支付 · 不自动续费", ["ja"]="銀行振込支払 · 自動更新なし", ["th"]="ชำระผ่านการโอนเงิน · ไม่ต่ออายุอัตโนมัติ", ["fr"]="Paiement par virement · Pas de renouvellement automatique" },
+
+        ["SubPayTitle"]        = new() { ["vi"]="Thanh toán", ["en"]="Payment", ["ko"]="결제", ["zh"]="支付", ["ja"]="お支払い", ["th"]="การชำระเงิน", ["fr"]="Paiement" },
+        ["SubScanQR"]          = new() { ["vi"]="Quét mã để thanh toán", ["en"]="Scan QR to pay", ["ko"]="QR 스캔하여 결제", ["zh"]="扫码支付", ["ja"]="QRをスキャンして支払い", ["th"]="สแกน QR เพื่อชำระเงิน", ["fr"]="Scannez le QR pour payer" },
+        ["SubOrManual"]        = new() { ["vi"]="Hoặc chuyển khoản thủ công:", ["en"]="Or transfer manually:", ["ko"]="또는 수동 이체:", ["zh"]="或手动转账:", ["ja"]="または手動振込:", ["th"]="หรือโอนเงินด้วยตนเอง:", ["fr"]="Ou transférer manuellement :" },
+        ["SubBank"]            = new() { ["vi"]="Ngân hàng", ["en"]="Bank", ["ko"]="은행", ["zh"]="银行", ["ja"]="銀行", ["th"]="ธนาคาร", ["fr"]="Banque" },
+        ["SubAccountNo"]       = new() { ["vi"]="Số tài khoản", ["en"]="Account No.", ["ko"]="계좌번호", ["zh"]="账号", ["ja"]="口座番号", ["th"]="หมายเลขบัญชี", ["fr"]="N° de compte" },
+        ["SubAmount"]          = new() { ["vi"]="Số tiền", ["en"]="Amount", ["ko"]="금액", ["zh"]="金额", ["ja"]="金額", ["th"]="จำนวนเงิน", ["fr"]="Montant" },
+        ["SubTransferRef"]     = new() { ["vi"]="Nội dung chuyển khoản", ["en"]="Transfer reference", ["ko"]="이체 내용", ["zh"]="转账备注", ["ja"]="振込内容", ["th"]="เนื้อหาการโอน", ["fr"]="Référence de virement" },
+        ["SubRefImportant"]    = new() { ["vi"]="(quan trọng — không được thiếu)", ["en"]="(important — do not omit)", ["ko"]="(중요 — 생략 불가)", ["zh"]="(重要 — 不能省略)", ["ja"]="（重要 — 省略不可）", ["th"]="(สำคัญ — ห้ามละเว้น)", ["fr"]="(important — ne pas omettre)" },
+        ["SubWarning"]         = new() { ["vi"]="Vui lòng ghi đúng nội dung chuyển khoản để chúng tôi xác nhận thanh toán của bạn.", ["en"]="Please enter the exact transfer reference so we can confirm your payment.", ["ko"]="결제 확인을 위해 이체 내용을 정확히 입력하세요.", ["zh"]="请正确填写转账备注以便我们确认您的付款。", ["ja"]="お支払いを確認するために振込内容を正確に入力してください。", ["th"]="กรุณากรอกเนื้อหาการโอนให้ถูกต้องเพื่อยืนยันการชำระเงิน", ["fr"]="Veuillez saisir la référence exacte pour confirmer votre paiement." },
+        ["SubConfirmBtn"]      = new() { ["vi"]="✅  Tôi đã thanh toán", ["en"]="✅  I have paid", ["ko"]="✅  결제 완료", ["zh"]="✅  我已支付", ["ja"]="✅  支払い完了", ["th"]="✅  ฉันชำระแล้ว", ["fr"]="✅  J'ai payé" },
+        ["SubConfirmNote"]     = new() { ["vi"]="Sau khi chuyển khoản thành công, nhấn nút trên để tiếp tục.", ["en"]="After a successful transfer, tap the button above to continue.", ["ko"]="이체 성공 후 위 버튼을 눌러 계속하세요.", ["zh"]="转账成功后，点击上方按钮继续。", ["ja"]="振込完了後、上のボタンをタップして続行してください。", ["th"]="หลังโอนเงินสำเร็จ กดปุ่มด้านบนเพื่อดำเนินการต่อ", ["fr"]="Après le virement, appuyez sur le bouton ci-dessus pour continuer." },
     };
 
     // Helper: same text for all languages

@@ -72,10 +72,11 @@ public class SubscriptionService : ISubscriptionService
     {
         var days = plan switch
         {
+            SubscriptionPlan.Daily   => 1,
             SubscriptionPlan.Weekly  => 7,
             SubscriptionPlan.Monthly => 30,
             SubscriptionPlan.Yearly  => 365,
-            _                        => 7
+            _                        => 1
         };
 
         var expiry = DateTime.UtcNow.AddDays(days).ToString("O"); // ISO round-trip

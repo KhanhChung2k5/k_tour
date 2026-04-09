@@ -177,6 +177,12 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPOIService, POIService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IGeocodingService, GeocodingService>();
+builder.Services.AddScoped<ITranslationService, MyMemoryTranslationService>();
+builder.Services.AddHttpClient("MyMemory", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+    client.DefaultRequestHeaders.Add("User-Agent", "HeriStepAI/1.0");
+});
 
 var app = builder.Build();
 
