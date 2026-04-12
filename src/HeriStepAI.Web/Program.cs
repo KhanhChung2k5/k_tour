@@ -1,5 +1,6 @@
 using DotNetEnv;
 using HeriStepAI.API.Data;
+using HeriStepAI.API.Services;
 using HeriStepAI.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
@@ -83,6 +84,15 @@ builder.Services.AddAuthorization();
 
 // Supabase Storage
 builder.Services.AddSingleton<ISupabaseStorageService, SupabaseStorageService>();
+
+// Dịch thuyết minh (MyMemory) — đồng bộ khi chủ quán sửa tiếng Việt
+builder.Services.AddHttpClient("MyMemory", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(90);
+    client.DefaultRequestHeaders.Add("User-Agent", "HeriStepAI/1.0");
+});
+builder.Services.AddScoped<ITranslationService, MyMemoryTranslationService>();
+builder.Services.AddScoped<IPOIContentTranslationSyncService, POIContentTranslationSyncService>();
 
 // HTTP Client for API (local: http://localhost:5000/api/; deploy: set API_BASE_URL hoặc ApiSettings:BaseUrl)
 builder.Services.AddHttpClient("API", client =>

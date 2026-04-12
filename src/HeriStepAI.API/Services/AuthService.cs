@@ -28,15 +28,25 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException("Invalid credentials");
         }
 
+        if (user.Role == UserRole.ShopOwner)
+        {
+            if (user.ApprovalStatus == AccountApprovalStatus.Pending)
+                throw new UnauthorizedAccessException("ACCOUNT_PENDING_APPROVAL");
+            if (user.ApprovalStatus == AccountApprovalStatus.Rejected)
+                throw new UnauthorizedAccessException("ACCOUNT_REJECTED");
+        }
+
         return GenerateJwtToken(user);
     }
 
-    public async Task<User?> RegisterAsync(string username, string email, string password, UserRole role, string? fullName = null, string? phone = null)
+    public async Task<User?> RegisterAsync(string username, string email, string password, UserRole role, string? fullName = null, string? phone = null, AccountApprovalStatus? approvalStatus = null)
     {
         if (await _context.Users.AnyAsync(u => u.Email == email))
         {
             throw new InvalidOperationException("Email already exists");
         }
+
+        var status = approvalStatus ?? DefaultApprovalForRole(role);
 
         var user = new User
         {
@@ -47,12 +57,40 @@ public class AuthService : IAuthService
             Phone = phone,
             Role = role,
             CreatedAt = DateTime.UtcNow,
-            IsActive = true
+            IsActive = true,
+            ApprovalStatus = status
         };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
         return user;
+    }
+
+    private static AccountApprovalStatus DefaultApprovalForRole(UserRole role) => role switch
+    {
+        UserRole.Admin => AccountApprovalStatus.NotApplicable,
+        UserRole.Tourist => AccountApprovalStatus.NotApplicable,
+        UserRole.ShopOwner => AccountApprovalStatus.Approved,
+        _ => AccountApprovalStatus.Approved
+    };
+
+    public async Task<bool> ApproveShopOwnerAsync(int userId)
+    {
+        // Dùng SQL trực tiếp để tránh lỗi tracking/FindAsync với pooler (Supabase) và đảm bảo ghi xuống DB.
+        var rows = await _context.Database.ExecuteSqlInterpolatedAsync($@"
+            UPDATE ""Users""
+            SET ""ApprovalStatus"" = {(int)AccountApprovalStatus.Approved}
+            WHERE ""Id"" = {userId} AND ""Role"" = {(int)UserRole.ShopOwner}");
+        return rows > 0;
+    }
+
+    public async Task<bool> RejectShopOwnerAsync(int userId)
+    {
+        var rows = await _context.Database.ExecuteSqlInterpolatedAsync($@"
+            UPDATE ""Users""
+            SET ""ApprovalStatus"" = {(int)AccountApprovalStatus.Rejected}, ""IsActive"" = false
+            WHERE ""Id"" = {userId} AND ""Role"" = {(int)UserRole.ShopOwner}");
+        return rows > 0;
     }
 
     public async Task<User?> GetUserByIdAsync(int id)
@@ -63,7 +101,6 @@ public class AuthService : IAuthService
     private string GenerateJwtToken(User user)
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
-        // Đồng bộ với .env - Web và API phải dùng cùng secret
         var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
             ?? jwtSettings["SecretKey"]
             ?? "YourSuperSecretKeyForJWTTokenGeneration12345";
@@ -79,7 +116,6 @@ public class AuthService : IAuthService
             new Claim(ClaimTypes.Role, user.Role.ToString())
         };
 
-        // HS256 yêu cầu key >= 256 bit (32 bytes)
         var keyBytes = Encoding.UTF8.GetBytes(secretKey);
         if (keyBytes.Length < 32)
             keyBytes = SHA256.HashData(keyBytes);

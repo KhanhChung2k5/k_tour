@@ -1,28 +1,10 @@
-# Product Requirements Document (PRD) — HeriStepAI v1.0
+﻿# Product Requirements Document (PRD) — HeriStepAI v1.0
 
 | Thuộc tính | Giá trị |
 |------------|---------|
 | **Phiên bản** | 1.0 (buildable — theo codebase) |
 | **Ngày** | 2026-03-14 |
-| **Trạng thái** | Đã chuẩn hóa theo template BA (Context–Role–Task–Output) |
-
----
-
-## — Context —
-
-Đã có **UI + codebase** trong repo: **HeriStepAI** gồm `HeriStepAI.API`, `HeriStepAI.Web`, `HeriStepAI.Mobile`.
-
-**Mục tiêu tài liệu:** chuyển những gì **đang có** trong UI/code thành PRD **có thể build / không suy diễn** cho dev và AI.
-
-**Phạm vi được xem xét (từ brief BA mẫu):**
-
-1. Đăng nhập Admin (và các vai trò Web/Mobile hiện có).
-2. Quản lý POI (theo màn hình Web Admin + API — **không** bao gồm major/minor WC/vé/… nếu chưa có trong repo).
-3. Tour — **trong repo hiện tại**: tour được **gợi ý trên Mobile** (`TourGeneratorService`), chi tiết tour (`TourDetailPage`), “Bắt đầu tour” lọc POI trên bản đồ; **chưa** có module Web CRUD Tour riêng.
-
-**Ràng buộc:** PRD **bám UI/flow hiện có**; chỗ chưa rõ hoặc chưa implement → **Open Questions / Assumptions** hoặc **Future Enhancements**.
-
----
+| **Trạng thái** | Đã chuẩn hóa theo codebase & phụ lục kỹ thuật |
 
 ---
 
@@ -74,8 +56,8 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 |------|------------------------|------|-------------|
 | **Admin** | `Role = 1` (claim) | Web | Full POI qua API, analytics, tạo POI kèm tài khoản ShopOwner (flow Create hiện có) |
 | **ShopOwner** | `Role = 2` | Web | Chỉ POI `OwnerId` = mình; DbContext |
-| **Khách (Tourist)** | `Role = 3` (mobile user) | Mobile | Xem POI, map, tour, geofence, visit log |
-| **Anonymous** | — | Mobile/API | Một số GET POI có thể public (theo cấu hình API) |
+| **Guest/Subscriber (Mobile)** | Không dùng account/role | Mobile | Thanh toán gói, xem POI/map/tour, geofence, visit log |
+| **Anonymous API** | — | Mobile/API | Một số `GET /api/poi` và `POST /api/analytics/visit` có thể public (theo cấu hình API) |
 
 ---
 
@@ -326,31 +308,7 @@ Base: `/api/...` — versioning do team quy ước.
 
 ### A.1 Tổng quan thành phần
 
-```mermaid
-flowchart TB
-    subgraph Users["Người dùng"]
-        A[Admin - Web]
-        S[ShopOwner - Web]
-        U[Khách - App]
-    end
-    subgraph Web["HeriStepAI.Web :5001"]
-        W[MVC + Cookie + JWT cookie]
-    end
-    subgraph API["HeriStepAI.API :5000"]
-        AP[REST + JWT Bearer]
-    end
-    subgraph Storage["Lưu trữ"]
-        DB[(PostgreSQL: Users, POIs, POIContents, VisitLogs)]
-        SUP[Supabase Storage]
-    end
-    A --> W
-    S --> W
-    U --> AP
-    W -->|Bearer Admin flows| AP
-    W -.->|DbContext ShopOwner| DB
-    W --> SUP
-    AP --> DB
-```
+Sơ đồ **đầy đủ** (flowchart + giải thích luồng): xem **Phụ lục B — Sơ đồ B.1**.
 
 ### A.2 Mobile: sync POI
 
@@ -368,11 +326,7 @@ sequenceDiagram
 ---
 
 
-## Phụ lục B -  System Flow (Mermaid full)
-
-# Sơ đồ flow hệ thống HeriStepAI (Mermaid)
-
----
+## Phụ lục B — System Flow (Mermaid)
 
 ## Sơ đồ B.1: Tổng quan thành phần và luồng dữ liệu
 
@@ -615,10 +569,9 @@ Sơ đồ này nhấn mạnh **hai cách Web lấy dữ liệu** tùy vai trò:
 
 ```mermaid
 graph LR
-    Tourist((Khách\ndu lịch))
+    Guest((Khách/Subscriber\nmobile))
     ShopOwner((Shop\nOwner))
     Admin((Admin))
-    System((Hệ thống\nScheduler/n8n))
 
     subgraph Mobile["📱 HeriStepAI Mobile"]
         UC1[Xem màn hình\nthanh toán gói]
@@ -648,20 +601,19 @@ graph LR
         UC19[Kích hoạt Subscription\nkhông cần đăng nhập]
         UC20[Ghi nhận\nlượt visit]
         UC21[Tự động dịch\nnội dung POI]
-        UC22[Báo cáo hàng ngày\nn8n]
     end
 
-    Tourist --> UC1
-    Tourist --> UC2
-    Tourist --> UC3
-    Tourist --> UC4
-    Tourist --> UC5
-    Tourist --> UC6
-    Tourist --> UC7
-    Tourist --> UC8
-    Tourist --> UC9
-    Tourist --> UC10
-    Tourist --> UC19
+    Guest --> UC1
+    Guest --> UC2
+    Guest --> UC3
+    Guest --> UC4
+    Guest --> UC5
+    Guest --> UC6
+    Guest --> UC7
+    Guest --> UC8
+    Guest --> UC9
+    Guest --> UC10
+    Guest --> UC19
 
     ShopOwner --> UC12
     ShopOwner --> UC16
@@ -674,7 +626,6 @@ graph LR
     Admin --> UC15
     Admin --> UC11
 
-    System --> UC22
     UC4 --> UC20
     UC5 --> UC20
     UC14 --> UC21
@@ -686,7 +637,7 @@ graph LR
 
 ```mermaid
 graph TB
-    Tourist((Khách\ndu lịch))
+    Guest((Khách/Subscriber\nmobile))
 
     subgraph Subscription["💳 Subscription"]
         S1[Xem các gói\nDaily/Weekly/Monthly/Yearly]
@@ -733,13 +684,13 @@ graph TB
         A5[Chọn giọng\nNam/Nữ]
     end
 
-    Tourist --> S1
-    Tourist --> S4
-    Tourist --> M1
-    Tourist --> T1
-    Tourist --> A1
-    Tourist --> A4
-    Tourist --> A5
+    Guest --> S1
+    Guest --> S4
+    Guest --> M1
+    Guest --> T1
+    Guest --> A1
+    Guest --> A4
+    Guest --> A5
 ```
 
 ---
@@ -750,7 +701,7 @@ graph TB
 
 ---
 
-### C.1 App Startup — Kiểm tra Subscription
+### C.1 Mobile Access Gate — Kiểm tra Subscription + cho phép vào app
 
 ```mermaid
 sequenceDiagram
@@ -909,40 +860,7 @@ sequenceDiagram
 
 ---
 
-### C.6 Mobile — Khởi động & đồng bộ POI
-
-```mermaid
-sequenceDiagram
-    participant App as App.xaml.cs
-    participant Sub as SubscriptionService
-    participant Shell as AppShell
-    participant Main as MainPageViewModel
-    participant POISvc as POIService (Mobile)
-    participant API as HeriStepAI.API
-    participant SQLite as SQLite Cache
-    participant Geo as GeofenceService
-    participant Loc as LocationService
-
-    App->>Sub: IsActive?
-    Sub-->>App: true
-    App->>Shell: MainPage = AppShell
-    Shell->>Main: InitializeAsync()
-    Main->>Main: RequestLocationPermissionAsync()
-    Main->>POISvc: SyncPOIsFromServerAsync()
-    POISvc->>API: GET api/poi
-    API-->>POISvc: [ POI list với Contents ]
-    POISvc->>SQLite: Ghi đè cache POI
-    SQLite-->>POISvc: OK
-    POISvc-->>Main: allPois
-    Main->>Geo: Initialize(allPois)
-    Main->>Main: GenerateSmartTours(allPois)
-    Main->>Loc: StartLocationUpdates() (GPS poll 5s)
-    Note over Loc: LocationChanged event mỗi 5 giây
-```
-
----
-
-### C.7 Geofence — Tự động phát thuyết minh (3 lớp anti-spam)
+### C.6 Geofence — Tự động phát thuyết minh (3 lớp anti-spam)
 
 ```mermaid
 sequenceDiagram
@@ -981,7 +899,7 @@ sequenceDiagram
 
 ---
 
-### C.8 Người dùng nghe thuyết minh thủ công (POI Detail)
+### C.7 Người dùng nghe thuyết minh thủ công (POI Detail)
 
 ```mermaid
 sequenceDiagram
@@ -1008,7 +926,7 @@ sequenceDiagram
 
 ---
 
-### C.9 Chọn Tour & lọc POI trên Map
+### C.8 Chọn Tour & lọc POI trên Map
 
 ```mermaid
 sequenceDiagram
@@ -1042,7 +960,7 @@ sequenceDiagram
 
 ---
 
-### C.10 Analytics — Ghi & hiển thị thống kê
+### C.9 Analytics — Ghi & hiển thị thống kê
 
 ```mermaid
 sequenceDiagram
@@ -1084,52 +1002,7 @@ sequenceDiagram
 
 ---
 
-### C.11 Test Mode — Giả lập GPS tuần tự qua các POI
-
-```mermaid
-sequenceDiagram
-    participant Admin
-    participant MapVM as MapPageViewModel
-    participant Sim as LocationSimulatorService
-    participant Geo as GeofenceService
-    participant Narr as NarrationService
-    participant Analytics as LocalAnalyticsService
-    participant MapPage as MapPage (UI)
-
-    Admin->>MapVM: ToggleTestModeCommand()
-    MapVM->>MapVM: IsTestMode = true
-    MapVM->>Sim: StartSimulation(routePOIs, maxSecondsPerPOI=90)
-    Note over Sim: Dịch chuyển vị trí giả lập đến POI đầu tiên
-    Sim-->>MapVM: SimulatedLocationChanged(location)
-    MapVM-->>MapPage: SimulatedLocationChanged event
-    MapPage->>MapPage: Cập nhật marker vị trí trên Leaflet map (JS eval)
-
-    Sim-->>MapVM: LocationChanged(location)
-    MapVM->>Geo: CheckGeofence(simulatedLocation)
-    Geo-->>MapVM: POIEntered(poi)
-    MapVM->>Analytics: RecordPOIVisit(poi)
-    MapVM->>Narr: PlayNarrationAsync(poi, lang, forcePlay=false)
-    Narr-->>MapVM: NarrationCompleted event
-    MapVM-->>MapPage: GeofenceTriggered event
-    MapPage->>MapPage: Highlight POI marker trên map
-
-    MapVM->>Sim: AdvanceToNext()
-    Note over Sim: Dịch chuyển đến POI tiếp theo
-
-    alt Còn POI trong route
-        Sim-->>MapVM: SimulatedLocationChanged (next POI)
-        Note over MapVM: Lặp lại vòng trên
-    else Hết tất cả POI
-        Sim-->>MapVM: SimulationCompleted event
-        MapVM->>MapVM: IsTestMode = false
-        MapVM->>Narr: StopNarration()
-        MapVM->>MapVM: TestModeStatus = ""
-    end
-```
-
----
-
-### C.12 Admin Dashboard (Web → API song song)
+### C.10 Admin Dashboard (Web → API song song)
 
 ```mermaid
 sequenceDiagram
@@ -1164,7 +1037,7 @@ sequenceDiagram
 
 ---
 
-### C.13 ShopOwner — Dashboard & Edit POI (trực tiếp DB)
+### C.11 ShopOwner — Dashboard & Edit POI (trực tiếp DB)
 
 ```mermaid
 sequenceDiagram
@@ -1200,41 +1073,7 @@ sequenceDiagram
 
 ---
 
-### C.14 n8n Daily Report
-
-```mermaid
-sequenceDiagram
-    participant n8n as n8n Scheduler
-    participant API as HeriStepAI.API
-    participant DB as PostgreSQL
-
-    Note over n8n: Chạy mỗi ngày lúc 00:00
-    n8n->>API: GET api/analytics/daily-report?token={secret}
-    API->>API: Kiểm tra token hợp lệ
-    API->>DB: SELECT COUNT(*) FROM VisitLogs\nWHERE DATE(VisitTime) = today
-    DB-->>API: todayCount
-    API->>DB: SELECT COUNT(*) FROM VisitLogs\nWHERE DATE(VisitTime) = yesterday
-    DB-->>API: yesterdayCount
-    API->>DB: SELECT POId, COUNT(*) FROM VisitLogs\nWHERE DATE=today GROUP BY POId\nORDER BY count DESC LIMIT 5
-    DB-->>API: top5POIs
-    API->>DB: SELECT POIs WHERE Id NOT IN\n(SELECT POId FROM VisitLogs WHERE DATE=today)
-    DB-->>API: zeroVisitPOIs
-    API->>DB: SELECT HOUR(VisitTime), COUNT(*) FROM VisitLogs\nWHERE DATE=today GROUP BY HOUR
-    DB-->>API: hourlyPeak
-    API-->>n8n: { todayCount, yesterdayCount,\ngrowthPct, top5POIs, zeroVisitPOIs,\nhourlyPeak, visitsByType }
-
-    Note over n8n: Tiếp theo: gửi báo cáo qua email/Slack
-
-    n8n->>API: GET api/analytics/user-daily-visits?token={secret}&date=today
-    API->>DB: SELECT Users JOIN VisitLogs JOIN POIs\nWHERE DATE(VisitTime)=today\nGROUP BY UserId
-    DB-->>API: [ { userId, userName, visits:[{poi, time}] } ]
-    API-->>n8n: user visit list
-    Note over n8n: Dùng để tạo certificate/badge cho tourists
-```
-
----
-
-### C.15 Đổi ngôn ngữ & cập nhật nội dung POI
+### C.12 Đổi ngôn ngữ & cập nhật nội dung POI
 
 ```mermaid
 sequenceDiagram
@@ -1272,116 +1111,7 @@ sequenceDiagram
 
 ---
 
-### C.16 Subscription — Kích hoạt gói (Mobile)
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant SubPage as SubscriptionPage
-    participant SubVM as SubscriptionViewModel
-    participant Sec as SecureStorage
-
-    User->>SubPage: Mở app (subscription hết hạn)
-    SubPage->>SubVM: LoadPlans()
-    SubVM-->>SubPage: Hiển thị gói Daily/Weekly/Monthly/Yearly + QR VietQR
-
-    User->>SubPage: Chọn gói
-    SubVM->>SubVM: GenerateQRContent (unique transfer content)
-    SubVM-->>SubPage: Hiển thị QR code + nội dung chuyển khoản
-
-    User->>SubPage: Quét QR & chuyển khoản
-    User->>SubPage: Tap "Tôi đã thanh toán"
-    SubPage->>SubVM: ConfirmPaymentCommand()
-    SubVM->>Sec: Set SubscriptionExpiry (now + duration)
-    SubVM-->>SubPage: Navigate → AppShell
-```
-
----
-
-### C.17 Narration Queue — Xử lý tuần tự
-
-```mermaid
-sequenceDiagram
-    participant Geo as GeofenceService
-    participant Main as MainPageViewModel
-    participant Narr as NarrationService
-    participant Queue as Internal Queue
-    participant TTS as MAUI TextToSpeech
-
-    Note over Geo,TTS: Scenario: 3 POI được trigger gần nhau
-
-    Geo-->>Main: POIEntered(POI_A)
-    Main->>Narr: PlayNarrationAsync(POI_A, forcePlay=false)
-    Narr->>Queue: Enqueue(POI_A)
-    Narr->>Narr: ProcessLoop bắt đầu (nếu chưa chạy)
-    Narr->>TTS: SpeakAsync(POI_A content)
-
-    Geo-->>Main: POIEntered(POI_B)
-    Main->>Narr: PlayNarrationAsync(POI_B, forcePlay=false)
-    Narr->>Narr: queue.Any(p.Id == POI_B.Id)? → false
-    Narr->>Queue: Enqueue(POI_B)
-    Note over TTS: POI_A đang phát, POI_B chờ trong queue
-
-    Geo-->>Main: POIEntered(POI_B) lại (duplicate)
-    Main->>Narr: PlayNarrationAsync(POI_B, forcePlay=false)
-    Narr->>Narr: queue.Any(p.Id == POI_B.Id)? → TRUE → skip
-    Note over Narr: POI_B đã trong queue, không thêm lại
-
-    TTS-->>Narr: POI_A done
-    Narr-->>Main: NarrationCompleted(POI_A)
-    Narr->>Queue: Dequeue → POI_B
-    Narr->>Narr: _lastPlayedAt[POI_B] cooldown còn? → check
-    Narr->>TTS: SpeakAsync(POI_B content)
-
-    Note over Main: User tap "Nghe thuyết minh" POI_C (force)
-    Main->>Narr: PlayNarrationAsync(POI_C, forcePlay=TRUE)
-    Narr->>TTS: CancelAsync() (dừng POI_B giữa chừng)
-    Narr->>Queue: Clear() (xóa toàn bộ queue)
-    Narr->>TTS: SpeakAsync(POI_C content)
-    TTS-->>Narr: POI_C done
-    Narr-->>Main: NarrationCompleted(POI_C)
-```
-
----
-
-### C.18 Map — Click POI trên bản đồ
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant MapPage as MapPage (WebView Leaflet)
-    participant MapVM as MapPageViewModel
-    participant API as HeriStepAI.API
-    participant Narr as NarrationService
-    participant Analytics as LocalAnalyticsService
-
-    User->>MapPage: Tap marker POI trên Leaflet map
-    MapPage->>MapPage: WebView Navigating event\nURL: poi://select?id={poiId}
-    MapPage->>MapVM: POI tapped → POISelected(poi)
-    MapVM->>MapVM: SelectedPOI = poi, HasSelectedPOI = true
-    MapVM->>MapVM: Tính distance: Haversine(currentLoc, poi)
-
-    MapVM->>API: LogVisitAsync(poiId, lat, lon, VisitType.MapClick)
-    Note over API: Fire & forget — không await
-
-    MapVM->>Narr: PlayNarrationAsync(poi, lang, forcePlay=true)
-    Note over Narr: forcePlay=true → hủy queue, phát ngay
-
-    Note over MapPage: Bottom sheet auto-expand (PropertyChanged)
-    MapPage->>MapPage: Hiển thị POI detail card\n(tên, rating, distance, nút nghe/chỉ đường)
-
-    User->>MapPage: Tap "🗺️ Chỉ đường"
-    MapPage->>MapVM: NavigateCommand()
-    MapVM->>MapVM: Map.Default.OpenAsync(poi.Location)
-    Note over MapVM: Mở Google Maps / Apple Maps native
-
-    User->>MapPage: Tap "Xem chi tiết"
-    MapPage->>MapVM: Navigate → POIDetailPage(poi)
-```
-
----
-
-### C.19 Admin xóa POI (Soft Delete)
+### C.13 Admin xóa POI (Soft Delete)
 
 ```mermaid
 sequenceDiagram
@@ -1413,7 +1143,7 @@ sequenceDiagram
 
 ---
 
-### C.20 Chọn giọng đọc (Voice Preference)
+### C.14 Chọn giọng đọc (Voice Preference)
 
 ```mermaid
 sequenceDiagram
@@ -1613,388 +1343,6 @@ flowchart TD
 
 ---
 
-## Phụ lục E — System Flow (bản tóm tắt)
-
-## Sơ đồ E.1: Tổng quan thành phần và luồng dữ liệu
-
-```mermaid
-flowchart TB
-    subgraph Users["👤 Người dùng"]
-        A[Admin - Web]
-        S[ShopOwner - Web]
-        U[Khách du lịch - App]
-    end
-
-    subgraph Web["HeriStepAI.Web :5001"]
-        W[MVC, Cookie + JWT cookie]
-    end
-
-    subgraph API["HeriStepAI.API :5000"]
-        AP[REST, JWT Bearer]
-    end
-
-    subgraph Storage["Lưu trữ"]
-        DB[(PostgreSQL<br/>Users, POIs, POIContents, VisitLogs)]
-        SUP[Supabase Storage<br/>Ảnh POI]
-    end
-
-    A -->|"1. Mở / 2. POST /Auth/Login<br/>3. Dashboard, POI, Analytics"| W
-    S -->|"Đăng nhập, Dashboard, Edit POI, Thống kê"| W
-    U -->|"GET poi<br/>POST analytics/visit"| AP
-
-    W -->|"Bearer JWT (cookie)<br/>auth/login, poi, analytics/summary, top-pois"| AP
-    W -.->|"DbContext (ShopOwner)<br/>POIs, VisitLogs"| DB
-    W -->|"Upload ảnh POI"| SUP
-    AP -->|"EF Core<br/>Auth, POI, VisitLogs"| DB
-```
-
-### Giải thích chi tiết – Sơ đồ 1
-
-| Thành phần | Ý nghĩa |
-|------------|--------|
-| **Users** | Ba loại người dùng: **Admin** (quản trị toàn hệ thống qua web), **ShopOwner** (chủ điểm POI, quản lý POI qua web), **Khách du lịch** (dùng app mobile để xem POI và ghi visit). |
-| **HeriStepAI.Web :5001** | Ứng dụng web MVC chạy cổng 5001. Dùng **cookie** để lưu session và lưu **JWT trong cookie** (AuthToken) sau khi đăng nhập. Admin và ShopOwner đều truy cập qua đây. |
-| **HeriStepAI.API :5000** | API REST chạy cổng 5000. Mọi request từ Web (Admin) và App đều xác thực bằng **JWT Bearer** trong header. |
-| **PostgreSQL** | Cơ sở dữ liệu chính: bảng **Users** (đăng nhập, role), **POIs** (điểm tham quan), **POIContents** (nội dung đa ngôn ngữ), **VisitLogs** (lịch sử khách ghé thăm). Có thể dùng Supabase hoặc PostgreSQL local. |
-| **Supabase Storage** | Lưu **ảnh POI**. Web upload ảnh khi Admin/ShopOwner tạo hoặc sửa POI; URL ảnh lưu trong DB. |
-
-**Các mũi tên (luồng):**
-
-- **Admin → Web:** (1) Mở trang chủ `/`, (2) POST `/Auth/Login` để đăng nhập, (3) Sau khi đăng nhập xem Dashboard, quản lý POI, xem Analytics.
-- **ShopOwner → Web:** Đăng nhập tương tự, sau đó dùng Dashboard riêng, chỉnh sửa POI của mình, xem thống kê visit.
-- **Khách du lịch → API (qua App):** App không qua Web; không cần đăng nhập. App GET danh sách POI và POST `analytics/visit` khi vào vùng POI. Trạng thái subscription lưu trong **SecureStorage**.
-- **Web → API:** Khi Admin xem Dashboard/POI/Analytics, Web gửi request với **Bearer JWT** (lấy từ cookie) tới các endpoint: `auth/login`, `poi`, `analytics/summary`, `analytics/top-pois`, `poi/{id}/statistics`.
-- **Web -.-→ DB (nét đứt):** **ShopOwner** đọc/ghi **trực tiếp** DB qua **DbContext** trong Web (cùng connection string với API), không đi qua API. Đây là luồng riêng so với Admin.
-- **Web → Supabase Storage:** Khi tạo/sửa POI, Web upload ảnh lên bucket Supabase Storage.
-- **API → DB:** API dùng **EF Core** để đọc/ghi Users, POI, VisitLogs (đăng nhập, danh sách POI, ghi visit từ App).
-
----
-
-## Sơ đồ E.2: Flow đăng nhập Web (Admin / ShopOwner)
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Web as HeriStepAI.Web
-    participant API as HeriStepAI.API
-    participant DB as PostgreSQL
-
-    User->>Web: GET / (hoặc /Home/Index)
-    Web->>User: 302 → /Auth/Login
-    User->>Web: GET /Auth/Login
-    Web->>User: Form đăng nhập
-    User->>Web: POST /Auth/Login (email, password)
-    Web->>API: POST api/auth/login (JSON)
-    API->>DB: Kiểm tra Users
-    DB-->>API: User + Role
-    API->>API: Tạo JWT
-    API-->>Web: 200 { token, userId, ... }
-    Web->>Web: Cookie + AuthToken (JWT)
-    Web->>User: 302 → /Home/Dashboard (Admin) hoặc /ShopOwner/Dashboard
-```
-
-### Giải thích chi tiết – Sơ đồ 2
-
-| Bước | Hành động | Giải thích |
-|------|-----------|------------|
-| 1 | User gửi **GET /** (hoặc `/Home/Index`) | Truy cập trang chủ. Nếu chưa đăng nhập, Web trả về redirect. |
-| 2 | Web trả **302 → /Auth/Login** | Redirect trình duyệt tới trang đăng nhập. |
-| 3 | User gửi **GET /Auth/Login** | Trình duyệt request trang form đăng nhập. |
-| 4 | Web trả **form đăng nhập** | Hiển thị form email + password (Razor view). |
-| 5 | User gửi **POST /Auth/Login** (email, password) | Submit form. Web nhận dữ liệu từ form. |
-| 6 | Web gọi **POST api/auth/login** (JSON) | Web chuyển tiếp sang API (gửi email, password dạng JSON). API là nơi kiểm tra user. |
-| 7 | API truy vấn **DB (Users)** | Kiểm tra email tồn tại, verify password (hash), lấy role (Admin/ShopOwner). |
-| 8 | DB trả **User + Role** | API biết user hợp lệ và role để phân quyền. |
-| 9 | API **tạo JWT** | Ký token chứa userId, role, expiry. |
-| 10 | API trả **200 { token, userId, ... }** | Web nhận JWT và thông tin user. |
-| 11 | Web ghi **Cookie + AuthToken (JWT)** | Lưu JWT vào cookie (httpOnly nếu có) để các request sau gửi kèm. |
-| 12 | Web trả **302** tới Dashboard | **Admin** → `/Home/Dashboard`, **ShopOwner** → `/ShopOwner/Dashboard`. Trình duyệt chuyển sang trang tương ứng. |
-
----
-
-## Sơ đồ E.3: Flow Dashboard Admin (Web → API)
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Web as HeriStepAI.Web
-    participant API as HeriStepAI.API
-    participant DB as PostgreSQL
-
-    User->>Web: GET /Home/Dashboard (Cookie)
-    Web->>Web: Đọc AuthToken từ cookie
-    par Gọi song song
-        Web->>API: GET api/analytics/summary (Bearer)
-        API->>DB: SELECT VisitLogs (count, VisitType)
-        DB-->>API: Kết quả
-        API-->>Web: { TotalVisits, Geofence, ... }
-    and
-        Web->>API: GET api/analytics/top-pois?count=10 (Bearer)
-        API->>DB: GroupBy POId, Count
-        API-->>Web: { poiId: count, ... }
-    and
-        Web->>API: GET api/poi (Bearer)
-        API->>DB: SELECT POIs
-        API-->>Web: [ POI, ... ]
-    end
-    Web->>Web: ViewBag.TotalVisits, TopPOIs, ...
-    Web->>User: Dashboard.cshtml
-```
-
-### Giải thích chi tiết – Sơ đồ 3
-
-| Bước | Hành động | Giải thích |
-|------|-----------|------------|
-| 1 | User gửi **GET /Home/Dashboard** (kèm Cookie) | Admin đã đăng nhập; trình duyệt gửi cookie chứa session/JWT. |
-| 2 | Web **đọc AuthToken từ cookie** | Web lấy JWT từ cookie để gửi lên API dưới dạng header `Authorization: Bearer <token>`. |
-| 3 | Web gọi **ba API song song** (par) | Để Dashboard load nhanh, Web gửi đồng thời 3 request thay vì gọi tuần tự. |
-| 3a | **GET api/analytics/summary** (Bearer) | Lấy tổng quan: tổng lượt visit, phân loại theo VisitType (Geofence, Manual, …). API truy vấn VisitLogs (count, group by VisitType) rồi trả JSON. |
-| 3b | **GET api/analytics/top-pois?count=10** (Bearer) | Lấy top 10 POI có nhiều visit nhất. API group by POId, count, sort, trả về danh sách. |
-| 3c | **GET api/poi** (Bearer) | Lấy danh sách POI (để hiển thị bảng, dropdown, v.v.). API SELECT POIs từ DB. |
-| 4 | API truy vấn **DB** (VisitLogs, POIs) | Mỗi endpoint dùng EF Core đọc bảng tương ứng. |
-| 5 | Web nhận 3 response, gán **ViewBag** | ViewBag.TotalVisits, ViewBag.TopPOIs, danh sách POI để truyền sang view. |
-| 6 | Web render **Dashboard.cshtml** | View Razor dùng dữ liệu trong ViewBag/Model để hiển thị số liệu, biểu đồ, bảng POI cho Admin. |
-
----
-
-## Sơ đồ E.4: Flow App Mobile – Khởi động và ghi visit
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant App as HeriStepAI.Mobile
-    participant API as HeriStepAI.API
-    participant DB as PostgreSQL
-
-    User->>App: Mở app
-    App->>App: SubscriptionService.IsActive (SecureStorage)
-    alt Subscription còn hạn
-        App->>User: Hiển thị AppShell (tab)
-    else Hết hạn / chưa thanh toán
-        App->>User: SubscriptionPage
-        User->>App: Chọn gói, quét QR VietQR
-        User->>App: Tap "Tôi đã thanh toán"
-        App->>App: SubscriptionService.Activate (lưu SecureStorage)
-        App->>User: AppShell
-    end
-
-    Note over App,API: User vào vùng POI (geofence)
-    App->>API: POST api/analytics/visit (POId, VisitType, ...)
-    API-->>App: 202 Accepted
-    API->>DB: Insert VisitLog (background)
-```
-
-### Giải thích chi tiết – Sơ đồ 4
-
-| Bước | Hành động | Giải thích |
-|------|-----------|------------|
-| 1 | User **mở app** | Ứng dụng mobile (HeriStepAI.Mobile) khởi động. |
-| 2 | App gọi **SubscriptionService.IsActive** | Đọc trạng thái subscription từ **SecureStorage**. Nếu còn hạn → vào AppShell ngay. |
-| 3a | **Subscription còn hạn** | App chuyển thẳng tới **AppShell** (màn hình chính với tab). |
-| 3b | **Hết hạn / chưa thanh toán** | Hiển thị **SubscriptionPage**. User chọn gói, quét QR VietQR, tap xác nhận. App kích hoạt subscription và lưu vào SecureStorage, rồi chuyển sang AppShell. |
-| 4 | **User vào vùng POI (geofence)** | App dùng GPS/geofencing; khi user vào vùng bán kính quanh POI, app coi là “đã ghé thăm”. |
-| 5 | App gửi **POST api/analytics/visit** (POId, VisitType, …) | Gửi POI id, loại visit (Geofence/Manual). API nhận payload và ghi nhận. |
-| 6 | API trả **202 Accepted** | API chấp nhận request. |
-| 7 | API **Insert VisitLog** (background) | Ghi một dòng vào bảng VisitLogs để Admin/ShopOwner xem thống kê. |
-
----
-
-## Sơ đồ E.5: Phân tách nguồn dữ liệu (Web)
-
-```mermaid
-flowchart LR
-    subgraph Admin["Admin Web"]
-        D[Dashboard]
-        P[POI CRUD]
-        AN[Analytics]
-    end
-
-    subgraph ShopOwner["ShopOwner Web"]
-        SD[ShopOwner Dashboard]
-        SE[Edit POI]
-        ST[Statistics]
-    end
-
-    API[HeriStepAI.API]
-    DB[(PostgreSQL)]
-
-    D --> API
-    P --> API
-    AN --> API
-    API --> DB
-
-    SD --> DB
-    SE --> DB
-    ST --> DB
-```
-
-### Giải thích chi tiết – Sơ đồ 5
-
-Sơ đồ này nhấn mạnh **hai cách Web lấy dữ liệu** tùy vai trò:
-
-| Nhánh | Thành phần | Nguồn dữ liệu | Giải thích |
-|-------|------------|----------------|------------|
-| **Admin Web** | Dashboard (D), POI CRUD (P), Analytics (AN) | **Luôn qua API** | Admin dùng các trang Web (Dashboard, quản lý POI, Analytics). Web **không** đọc DB trực tiếp; mỗi trang gọi **HeriStepAI.API** với Bearer JWT. API dùng EF Core đọc/ghi **PostgreSQL**. Cách này thống nhất logic nghiệp vụ ở API, dễ bảo trì và tái dùng cho App. |
-| **ShopOwner Web** | ShopOwner Dashboard (SD), Edit POI (SE), Statistics (ST) | **Trực tiếp DB** | ShopOwner chỉ xem/sửa POI và thống kê **của mình**. Web dùng **DbContext** (cùng connection string với API) để truy vấn trực tiếp **PostgreSQL** (bảng POIs, VisitLogs, …), **không** gọi API. Giảm số request qua API và tận dụng filter theo ShopOwnerId trong Web. |
-
-**Tóm tắt:** Admin → Web → **API** → DB; ShopOwner → Web → **DB** trực tiếp. App luôn dùng API → DB.
-
----
-
-**Chú thích:**
-- **Admin:** Cookie + JWT trong cookie; mọi request Dashboard/POI/Analytics đều gọi API với Bearer.
-- **ShopOwner:** Đọc/ghi DB qua DbContext (cùng DB với API), không gọi API cho Dashboard/Edit/Statistics.
-- **App:** Không đăng nhập; subscription lưu trong SecureStorage. Gọi API trực tiếp (poi, analytics/visit).
-
-
----
-
-## Phụ lục F — Sơ đồ hoạt động (Activity Diagrams, bản tóm tắt)
-
-> Sơ đồ hoạt động mô tả **luồng xử lý nghiệp vụ** của từng use case: các bước, điểm quyết định, rẽ nhánh và điều kiện kết thúc.
-
----
-
-### F.1 Đăng nhập Web (Admin / ShopOwner)
-
-```mermaid
-flowchart TD
-    Start([Bắt đầu]) --> OpenLogin[Mở /Auth/Login]
-    OpenLogin --> EnterCreds[Nhập email & mật khẩu]
-    EnterCreds --> Submit[Submit form]
-    Submit --> ValidateLocal{Validate\nclient-side}
-    ValidateLocal -->|Thiếu field| ShowValidationErr[Hiển thị lỗi validation]
-    ShowValidationErr --> EnterCreds
-    ValidateLocal -->|Hợp lệ| CallAPI[POST api/auth/login]
-    CallAPI --> APICheck{API trả kết quả?}
-    APICheck -->|401 / sai credentials| ShowLoginErr[ViewBag.Error: sai email/mật khẩu]
-    ShowLoginErr --> EnterCreds
-    APICheck -->|500 / network| ShowServerErr[ViewBag.Error: lỗi hệ thống]
-    ShowServerErr --> End2([Kết thúc — thử lại sau])
-    APICheck -->|200 OK + JWT| SaveCookie[Lưu cookie session\n+ AuthToken JWT]
-    SaveCookie --> CheckRole{Role?}
-    CheckRole -->|Admin - Role=1| GoAdmin[Redirect /Home/Dashboard]
-    CheckRole -->|ShopOwner - Role=2| GoShop[Redirect /ShopOwner/Dashboard]
-    GoAdmin --> End([Kết thúc])
-    GoShop --> End
-```
-
----
-
-### F.2 Admin tạo POI mới (Web)
-
-```mermaid
-flowchart TD
-    Start([Bắt đầu]) --> OpenCreate[Mở /POI/Create]
-    OpenCreate --> FillForm[Điền thông tin POI\nTên, mô tả, tọa độ, category, radius...]
-    FillForm --> HasImage{Có ảnh\nmuốn upload?}
-    HasImage -->|Có| UploadImg[Upload ảnh lên Supabase Storage]
-    UploadImg --> ImgOK{Upload\nthành công?}
-    ImgOK -->|Lỗi| ShowImgErr[Hiển thị lỗi upload]
-    ShowImgErr --> FillForm
-    ImgOK -->|OK| SetImageUrl[Gán ImageUrl vào form]
-    SetImageUrl --> HasOwner
-    HasImage -->|Không| HasOwner{Chọn ShopOwner\nhiện có hay tạo mới?}
-    HasOwner -->|Tạo mới| FillOwner[Điền thông tin owner mới\nemail, mật khẩu]
-    HasOwner -->|Chọn hiện có| SubmitPOI[Submit tạo POI]
-    FillOwner --> SubmitPOI
-    SubmitPOI --> ValidateForm{Validate\nserver-side}
-    ValidateForm -->|Thiếu field bắt buộc| ShowFormErr[TempData lỗi; hiện lại form]
-    ShowFormErr --> FillForm
-    ValidateForm -->|Hợp lệ| CallCreateAPI[POST /api/poi\n+ tạo owner nếu cần]
-    CallCreateAPI --> APIResult{API trả\nkết quả?}
-    APIResult -->|Lỗi 4xx/5xx| ShowAPIErr[TempData.Error; quay lại form]
-    ShowAPIErr --> FillForm
-    APIResult -->|201 Created| ShowSuccess[TempData.Success\nRedirect /POI danh sách]
-    ShowSuccess --> End([Kết thúc])
-```
-
----
-
-### F.3 Mobile — Khởi động app & đồng bộ POI
-
-```mermaid
-flowchart TD
-    Start([Mở app]) --> CheckSub[SubscriptionService.IsActive\nđọc SecureStorage]
-    CheckSub --> HasSub{Subscription\ncòn hạn?}
-    HasSub -->|Không| ShowSubPage[Hiển thị SubscriptionPage]
-    ShowSubPage --> ChoosePlan[Chọn gói Daily/Weekly/Monthly/Yearly]
-    ChoosePlan --> ScanQR[Quét QR VietQR & chuyển khoản]
-    ScanQR --> TapConfirm[Tap Tôi đã thanh toán]
-    TapConfirm --> Activate[SubscriptionService.Activate\nLưu expiry vào SecureStorage]
-    Activate --> LoadShell
-    HasSub -->|Có| LoadShell[Hiển thị AppShell\nMainPage]
-    LoadShell --> LoadSQLite[Đọc POI từ SQLite cache\nhiển thị ngay]
-    LoadSQLite --> FetchAPI[GET api/poi]
-    FetchAPI --> APIAvail{API khả\ndụng?}
-    APIAvail -->|Lỗi / timeout| KeepCache[Giữ nguyên SQLite cache\nHiển thị POI cũ]
-    KeepCache --> End([Kết thúc sync])
-    APIAvail -->|OK + dữ liệu hợp lệ| ReplaceCache[Ghi đè SQLite\nvới dữ liệu mới]
-    ReplaceCache --> UpdateUI[Cập nhật UI\nPOI mới nhất]
-    UpdateUI --> End
-```
-
----
-
-### F.4 Mobile — Geofence kích hoạt thuyết minh
-
-```mermaid
-flowchart TD
-    Start([Khách đang đi\nGPS cập nhật mỗi 5s]) --> GetLocation[LocationService\nlấy vị trí GPS]
-    GetLocation --> SimMode{Đang\nSimulate?}
-    SimMode -->|Có| UseSimLoc[Dùng vị trí giả lập]
-    SimMode -->|Không| UseRealLoc[Dùng vị trí GPS thật]
-    UseSimLoc --> CheckGeofence
-    UseRealLoc --> CheckGeofence[GeofenceService\nCheckGeofence]
-    CheckGeofence --> InsidePOI{Trong vùng\nbán kính POI?}
-    InsidePOI -->|Không POI nào| ResetCurrent[Reset currentPOI = null]
-    ResetCurrent --> Wait[Chờ 5 giây]
-    Wait --> GetLocation
-    InsidePOI -->|Có POI| SamePOI{Cùng POI\nđang ở?}
-    SamePOI -->|Có — đứng yên| Wait
-    SamePOI -->|POI mới| CheckCooldown{Còn\ncooldown 5 phút?}
-    CheckCooldown -->|Còn cooldown| Wait
-    CheckCooldown -->|Hết cooldown| TriggerPOI[Cập nhật currentPOI\nGhi cooldown timestamp]
-    TriggerPOI --> LogVisit[POST api/analytics/visit\nVisitType=Geofence — best effort]
-    LogVisit --> HasAudio{POIContent có\nAudioUrl?}
-    HasAudio -->|Có| PlayAudio[Phát file audio]
-    HasAudio -->|Không| HasText{Có\nTextContent?}
-    HasText -->|Có| TTS[NarrationService\nTTS TextContent]
-    HasText -->|Không| ShowNotif[Hiển thị tên POI\nkhông có audio]
-    PlayAudio --> Wait
-    TTS --> Wait
-    ShowNotif --> Wait
-```
-
----
-
-### F.5 Mobile — Chọn Tour và bắt đầu khám phá
-
-```mermaid
-flowchart TD
-    Start([Khách mở MainPage]) --> LoadTours[TourGeneratorService\ntạo danh sách Tour từ POI SQLite]
-    LoadTours --> HasTours{Có tour\nđược tạo?}
-    HasTours -->|Không| ShowEmpty[Hiển thị trống\nhoặc thông báo không có tour]
-    ShowEmpty --> End([Kết thúc])
-    HasTours -->|Có| ShowTourCards[Hiển thị danh sách Tour cards\nMainPage]
-    ShowTourCards --> SelectTour[Khách chọn một Tour]
-    SelectTour --> OpenDetail[Mở TourDetailPage\nDanh sách POI trong tour]
-    OpenDetail --> ReadDetail[Xem thông tin POI:\ntên, ảnh, thời gian, giá ước tính]
-    ReadDetail --> UserDecide{Quyết định?}
-    UserDecide -->|Quay lại| ShowTourCards
-    UserDecide -->|Bắt đầu Tour| SetTourSelection[TourSelectionService\nSelectedTour = tour này]
-    SetTourSelection --> NavigateMap[Điều hướng //MapPage]
-    NavigateMap --> MapLoadPOI[MapPage: LoadPOIsAsync\nưu tiên POI của SelectedTour]
-    MapLoadPOI --> HasSelectedTour{SelectedTour\nđã set?}
-    HasSelectedTour -->|Có| FilterPOI[Chỉ hiển thị POI\ntrong tour trên bản đồ]
-    HasSelectedTour -->|Không — race condition| ShowAllPOI[Hiển thị toàn bộ POI\nSQLite cache]
-    FilterPOI --> StartTracking[Bắt đầu LocationService\nGeofence theo POI tour]
-    ShowAllPOI --> StartTracking
-    StartTracking --> End2([Kết thúc — đang tour])
-```
-
----
-
 ## Phụ lục G — Class Diagram (Mermaid)
 
 > Mục tiêu: mô tả các lớp cốt lõi cần thiết cho kiến trúc hiện tại (API + Mobile), đồng nhất với mục `9. Data Requirements` và `6. Functional Requirements`.
@@ -2078,20 +1426,22 @@ classDiagram
 ```mermaid
 classDiagram
     class AuthController {
+        +Seed(force): IActionResult
         +Login(LoginRequest): IActionResult
         +Register(RegisterRequest): IActionResult
         +RegisterTourist(TouristRegisterRequest): IActionResult
-        +Me(): IActionResult
+        +GetCurrentUser(): IActionResult
     }
 
     class POIController {
-        +GetAll(): IActionResult
-        +GetById(int): IActionResult
-        +Create(CreatePOIRequest): IActionResult
-        +Update(int, UpdatePOIRequest): IActionResult
-        +Delete(int): IActionResult
+        +Geocode(lat, lng): IActionResult
+        +GetAllPOIs(): IActionResult
+        +GetPOI(int): IActionResult
+        +CreatePOI(POI): IActionResult
+        +UpdatePOI(int, POI): IActionResult
+        +DeletePOI(int): IActionResult
         +GetMyPOIs(): IActionResult
-        +GetContentByLanguage(int, language): IActionResult
+        +GetContent(int, language): IActionResult
     }
 
     class AnalyticsController {
@@ -2106,25 +1456,29 @@ classDiagram
 
     class IAuthService {
         <<interface>>
-        +Authenticate(email, password): AuthResult
-        +GenerateJwt(user): string
+        +LoginAsync(email, password): Task~string~
+        +RegisterAsync(username, email, password, role, fullName, phone): Task~User?~
+        +GetUserByIdAsync(id): Task~User?~
     }
 
     class IPOIService {
         <<interface>>
-        +GetAll(): IEnumerable~POI~
-        +GetById(id): POI
-        +Create(dto): POI
-        +Update(id, dto): POI
-        +Delete(id): bool
-        +GetMyPOIs(ownerId): IEnumerable~POI~
+        +GetAllPOIsAsync(): Task~List~POI~~
+        +GetPOIByIdAsync(id): Task~POI?~
+        +CreatePOIAsync(poi): Task~POI~
+        +UpdatePOIAsync(id, poi): Task~POI?~
+        +DeletePOIAsync(id): Task~bool~
+        +GetPOIsByOwnerAsync(ownerId): Task~List~POI~~
+        +GetContentAsync(poiId, language): Task~POIContent?~
     }
 
     class IAnalyticsService {
         <<interface>>
-        +LogVisit(request): void
-        +GetSummary(): SummaryDto
-        +GetTopPois(): IEnumerable~TopPoiDto~
+        +LogVisitAsync(poiId, userId, lat, lon, visitType): Task
+        +GetVisitLogsAsync(poiId, startDate, endDate): Task~List~VisitLog~~
+        +GetTopPOIsAsync(count, startDate, endDate): Task~Dictionary~int,int~~
+        +GetPOIStatisticsAsync(poiId, startDate, endDate): Task~object~
+        +GetVisitSummaryAsync(startDate, endDate): Task~(int,int,int,int)~
     }
 
     class ITranslationService {
@@ -2158,13 +1512,13 @@ classDiagram
 
 ```mermaid
 classDiagram
-    class MainViewModel {
+    class MainPageViewModel {
         +LoadPOIsAsync()
         +LoadToursAsync()
         +StartTrackingAsync()
     }
 
-    class MapViewModel {
+    class MapPageViewModel {
         +LoadPOIsAsync()
         +CenterToUserAsync()
     }
@@ -2195,13 +1549,15 @@ classDiagram
 
     class LocationService {
         +GetCurrentLocationAsync()
-        +StartTracking(intervalSeconds)
-        +StopTracking()
+        +RequestLocationPermissionAsync()
+        +StartLocationUpdates()
+        +StopLocationUpdates()
     }
 
-    class TestLocationService {
+    class LocationSimulatorService {
         +StartSimulation(route)
         +StopSimulation()
+        +AdvanceToNext()
     }
 
     class NarrationService {
@@ -2217,28 +1573,23 @@ classDiagram
         +SelectedTour
     }
 
-    class POIApiClient {
-        +GetPOIsAsync(): IEnumerable~POI~
-        +LogVisitAsync(VisitRequest)
-    }
-
-    class SQLiteCacheService {
-        +LoadPOIs(): IEnumerable~POI~
-        +ReplacePOIs(pois)
+    class POIService {
+        +GetAllPOIsAsync(): Task~List~POI~~
+        +GetPOIByIdAsync(id): Task~POI?~
+        +SyncPOIsFromServerAsync(): Task
     }
 
     SubscriptionService ..|> ISubscriptionService
     SubscriptionViewModel --> ISubscriptionService : uses
-    MainViewModel --> POIApiClient : sync data
-    MainViewModel --> SQLiteCacheService : cache first
-    MainViewModel --> TourGeneratorService : create tours
-    MainViewModel --> TourSelectionService : set active tour
-    MainViewModel --> GeofenceService : detect POI entry
-    MainViewModel --> LocationService : gps tracking
-    MainViewModel --> NarrationService : audio/TTS
-    MainViewModel --> LocalizationService : i18n
-    MapViewModel --> TourSelectionService : read selected tour
-    LocationService <|-- TestLocationService : simulation mode
+    MainPageViewModel --> POIService : sync data
+    MainPageViewModel --> TourGeneratorService : create tours
+    MainPageViewModel --> TourSelectionService : set active tour
+    MainPageViewModel --> GeofenceService : detect POI entry
+    MainPageViewModel --> LocationService : gps tracking
+    MainPageViewModel --> NarrationService : audio/TTS
+    MainPageViewModel --> LocalizationService : i18n
+    MapPageViewModel --> TourSelectionService : read selected tour
+    LocationService --> LocationSimulatorService : uses simulated location
 ```
 
 ### G.4 API Authorization Matrix (Role-based)
@@ -2280,11 +1631,9 @@ classDiagram
         +GET /api/analytics/top-pois
         +GET /api/analytics/poi/{id}/statistics
         +GET /api/analytics/poi/{id}/logs
-        +GET /api/analytics/daily-report
-        +GET /api/analytics/user-daily-visits
     }
 
-    Admin --> AuthEndpoints : login/register/me
+    Admin --> AuthEndpoints : seed/login/register/me
     Admin --> POIEndpoints : full CRUD + read
     Admin --> AnalyticsEndpoints : read + write
 
@@ -2292,7 +1641,7 @@ classDiagram
     ShopOwner --> POIEndpoints : read + my-pois (+ owner-scoped edit theo policy)
     ShopOwner --> AnalyticsEndpoints : owner scope summary
 
-    GuestMobile --> AuthEndpoints : register-tourist/login (optional)
+    GuestMobile --> AuthEndpoints : register-tourist/login (optional endpoint)
     GuestMobile --> POIEndpoints : GET only
-    GuestMobile --> AnalyticsEndpoints : visit write + public digest endpoints
+    GuestMobile --> AnalyticsEndpoints : visit write (AllowAnonymous)
 ```

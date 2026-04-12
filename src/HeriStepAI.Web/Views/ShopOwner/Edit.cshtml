@@ -36,7 +36,12 @@
             --amber-dim:    rgba(232,161,75,0.15);
             --border:       rgba(232,161,75,0.12);
             --border-hover: rgba(232,161,75,0.3);
+            /* Bootstrap 5.3: .form-control:focus dùng --bs-body-color — nếu không gán, chữ thành màu tối trên nền tối */
+            --bs-body-color: var(--text-primary);
+            --bs-body-bg: var(--page-bg);
+            --bs-secondary-color: var(--text-muted);
         }
+        html { color-scheme: dark; }
         *, *::before, *::after { box-sizing: border-box; }
         * { font-family: 'Be Vietnam Pro', sans-serif; }
         body { background: var(--page-bg); color: var(--text-primary); margin: 0; min-height: 100vh; }
@@ -118,7 +123,11 @@
             border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(232,161,75,0.12); outline: none;
             background: var(--input-bg);
+            color: var(--text-primary);
+            -webkit-text-fill-color: var(--text-primary);
+            caret-color: var(--accent);
         }
+        .form-control::placeholder { color: var(--text-muted); opacity: 0.85; }
         textarea.form-control { resize: vertical; min-height: 90px; }
         .input-group .form-control { border-radius: 8px 0 0 8px; }
         .input-group-text {
@@ -411,7 +420,7 @@
                     </button>
                 </div>
                 <div class="card-body">
-                    <p style="font-size:0.813rem;color:var(--text-muted);margin:0 0 16px;">Nội dung dùng cho TTS (Text-to-Speech) trên ứng dụng mobile. Hỗ trợ nhiều ngôn ngữ.</p>
+                    <p style="font-size:0.813rem;color:var(--text-muted);margin:0 0 16px;">Nội dung dùng cho TTS (Text-to-Speech) trên ứng dụng mobile. Khi bạn <strong style="color:var(--text-primary);">sửa bản tiếng Việt và nhấn Lưu</strong>, hệ thống tự dịch lại EN, KO, ZH, JA, TH, FR từ bản tiếng Việt (MyMemory).</p>
 
                     <div id="contentsContainer">
                         @if (contents.Any())

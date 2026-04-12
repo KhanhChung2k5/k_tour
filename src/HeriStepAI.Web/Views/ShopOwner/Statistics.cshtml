@@ -40,7 +40,11 @@
             --amber-dim:    rgba(232,161,75,0.15);
             --border:       rgba(232,161,75,0.12);
             --border-hover: rgba(232,161,75,0.3);
+            --bs-body-color: var(--text-primary);
+            --bs-body-bg: var(--page-bg);
+            --bs-secondary-color: var(--text-muted);
         }
+        html { color-scheme: dark; }
         *, *::before, *::after { box-sizing: border-box; }
         * { font-family: 'Be Vietnam Pro', sans-serif; }
         body { background: var(--page-bg); color: var(--text-primary); margin: 0; min-height: 100vh; }
@@ -163,7 +167,11 @@
             border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(232,161,75,0.12); outline: none;
             background: var(--input-bg);
+            color: var(--text-primary);
+            -webkit-text-fill-color: var(--text-primary);
+            caret-color: var(--accent);
         }
+        .form-control::placeholder { color: var(--text-muted); opacity: 0.85; }
         .btn-filter {
             display: inline-flex; align-items: center; gap: 6px;
             padding: 8px 18px; border-radius: 8px;

@@ -11,6 +11,9 @@ public class User
     public UserRole Role { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool IsActive { get; set; } = true;
+
+    /// <summary>Duyệt đăng ký ShopOwner: Pending → Admin duyệt → Approved. Admin/Tourist dùng <see cref="AccountApprovalStatus.NotApplicable"/>.</summary>
+    public AccountApprovalStatus ApprovalStatus { get; set; } = AccountApprovalStatus.Approved;
 }
 
 public enum UserRole

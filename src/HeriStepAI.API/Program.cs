@@ -178,6 +178,7 @@ builder.Services.AddScoped<IPOIService, POIService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<IGeocodingService, GeocodingService>();
 builder.Services.AddScoped<ITranslationService, MyMemoryTranslationService>();
+builder.Services.AddScoped<IPOIContentTranslationSyncService, POIContentTranslationSyncService>();
 builder.Services.AddHttpClient("MyMemory", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(15);

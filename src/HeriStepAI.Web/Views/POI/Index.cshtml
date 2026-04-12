@@ -9,9 +9,6 @@
         <h1 class="page-title-text">Quản lý POI</h1>
         <p class="page-subtitle-text">Danh sách cửa hàng &amp; địa điểm du lịch</p>
     </div>
-    <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
-        <i class="bi bi-plus-lg"></i>Thêm POI mới
-    </a>
 </div>
 
 @if (TempData["Success"] != null)
@@ -187,10 +184,7 @@
                 <i class="bi bi-shop" style="font-size:1.5rem;color:var(--amber);"></i>
             </div>
             <p style="font-weight:600;color:var(--cream);margin-bottom:4px;">Chưa có POI nào</p>
-            <p style="font-size:0.82rem;color:var(--cream-muted);margin-bottom:20px;">Hãy thêm địa điểm đầu tiên để bắt đầu</p>
-            <a href="@Url.Action("Create")" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-lg"></i>Thêm POI mới
-            </a>
+            <p style="font-size:0.82rem;color:var(--cream-muted);margin-bottom:0;">Chủ quán tự thêm địa điểm sau khi được duyệt và đăng nhập (không tạo từ Admin).</p>
         </div>
     }
 </div>

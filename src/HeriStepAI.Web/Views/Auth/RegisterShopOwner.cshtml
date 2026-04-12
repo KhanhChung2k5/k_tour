@@ -1,0 +1,76 @@
+@model HeriStepAI.Web.Models.ShopOwnerRegisterViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Đăng ký chủ quán";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — HeriStepAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --amber:#E8A14B; --dark:#0D0B08; --dark3:#241E16; --cream:#F5ECD7; --muted:#9E8E75; --red-dim:rgba(224,82,82,0.12); }
+        * { box-sizing:border-box; }
+        body { margin:0; min-height:100vh; font-family:'Be Vietnam Pro',sans-serif; background:var(--dark); color:var(--cream); display:flex; align-items:center; justify-content:center; padding:32px 20px; }
+        .card-reg { width:100%; max-width:440px; background:#1E1810; border:1px solid rgba(232,161,75,0.12); border-radius:14px; padding:32px; }
+        h1 { font-family:'Playfair Display',serif; font-size:1.5rem; margin:0 0 6px; }
+        .sub { font-size:0.85rem; color:var(--muted); margin-bottom:24px; line-height:1.5; }
+        label { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:6px; display:block; }
+        .form-control { background:var(--dark3); border:1px solid rgba(232,161,75,0.2); color:var(--cream); border-radius:8px; padding:10px 12px; font-size:0.9rem; }
+        .form-control:focus { border-color:var(--amber); box-shadow:0 0 0 3px rgba(232,161,75,0.12); background:var(--dark3); color:var(--cream); }
+        .btn-submit { width:100%; padding:12px; border:none; border-radius:8px; background:linear-gradient(135deg,var(--amber),#C07820); color:#0D0B08; font-weight:600; margin-top:8px; }
+        .btn-submit:hover { filter:brightness(1.05); }
+        .text-danger { font-size:0.8rem; }
+        .val-summary { background:var(--red-dim); border:1px solid rgba(224,82,82,0.3); border-radius:8px; padding:10px 12px; margin-bottom:16px; font-size:0.85rem; }
+        .back { text-align:center; margin-top:20px; font-size:0.85rem; color:var(--muted); }
+        .back a { color:var(--amber); text-decoration:none; }
+    </style>
+</head>
+<body>
+    <div class="card-reg">
+        <h1>Đăng ký chủ quán</h1>
+        <p class="sub">Sau khi gửi, Admin sẽ duyệt tài khoản. Bạn chỉ đăng nhập được sau khi được phê duyệt.</p>
+
+        <form asp-action="RegisterShopOwner" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="val-summary text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="Username"></label>
+                <input asp-for="Username" class="form-control" autocomplete="username" />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" class="form-control" type="email" autocomplete="email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" class="form-control" type="password" autocomplete="new-password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="FullName"></label>
+                <input asp-for="FullName" class="form-control" placeholder="Tuỳ chọn" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Phone"></label>
+                <input asp-for="Phone" class="form-control" placeholder="Tuỳ chọn" />
+            </div>
+
+            <button type="submit" class="btn-submit">Gửi đăng ký</button>
+        </form>
+
+        <div class="back">
+            <a asp-action="Login"><i class="bi bi-arrow-left"></i> Quay lại đăng nhập</a>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+</body>
+</html>

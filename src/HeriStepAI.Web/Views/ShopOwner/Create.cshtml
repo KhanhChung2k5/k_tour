@@ -1,44 +1,35 @@
-@model CreatePOIWithOwnerViewModel
+@model HeriStepAI.Web.Models.ShopOwnerPOICreateViewModel
 @{
-    Layout = "_AdminLayout";
-    ViewData["Title"] = "Thêm POI mới";
+    Layout = "_ShopOwnerLayout";
+    ViewData["Title"] = "Thêm địa điểm";
 }
 
-<div class="page-header">
-    <div>
-        <h1 class="page-title-text">Thêm POI &amp; Tài khoản chủ quán</h1>
-        <p class="page-subtitle-text">Tạo địa điểm mới và tài khoản quản lý cho chủ quán</p>
-    </div>
-    <a href="@Url.Action("Index")" class="btn btn-ghost btn-sm">
-        <i class="bi bi-arrow-left me-1"></i>Quay lại
-    </a>
-</div>
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Thêm địa điểm</li>
+    </ol>
+</nav>
 
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        <span>@TempData["Error"]</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
+    <div class="alert alert-danger mb-4" role="alert">@TempData["Error"]</div>
 }
 
-<form method="post" asp-action="Create" enctype="multipart/form-data">
+<form method="post" asp-controller="ShopOwner" asp-action="Create" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
 
     <div class="row g-4">
-        <!-- Left Column -->
         <div class="col-lg-7">
-            <!-- Basic Info -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <i class="bi bi-geo-alt-fill me-2" style="color:var(--amber);"></i>Thông tin cơ bản
+                    <i class="bi bi-geo-alt-fill me-2" style="color:var(--accent);"></i>Thông tin cơ bản
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Tên POI <span class="text-danger">*</span></label>
                         <input asp-for="Name" class="form-control" placeholder="VD: Quán Bún Bò Huế Đông Ba" required />
-                        <span asp-validation-for="Name" class="text-danger" style="font-size:0.75rem;"></span>
+                        <span asp-validation-for="Name" class="text-danger small"></span>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Mô tả <span class="text-danger">*</span></label>
@@ -60,96 +51,57 @@
                     </div>
                     <div class="mb-0">
                         <label class="form-label">Bán kính geofence (m)</label>
-                        <input asp-for="Radius" type="number" class="form-control" value="50" />
-                        <div style="font-size:0.75rem;color:var(--cream-muted);margin-top:4px;">Bán kính kích hoạt thuyết minh tự động</div>
+                        <input asp-for="Radius" type="number" class="form-control" />
+                        <div class="small mt-1" style="color:var(--text-muted);">Bán kính kích hoạt thuyết minh tự động</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Owner Account -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="bi bi-person-badge me-2" style="color:var(--green);"></i>Tài khoản chủ quán
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info mb-4" style="display:flex;align-items:flex-start;gap:10px;">
-                        <i class="bi bi-info-circle-fill flex-shrink-0" style="color:var(--blue);margin-top:1px;"></i>
-                        <span>Tài khoản sẽ được tạo với quyền <strong>ShopOwner</strong> để quản lý POI này.</span>
-                    </div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Tên đầy đủ</label>
-                            <input asp-for="OwnerFullName" class="form-control" placeholder="Nguyễn Văn A" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Số điện thoại</label>
-                            <input asp-for="OwnerPhone" class="form-control" placeholder="0912345678" />
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tên đăng nhập <span class="text-danger">*</span></label>
-                        <input asp-for="OwnerUsername" class="form-control" required placeholder="owner_username" />
-                        <div style="font-size:0.75rem;color:var(--cream-muted);margin-top:4px;">Từ 3–50 ký tự, không có khoảng cách</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email <span class="text-danger">*</span></label>
-                        <input asp-for="OwnerEmail" type="email" class="form-control" required placeholder="owner@example.com" />
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
-                        <input asp-for="OwnerPassword" type="password" class="form-control" required placeholder="Tối thiểu 6 ký tự" />
-                    </div>
-                </div>
-            </div>
-
-            <!-- Narration Content -->
             <div class="card">
                 <div class="card-header">
                     <i class="bi bi-translate me-2" style="color:var(--blue);"></i>Nội dung thuyết minh
                 </div>
                 <div class="card-body">
-                    <ul class="nav nav-tabs-pill mb-3" role="tablist">
-                        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-vi">🇻🇳 Việt</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-en">🇬🇧 EN</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-ko">🇰🇷 KO</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-zh">🇨🇳 ZH</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-ja">🇯🇵 JA</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-th">🇹🇭 TH</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-fr">🇫🇷 FR</a></li>
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item"><button type="button" class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-vi">🇻🇳 Việt</button></li>
+                        <li class="nav-item"><button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-en">🇬🇧 EN</button></li>
+                        <li class="nav-item"><button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ko">🇰🇷 KO</button></li>
+                        <li class="nav-item"><button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-zh">🇨🇳 ZH</button></li>
+                        <li class="nav-item"><button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ja">🇯🇵 JA</button></li>
+                        <li class="nav-item"><button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-th">🇹🇭 TH</button></li>
+                        <li class="nav-item"><button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-fr">🇫🇷 FR</button></li>
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="tab-vi">
                             <textarea asp-for="TextContent_vi" class="form-control" rows="5" placeholder="Nội dung thuyết minh tiếng Việt..."></textarea>
                         </div>
                         <div class="tab-pane fade" id="tab-en">
-                            <textarea asp-for="TextContent_en" class="form-control" rows="5" placeholder="English narration content..."></textarea>
+                            <textarea asp-for="TextContent_en" class="form-control" rows="5" placeholder="English narration..."></textarea>
                         </div>
                         <div class="tab-pane fade" id="tab-ko">
-                            <textarea asp-for="TextContent_ko" class="form-control" rows="5" placeholder="한국어 나레이션 내용..."></textarea>
+                            <textarea asp-for="TextContent_ko" class="form-control" rows="5" placeholder="한국어..."></textarea>
                         </div>
                         <div class="tab-pane fade" id="tab-zh">
-                            <textarea asp-for="TextContent_zh" class="form-control" rows="5" placeholder="中文解说内容..."></textarea>
+                            <textarea asp-for="TextContent_zh" class="form-control" rows="5" placeholder="中文..."></textarea>
                         </div>
                         <div class="tab-pane fade" id="tab-ja">
-                            <textarea asp-for="TextContent_ja" class="form-control" rows="5" placeholder="日本語ナレーション内容..."></textarea>
+                            <textarea asp-for="TextContent_ja" class="form-control" rows="5" placeholder="日本語..."></textarea>
                         </div>
                         <div class="tab-pane fade" id="tab-th">
-                            <textarea asp-for="TextContent_th" class="form-control" rows="5" placeholder="เนื้อหาบรรยายภาษาไทย..."></textarea>
+                            <textarea asp-for="TextContent_th" class="form-control" rows="5" placeholder="ไทย..."></textarea>
                         </div>
                         <div class="tab-pane fade" id="tab-fr">
-                            <textarea asp-for="TextContent_fr" class="form-control" rows="5" placeholder="Contenu de narration en français..."></textarea>
+                            <textarea asp-for="TextContent_fr" class="form-control" rows="5" placeholder="Français..."></textarea>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right Column -->
         <div class="col-lg-5">
-            <!-- Category & Settings -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <i class="bi bi-tag-fill me-2" style="color:var(--amber);"></i>Phân loại &amp; Cài đặt
+                    <i class="bi bi-tag-fill me-2" style="color:var(--accent);"></i>Phân loại &amp; cài đặt
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -180,16 +132,16 @@
                     <div class="row g-2 mb-3" id="priceDiv">
                         <div class="col-6">
                             <label class="form-label">Giá min (VND)</label>
-                            <input asp-for="PriceMin" type="number" class="form-control" value="0" />
+                            <input asp-for="PriceMin" type="number" class="form-control" />
                         </div>
                         <div class="col-6">
                             <label class="form-label">Giá max (VND)</label>
-                            <input asp-for="PriceMax" type="number" class="form-control" value="0" />
+                            <input asp-for="PriceMax" type="number" class="form-control" />
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Thời gian tham quan (phút)</label>
-                        <input asp-for="EstimatedMinutes" type="number" class="form-control" value="30" />
+                        <input asp-for="EstimatedMinutes" type="number" class="form-control" />
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Ưu tiên</label>
@@ -203,64 +155,41 @@
                         <label class="form-label">Link Google Maps</label>
                         <input asp-for="MapLink" type="url" class="form-control" placeholder="https://maps.google.com/..." />
                     </div>
-                    <div class="d-flex align-items-center gap-2 p-3" style="background:var(--dark4);border-radius:8px;border:1px solid var(--border);">
-                        <input asp-for="IsActive" class="form-check-input m-0" type="checkbox" value="true" checked style="width:18px;height:18px;" />
-                        <label class="form-label m-0" style="cursor:pointer;">
+                    <div class="d-flex align-items-center gap-2 p-3 rounded" style="background:var(--input-bg);border:1px solid var(--border);">
+                        <input asp-for="IsActive" class="form-check-input m-0" type="checkbox" style="width:18px;height:18px;" />
+                        <label class="form-label m-0" style="cursor:pointer;color:var(--text-muted);">
                             <i class="bi bi-check-circle-fill me-1" style="color:var(--green);"></i>Kích hoạt ngay
                         </label>
                     </div>
                 </div>
             </div>
 
-            <!-- Image Upload -->
             <div class="card mb-4">
                 <div class="card-header">
                     <i class="bi bi-image me-2" style="color:var(--blue);"></i>Hình ảnh
                 </div>
                 <div class="card-body">
                     <div id="imagePreview" class="mb-3" style="display:none;">
-                        <img id="previewImg" src="" alt="Preview"
-                             style="width:100%;height:180px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" />
+                        <img id="previewImg" src="" alt="Preview" style="width:100%;height:180px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" />
                     </div>
                     <div class="upload-zone" id="uploadZone" onclick="document.getElementById('imageFileInput').click()">
-                        <i class="bi bi-cloud-upload" style="font-size:1.5rem;color:var(--cream-muted);margin-bottom:8px;"></i>
-                        <div style="font-size:0.813rem;color:var(--cream-muted);font-weight:500;">Nhấn để chọn ảnh</div>
-                        <div style="font-size:0.75rem;color:var(--cream-muted);opacity:0.6;">JPG, PNG, WebP · Tối đa 5MB</div>
+                        <i class="bi bi-cloud-upload" style="font-size:1.5rem;color:var(--text-muted);margin-bottom:8px;"></i>
+                        <div style="font-size:0.813rem;color:var(--text-muted);font-weight:500;">Nhấn để chọn ảnh</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);opacity:0.6;">JPG, PNG, WebP · Tối đa 5MB</div>
                     </div>
                     <input type="file" name="ImageFile" id="imageFileInput" accept="image/*" style="display:none;" />
                 </div>
             </div>
 
-            <!-- Submit -->
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary" style="padding:11px;">
-                    <i class="bi bi-plus-circle me-2"></i>Tạo POI &amp; Tài khoản
+                <button type="submit" class="btn-save">
+                    <i class="bi bi-plus-circle me-2"></i>Lưu địa điểm
                 </button>
-                <a href="@Url.Action("Index")" class="btn btn-ghost btn-sm text-center" style="padding:9px;">
-                    Hủy bỏ
-                </a>
+                <a asp-action="Dashboard" class="btn-back">Quay lại Dashboard</a>
             </div>
         </div>
     </div>
 </form>
-
-@section Styles {
-    <style>
-        .upload-zone {
-            border: 2px dashed var(--border);
-            border-radius: 10px;
-            padding: 24px;
-            text-align: center;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: border-color 0.15s, background 0.15s;
-        }
-        .upload-zone:hover { border-color: var(--amber); background: rgba(79,70,229,0.04); }
-        textarea.form-control { resize: vertical; min-height: 110px; }
-    </style>
-}
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
@@ -283,13 +212,6 @@
                 document.getElementById('uploadZone').style.display = 'none';
             };
             reader.readAsDataURL(file);
-        });
-
-        document.querySelector('input[name="OwnerEmail"]').addEventListener('blur', function () {
-            const username = document.querySelector('input[name="OwnerUsername"]');
-            if (!username.value && this.value) {
-                username.value = this.value.split('@@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '');
-            }
         });
     </script>
 }

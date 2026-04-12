@@ -33,7 +33,13 @@
         --border:       rgba(232,161,75,0.12);
         --border-hover: rgba(232,161,75,0.3);
         --radius:       14px;
+        /* Bootstrap 5: form focus dùng --bs-body-color — đồng bộ với theme tối */
+        --bs-body-color: var(--cream);
+        --bs-body-bg: var(--dark);
+        --bs-secondary-color: var(--cream-muted);
     }
+
+    html { color-scheme: dark; }
 
     * { font-family: 'Be Vietnam Pro', sans-serif; box-sizing: border-box; }
 
@@ -742,6 +748,12 @@
                class="sidebar-item @(ctrl == "Home" && act == "Dashboard" ? "active" : "")">
                 <i class="bi bi-squares-fill"></i>
                 <span>Dashboard</span>
+            </a>
+
+            <a href="@Url.Action("Index", "Approvals")"
+               class="sidebar-item @(ctrl == "Approvals" ? "active" : "")">
+                <i class="bi bi-person-check"></i>
+                <span>Duyệt chủ quán</span>
             </a>
 
             <a href="@Url.Action("Index", "POI")"

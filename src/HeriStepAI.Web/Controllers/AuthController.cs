@@ -1,9 +1,11 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
 using System.Text.Json;
+using HeriStepAI.Web.Models;
 
 namespace HeriStepAI.Web.Controllers;
 
@@ -14,6 +16,67 @@ public class AuthController : Controller
     public AuthController(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult RegisterShopOwner()
+    {
+        return View(new ShopOwnerRegisterViewModel());
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RegisterShopOwner(ShopOwnerRegisterViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var client = _httpClientFactory.CreateClient("API");
+        var payload = new
+        {
+            model.Username,
+            model.Email,
+            model.Password,
+            model.FullName,
+            model.Phone
+        };
+        var json = JsonSerializer.Serialize(payload);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        HttpResponseMessage resp;
+        try
+        {
+            resp = await client.PostAsync("auth/register-shop-owner", content);
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError("", "Không kết nối được API. Kiểm tra API đang chạy.");
+            return View(model);
+        }
+
+        var body = await resp.Content.ReadAsStringAsync();
+        if (resp.IsSuccessStatusCode)
+        {
+            TempData["LoginInfo"] = "Đăng ký thành công. Vui lòng chờ Admin duyệt trước khi đăng nhập.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.TryGetProperty("Message", out var m))
+                ModelState.AddModelError("", m.GetString() ?? "Đăng ký thất bại.");
+            else
+                ModelState.AddModelError("", "Đăng ký thất bại.");
+        }
+        catch
+        {
+            ModelState.AddModelError("", $"Lỗi API ({(int)resp.StatusCode}).");
+        }
+
+        return View(model);
     }
 
     [HttpGet]
@@ -50,6 +113,24 @@ public class AuthController : Controller
             return View();
         }
         response ??= new HttpResponseMessage(System.Net.HttpStatusCode.ServiceUnavailable);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            var errBody = await response.Content.ReadAsStringAsync();
+            try
+            {
+                using var doc = JsonDocument.Parse(errBody);
+                if (doc.RootElement.TryGetProperty("Message", out var m))
+                    ViewBag.Error = m.GetString();
+                else
+                    ViewBag.Error = "Không thể đăng nhập.";
+            }
+            catch
+            {
+                ViewBag.Error = "Không thể đăng nhập.";
+            }
+            return View();
+        }
 
         if (response.IsSuccessStatusCode)
         {

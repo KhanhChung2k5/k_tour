@@ -52,8 +52,12 @@ public class AuthController : ControllerBase
                 FullName = user.FullName
             });
         }
-        catch (UnauthorizedAccessException)
+        catch (UnauthorizedAccessException ex)
         {
+            if (ex.Message == "ACCOUNT_PENDING_APPROVAL")
+                return StatusCode(403, new { Message = "Tài khoản chờ Admin duyệt. Bạn sẽ đăng nhập được sau khi được phê duyệt.", Code = ex.Message });
+            if (ex.Message == "ACCOUNT_REJECTED")
+                return StatusCode(403, new { Message = "Tài khoản đăng ký đã bị từ chối.", Code = ex.Message });
             return Unauthorized(new { Message = "Invalid credentials" });
         }
     }
@@ -70,7 +74,8 @@ public class AuthController : ControllerBase
                 request.Password,
                 request.Role,
                 request.FullName,
-                request.Phone);
+                request.Phone,
+                approvalStatus: request.Role == UserRole.ShopOwner ? AccountApprovalStatus.Approved : null);
             return Ok(new { UserId = user!.Id, Username = user.Username, Email = user.Email, FullName = user.FullName });
         }
         catch (InvalidOperationException ex)
@@ -97,7 +102,8 @@ public class AuthController : ControllerBase
                 request.Email,
                 request.Password,
                 UserRole.Tourist,
-                request.FullName);
+                request.FullName,
+                approvalStatus: AccountApprovalStatus.NotApplicable);
 
             var token = await _authService.LoginAsync(request.Email, request.Password);
             return Ok(new
@@ -112,6 +118,83 @@ public class AuthController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    /// <summary>Đăng ký chủ quán (công khai) — chờ Admin duyệt mới đăng nhập được.</summary>
+    [HttpPost("register-shop-owner")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RegisterShopOwner([FromBody] ShopOwnerSelfRegisterRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+            return BadRequest(new { Message = "Username, email và mật khẩu là bắt buộc" });
+        if (request.Password.Length < 6)
+            return BadRequest(new { Message = "Mật khẩu phải có ít nhất 6 ký tự" });
+
+        try
+        {
+            var user = await _authService.RegisterAsync(
+                request.Username.Trim(),
+                request.Email.Trim(),
+                request.Password,
+                UserRole.ShopOwner,
+                request.FullName,
+                request.Phone,
+                approvalStatus: AccountApprovalStatus.Pending);
+            return Ok(new
+            {
+                Message = "Đăng ký thành công. Vui lòng chờ Admin duyệt trước khi đăng nhập.",
+                UserId = user!.Id
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
+    }
+
+    [HttpGet("pending-shop-owners")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetPendingShopOwners()
+    {
+        var list = await _context.Users
+            .AsNoTracking()
+            .Where(u => u.Role == UserRole.ShopOwner && u.ApprovalStatus == AccountApprovalStatus.Pending)
+            .OrderBy(u => u.CreatedAt)
+            .Select(u => new { u.Id, u.Username, u.Email, u.FullName, u.Phone, u.CreatedAt })
+            .ToListAsync();
+        return Ok(list);
+    }
+
+    [HttpPost("approve-shop-owner/{id:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ApproveShopOwner(int id)
+    {
+        try
+        {
+            var ok = await _authService.ApproveShopOwnerAsync(id);
+            return ok ? Ok(new { Message = "Đã duyệt tài khoản chủ quán." }) : NotFound(new { Message = "Không tìm thấy user ShopOwner hoặc không phải ShopOwner." });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Auth] ApproveShopOwner: {ex}");
+            return StatusCode(500, new { Message = "Lỗi khi cập nhật DB. Kiểm tra cột ApprovalStatus trên Supabase và connection string API.", Detail = ex.Message });
+        }
+    }
+
+    [HttpPost("reject-shop-owner/{id:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> RejectShopOwner(int id)
+    {
+        try
+        {
+            var ok = await _authService.RejectShopOwnerAsync(id);
+            return ok ? Ok(new { Message = "Đã từ chối tài khoản." }) : NotFound(new { Message = "Không tìm thấy user ShopOwner hoặc không phải ShopOwner." });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Auth] RejectShopOwner: {ex}");
+            return StatusCode(500, new { Message = "Lỗi khi cập nhật DB.", Detail = ex.Message });
         }
     }
 
@@ -149,4 +232,13 @@ public class TouristRegisterRequest
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public string? FullName { get; set; }
+}
+
+public class ShopOwnerSelfRegisterRequest
+{
+    public string Username { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string? FullName { get; set; }
+    public string? Phone { get; set; }
 }

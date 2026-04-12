@@ -258,9 +258,14 @@
 
     <div class="so-content">
         <!-- Header -->
-        <div style="margin-bottom:28px;">
-            <h1 class="page-title">Dashboard</h1>
-            <p class="page-subtitle">Quản lý cửa hàng và theo dõi lượt ghé thăm</p>
+        <div class="d-flex flex-wrap align-items-start justify-content-between gap-3" style="margin-bottom:28px;">
+            <div>
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle mb-0">Quản lý cửa hàng và theo dõi lượt ghé thăm</p>
+            </div>
+            <a href="@Url.Action("Create", "ShopOwner")" class="btn btn-sm align-self-center" style="background:linear-gradient(135deg,var(--accent),#C07820);color:#0D0B08;border:none;font-weight:600;padding:10px 16px;border-radius:8px;text-decoration:none;">
+                <i class="bi bi-plus-lg me-1"></i>Thêm địa điểm
+            </a>
         </div>
 
         <!-- Stat Cards -->

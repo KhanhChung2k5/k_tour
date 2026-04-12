@@ -8,13 +8,13 @@ public class POIService : IPOIService
 {
     private readonly ApplicationDbContext _context;
     private readonly IGeocodingService _geocodingService;
-    private readonly ITranslationService _translation;
+    private readonly IPOIContentTranslationSyncService _translationSync;
 
-    public POIService(ApplicationDbContext context, IGeocodingService geocodingService, ITranslationService translation)
+    public POIService(ApplicationDbContext context, IGeocodingService geocodingService, IPOIContentTranslationSyncService translationSync)
     {
         _context = context;
         _geocodingService = geocodingService;
-        _translation = translation;
+        _translationSync = translationSync;
     }
 
     public async Task<List<POI>> GetAllPOIsAsync()
@@ -59,8 +59,7 @@ public class POIService : IPOIService
 
         Console.WriteLine($"[POIService] POI created with ID: {poi.Id}, Contents saved: {poi.Contents?.Count ?? 0}");
 
-        // Auto-translate Vietnamese content to all other languages
-        await AutoTranslateContentsAsync(poi);
+        await _translationSync.SyncFromVietnameseAsync(poi.Id);
 
         return poi;
     }
@@ -146,78 +145,10 @@ public class POIService : IPOIService
         await _context.SaveChangesAsync();
         Console.WriteLine($"[POIService] POI updated successfully");
 
-        // Only re-translate when the Vietnamese source text actually changed
         if (viContentChanged)
-            await AutoTranslateContentsAsync(existing);
+            await _translationSync.SyncFromVietnameseAsync(existing.Id);
 
         return existing;
-    }
-
-    // ── Auto-translation ─────────────────────────────────────────────────
-
-    /// <summary>
-    /// Reads the Vietnamese POIContent for <paramref name="poi"/>, translates it to all
-    /// other supported languages, and saves the new POIContent rows to the database.
-    /// Existing translated rows are skipped (not overwritten).
-    /// </summary>
-    private async Task AutoTranslateContentsAsync(POI poi)
-    {
-        // Re-fetch with tracking so we can attach new Content rows
-        var tracked = await _context.POIs
-            .Include(p => p.Contents)
-            .FirstOrDefaultAsync(p => p.Id == poi.Id);
-
-        if (tracked == null) return;
-
-        var viContent = tracked.Contents?
-            .FirstOrDefault(c => c.Language == "vi" && !string.IsNullOrWhiteSpace(c.TextContent));
-
-        if (viContent == null)
-        {
-            Console.WriteLine($"[Translation] No Vietnamese content found for POI {poi.Id} — skipping auto-translate.");
-            return;
-        }
-
-        var existingLangs = tracked.Contents!.Select(c => c.Language).ToHashSet();
-        var targetLangs = new[] { "en", "ko", "zh", "ja", "th", "fr" }
-                          .Where(l => !existingLangs.Contains(l))
-                          .ToArray();
-
-        if (targetLangs.Length == 0)
-        {
-            Console.WriteLine($"[Translation] All languages already present for POI {poi.Id} — skipping.");
-            return;
-        }
-
-        Console.WriteLine($"[Translation] Translating POI {poi.Id} to: {string.Join(", ", targetLangs)}");
-        var translations = await _translation.TranslateToAllLanguagesAsync(viContent.TextContent!);
-
-        var newContents = new List<POIContent>();
-        foreach (var lang in targetLangs)
-        {
-            if (!translations.TryGetValue(lang, out var text) || string.IsNullOrWhiteSpace(text))
-            {
-                Console.WriteLine($"[Translation] ⚠ Failed to translate to {lang}");
-                continue;
-            }
-
-            newContents.Add(new POIContent
-            {
-                POId        = poi.Id,
-                Language    = lang,
-                TextContent = text,
-                ContentType = ContentType.TTS,
-                CreatedAt   = DateTime.UtcNow,
-            });
-            Console.WriteLine($"[Translation] ✓ {lang}: {text[..Math.Min(60, text.Length)]}...");
-        }
-
-        if (newContents.Count > 0)
-        {
-            _context.POIContents.AddRange(newContents);
-            await _context.SaveChangesAsync();
-            Console.WriteLine($"[Translation] Saved {newContents.Count} translated contents for POI {poi.Id}");
-        }
     }
 
     public async Task<bool> DeletePOIAsync(int id)

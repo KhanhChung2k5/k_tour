@@ -58,7 +58,7 @@ public class POIController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin,ShopOwner")]
+    [Authorize(Roles = "ShopOwner")]
     public async Task<IActionResult> CreatePOI([FromBody] POI poi)
     {
         Console.WriteLine($"[API POIController] CreatePOI called");
@@ -73,11 +73,8 @@ public class POIController : ControllerBase
             }
         }
 
-        if (User.IsInRole("ShopOwner"))
-        {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            poi.OwnerId = userId;
-        }
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        poi!.OwnerId = userId;
 
         var created = await _poiService.CreatePOIAsync(poi);
         Console.WriteLine($"[API POIController] POI created with ID: {created.Id}");

@@ -191,6 +191,8 @@
             padding: 60px 70px;
             position: relative;
             background: var(--dark);
+            min-height: 0;
+            overflow-y: auto;
         }
 
         .right-panel::before {
@@ -459,22 +461,32 @@
 
         .btn-social svg { width: 18px; height: 18px; }
 
-        .register-link {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 0.82rem;
-            color: var(--cream-muted);
-            animation: slide-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
-        }
-
-        .register-link a {
+        /* Đăng ký chủ quán — luôn nằm ngay dưới Đăng nhập, dễ thấy */
+        .btn-register-outline {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-top: 14px;
+            padding: 14px 18px;
+            background: rgba(232,161,75,0.08);
+            border: 1px solid rgba(232,161,75,0.45);
+            border-radius: 10px;
             color: var(--amber);
+            font-family: 'Be Vietnam Pro', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
             text-decoration: none;
-            font-weight: 500;
-            transition: opacity 0.2s;
+            letter-spacing: 0.02em;
+            transition: border-color 0.2s, background 0.2s, transform 0.15s;
+            animation: slide-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.38s both;
         }
-
-        .register-link a:hover { opacity: 0.75; }
+        .btn-register-outline:hover {
+            background: rgba(232,161,75,0.14);
+            border-color: rgba(232,161,75,0.65);
+            color: var(--amber-light);
+        }
 
         .login-footer {
             text-align: center;
@@ -581,6 +593,13 @@
         <p class="login-subtitle">Quản lý thuyết minh tự động cho quán của bạn với trí tuệ nhân tạo HeriStepAI.</p>
     </div>
 
+    @if (TempData["LoginInfo"] != null)
+    {
+        <div class="alert-error" style="border-color:rgba(46,204,148,0.35);background:rgba(46,204,148,0.1);color:#a7f3d0;">
+            <i class="bi bi-info-circle-fill" style="flex-shrink:0;margin-top:1px;"></i>
+            <span>@TempData["LoginInfo"]</span>
+        </div>
+    }
     @if (ViewBag.Error != null)
     {
         <div class="alert-error">
@@ -623,6 +642,13 @@
         </button>
     </form>
 
+    <a asp-controller="Auth" asp-action="RegisterShopOwner" class="btn-register-outline">
+        <i class="bi bi-person-plus"></i> Đăng ký chủ quán
+    </a>
+    <p style="text-align:center;margin:10px 0 0;font-size:0.78rem;color:var(--cream-muted);line-height:1.45;">
+        Sau khi gửi, Admin duyệt xong bạn mới đăng nhập được.
+    </p>
+
     <div class="or-divider"><span>hoặc đăng nhập với</span></div>
 
     <div class="social-row">
@@ -634,10 +660,6 @@
             <svg viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
             Facebook
         </button>
-    </div>
-
-    <div class="register-link">
-        Chưa có tài khoản? <a href="#" title="Sắp ra mắt">Đăng ký miễn phí</a>
     </div>
 
     <div class="login-footer">

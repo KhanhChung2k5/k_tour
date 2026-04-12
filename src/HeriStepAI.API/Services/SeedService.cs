@@ -47,7 +47,8 @@ public class SeedService
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(AdminPassword),
             Role = UserRole.Admin,
             CreatedAt = DateTime.UtcNow,
-            IsActive = true
+            IsActive = true,
+            ApprovalStatus = AccountApprovalStatus.NotApplicable
         };
         _context.Users.Add(newAdmin);
         await _context.SaveChangesAsync();
@@ -66,7 +67,8 @@ public class SeedService
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(AdminPassword),
             Role = UserRole.Admin,
             CreatedAt = DateTime.UtcNow,
-            IsActive = true
+            IsActive = true,
+            ApprovalStatus = AccountApprovalStatus.NotApplicable
         };
 
         // Create shop owner
@@ -77,7 +79,8 @@ public class SeedService
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("owner123"),
             Role = UserRole.ShopOwner,
             CreatedAt = DateTime.UtcNow,
-            IsActive = true
+            IsActive = true,
+            ApprovalStatus = AccountApprovalStatus.Approved
         };
 
         _context.Users.AddRange(admin, shopOwner);
