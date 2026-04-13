@@ -2,9 +2,9 @@
 
 | Thuộc tính | Giá trị |
 |------------|---------|
-| **Phiên bản** | 1.0 (buildable — theo codebase) |
-| **Ngày** | 2026-03-14 |
-| **Trạng thái** | Đã chuẩn hóa theo codebase & phụ lục kỹ thuật |
+| **Phiên bản** | 1.0 |
+| **Ngày** | 2026-04-12 |
+| **Trạng thái** | Hoàn thành|
 
 ---
 
@@ -33,11 +33,12 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 |---|--------|------------|
 | 1 | **Auth (Web)** | Đăng nhập email/password → API `auth/login` → Cookie + JWT `AuthToken`; redirect Admin vs ShopOwner |
 | 2 | **Subscription (Mobile)** | Chọn gói (Daily/Weekly/Monthly/Yearly) → quét QR VietQR → xác nhận → `SecureStorage` |
-| 3 | **Admin Web** | Dashboard (API), POI CRUD (API), Analytics (API), upload ảnh Supabase |
-| 4 | **ShopOwner Web** | Dashboard / Edit / Statistics — **DbContext trực tiếp** PostgreSQL |
+| 3 | **Admin Web** | Dashboard (API), **Duyệt chủ quán** (API), POI **xem/sửa/toggle** (API + DB), Analytics (API), upload ảnh — **không** tạo POI kèm tạo owner |
+| 4 | **ShopOwner Web** | **Đăng ký** (API công khai) → chờ duyệt → đăng nhập; Dashboard / **Tạo POI** / Edit / Statistics — **DbContext** PostgreSQL |
 | 5 | **API** | JWT, POI, POIContent (trong payload), analytics/visit → `VisitLogs`, analytics summary/top/statistics |
 | 6 | **Mobile** | AppShell, Map (Leaflet WebView), POI list/detail, **Tour gợi ý + TourDetail + Bắt đầu tour**, Settings, SQLite cache |
 | 7 | **Dữ liệu** | PostgreSQL: `Users`, `POIs`, `POIContents`, `VisitLogs` (nghiệp vụ); bảng `Analytics` entity **legacy, không dùng** |
+| 8 | **POI Payment (Web + API)** | ShopOwner tạo POI → báo thanh toán (Web `POST /ShopOwner/ReportPayment`, DbContext) → Admin đối soát (`/POIPayments`) → Xác nhận kích hoạt POI / Từ chối; trạng thái: `Pending / Verified / Rejected` |
 
 ### 2.2 Ngoài phạm vi (hiện không có trong repo — không mô tả như đã ship)
 
@@ -54,8 +55,8 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 
 | Role | Giá trị trong hệ thống | Kênh | Quyền chính |
 |------|------------------------|------|-------------|
-| **Admin** | `Role = 1` (claim) | Web | Full POI qua API, analytics, tạo POI kèm tài khoản ShopOwner (flow Create hiện có) |
-| **ShopOwner** | `Role = 2` | Web | Chỉ POI `OwnerId` = mình; DbContext |
+| **Admin** | `Role = 1` (claim) | Web | Dashboard, **duyệt/từ chối** đăng ký ShopOwner, POI **xem/sửa** (API/DbContext), analytics, **xác nhận/từ chối POI Payment** (`/POIPayments`), **xác nhận/từ chối thanh toán gói Mobile** (`/SubscriptionPayments`) — **không** luồng “tạo POI + tạo owner” |
+| **ShopOwner** | `Role = 2` | Web | **Đăng ký** (`ApprovalStatus` Pending → Approved); chỉ POI `OwnerId` = mình; **tự tạo POI** sau khi được duyệt; **báo thanh toán kích hoạt POI** (Web `POST /ShopOwner/ReportPayment`); DbContext |
 | **Guest/Subscriber (Mobile)** | Không dùng account/role | Mobile | Thanh toán gói, xem POI/map/tour, geofence, visit log |
 | **Anonymous API** | — | Mobile/API | Một số `GET /api/poi` và `POST /api/analytics/visit` có thể public (theo cấu hình API) |
 
@@ -67,13 +68,16 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 
 | Màn / nhóm | Route chính | State / hành vi |
 |------------|-------------|------------------|
-| Login | `/Auth/Login` | Form; lỗi hiển thị `ViewBag.Error`; redirect khi OK |
-| Admin Dashboard | `/Home/Dashboard` | Loading metrics qua API; lỗi → giá trị rỗng / 0 (theo controller) |
-| POI Index | `/POI` | Danh sách; badge category/food; lỗi `TempData` |
-| POI Create | `/POI/Create` | Tạo owner + POI + nội dung; upload ảnh |
-| POI Edit / Details / Delete | `/POI/...` | CRUD qua API client |
+| Login | `/Auth/Login` | Form; lỗi `ViewBag.Error`; **403** ShopOwner Pending/Rejected → thông báo từ API; redirect khi OK |
+| Đăng ký chủ quán | `/Auth/RegisterShopOwner` | Form công khai → `POST api/auth/register-shop-owner` → chờ Admin duyệt |
+| Admin Dashboard | `/Home/Dashboard` | Metrics qua API; nút **Duyệt đăng ký chủ quán** |
+| Approvals | `/Approvals` | Danh sách pending; **Duyệt** / **Từ chối** qua API |
+| POI Index | `/POI` | Danh sách (sort theo **Priority** rồi thời gian); **GET /POI/Create** redirect về Index (Admin không tạo POI mới) |
+| POI Edit / Details | `/POI/...` | Admin sửa POI có sẵn (DbContext/API tùy flow); upload ảnh Supabase |
 | Analytics | `/Analytics` | Admin; top POI + breakdown (API) |
-| ShopOwner Dashboard / Edit / Statistics | `/ShopOwner/...` | DbContext; 403/NotFound nếu không sở hữu POI |
+| POI Payments | `/POIPayments` | Admin; tổng hợp `Pending/Verified/Rejected`; xác nhận → POI.IsActive = true; từ chối → POI vẫn inactive |
+| Subscription Payments | `/SubscriptionPayments` | Admin; đối soát gói thanh toán Mobile; xác nhận → tính `SubscriptionExpiresAtUtc`; từ chối → không kích hoạt |
+| ShopOwner Dashboard / **Create** / Edit / Statistics | `/ShopOwner/...` | **Tạo POI** mới + DbContext; 403/NotFound nếu không sở hữu POI |
 
 ### 4.2 Mobile (`HeriStepAI.Mobile`)
 
@@ -96,7 +100,8 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 |----|--------|------------|----------|
 | **US-01** | Auth Web | Là **Admin hoặc ShopOwner**, tôi đăng nhập bằng email/mật khẩu để vào đúng dashboard vai trò của mình. | Must |
 | **US-02** | Admin POI | Là **Admin**, tôi xem danh sách POI và trạng thái active để vận hành hệ thống. | Must |
-| **US-03** | Admin POI | Là **Admin**, tôi tạo POI mới (có thể kèm tạo ShopOwner) và upload ảnh để khách thấy trên app. | Must |
+| **US-03** | ShopOwner POI | Là **ShopOwner** (đã duyệt), tôi **tự tạo POI** (form Web + upload ảnh) để khách thấy trên app. | Must |
+| **US-03b** | Admin duyệt | Là **Admin**, tôi **duyệt hoặc từ chối** đăng ký chủ quán để họ được đăng nhập hoặc không. | Must |
 | **US-04** | Admin POI | Là **Admin**, tôi sửa/xóa/toggle active POI để cập nhật nội dung. | Must |
 | **US-05** | Admin Analytics | Là **Admin**, tôi xem tổng quan lượt ghé và top POI (từ `VisitLogs`) để ra quyết định. | Should |
 | **US-06** | ShopOwner | Là **ShopOwner**, tôi chỉ thấy và sửa POI của mình và xem thống kê visit. | Must |
@@ -117,15 +122,18 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | **FR-AUTH-02** | Web: sau login, **Admin** → `/Home/Dashboard`; **ShopOwner** → `/ShopOwner/Dashboard`. |
 | **FR-AUTH-03** | Mobile: lưu trạng thái subscription (`SecureStorage`); kiểm tra còn hạn khi mở app — không cần đăng nhập. |
 | **FR-AUTH-04** | API: mật khẩu hash BCrypt; JWT TTL theo cấu hình (vd. 24h). |
+| **FR-AUTH-05** | ShopOwner: `POST api/auth/login` trả **403** nếu `ApprovalStatus` = Pending hoặc Rejected (JSON `Message`). |
+| **FR-AUTH-06** | Đăng ký chủ quán công khai: `POST api/auth/register-shop-owner` → `ApprovalStatus = Pending`. Admin: `GET .../pending-shop-owners`, `POST .../approve-shop-owner/{id}`, `POST .../reject-shop-owner/{id}`. |
 
-### 6.2 POI (Admin qua API)
+### 6.2 POI (API + Web)
 
 | ID | Yêu cầu |
 |----|---------|
-| **FR-POI-01** | Admin load danh sách POI từ `GET /api/poi` (deserialize JSON). |
-| **FR-POI-02** | Admin tạo/sửa/xóa POI qua `POST/PUT/DELETE /api/poi` (và route con theo API thực tế). |
-| **FR-POI-03** | Ảnh: upload lên Supabase từ Web, lưu `ImageUrl` vào POI. |
-| **FR-POI-04** | Hỗ trợ trường: category (`POICategory` int), `FoodType`, giá `PriceMin/Max`, `TourId` optional, `EstimatedMinutes`, đa ngôn ngữ qua `Contents`. |
+| **FR-POI-01** | `GET /api/poi` trả danh sách **đã sắp xếp**: `OrderByDescending(Priority)`, rồi `Id` (ổn định). Mobile sync dùng thứ tự này. |
+| **FR-POI-02** | `POST /api/poi` chỉ **ShopOwner** (JWT); `OwnerId` lấy từ token — Admin **không** tạo POI qua API. |
+| **FR-POI-03** | Admin/Web: sửa POI có sẵn qua Web (DbContext) hoặc flow API tùy màn; ảnh upload Supabase. |
+| **FR-POI-04** | Trường **`Priority`** (1–3): khi **nhiều POI trong cùng vùng geofence**, app chọn POI có **Priority cao hơn**; **cùng Priority** thì **gần GPS hơn** (Haversine). |
+| **FR-POI-05** | Hỗ trợ category (`POICategory`), `FoodType`, giá, `TourId`, `EstimatedMinutes`, `Contents` đa ngôn ngữ. |
 
 ### 6.3 ShopOwner (Web + DbContext)
 
@@ -133,6 +141,7 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 |----|---------|
 | **FR-SHOP-01** | Chỉ truy cập POI có `OwnerId` = user hiện tại. |
 | **FR-SHOP-02** | Statistics/Dashboard aggregate từ `VisitLogs` + POI của owner. |
+| **FR-SHOP-03** | Tạo POI mới qua `/ShopOwner/Create` (POST DbContext + upload ảnh + đồng bộ dịch nếu có). |
 
 ### 6.4 Analytics & visit
 
@@ -153,8 +162,9 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 
 | ID | Yêu cầu |
 |----|---------|
-| **FR-API-01** | `POST /api/auth/login` (chỉ dùng cho Web — Admin/ShopOwner). Mobile không gọi auth endpoint. |
-| **FR-API-02** | `GET/POST/PUT/DELETE /api/poi`, `GET /api/poi/{id}`, `GET /api/poi/{id}/content/{lang}`, `GET /api/poi/my-pois` (ShopOwner). |
+| **FR-API-01** | `POST /api/auth/login` (Web — Admin/ShopOwner). ShopOwner **403** nếu `ApprovalStatus` ≠ Approved. Mobile không gọi auth. |
+| **FR-API-01b** | `POST /api/auth/register-shop-owner` (công khai). `GET /api/auth/pending-shop-owners`, `POST .../approve-shop-owner/{id}`, `POST .../reject-shop-owner/{id}` (Admin JWT). |
+| **FR-API-02** | `GET /api/poi` (sort **Priority** desc). `POST /api/poi` — **ShopOwner** JWT. `GET /api/poi/{id}`, `GET /api/poi/{id}/content/{lang}`, `GET /api/poi/my-pois` (ShopOwner). |
 | **FR-API-03** | Analytics: `GET .../analytics/summary`, `.../top-pois`, `.../visit`, statistics theo POI. |
 
 ---
@@ -165,7 +175,8 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 |-------|-------|------|------|
 | **US-01** | Tôi đang ở `/Auth/Login` | Nhập email/password hợp lệ và submit | Redirect đúng Admin hoặc ShopOwner dashboard; cookie auth có |
 | **US-01** | Credentials sai | Submit | Ở lại login; thông báo lỗi |
-| **US-03** | Tôi là Admin | Submit form Create POI đủ field + owner mới | API tạo user Role=2 và POI gắn `OwnerId`; thông báo thành công |
+| **US-03** | Tôi là ShopOwner đã Approved | Submit form **Create POI** (`/ShopOwner/Create`) đủ field | POI gắn `OwnerId` = tôi; sync mobile thấy sau khi pull |
+| **US-03b** | Tôi là Admin | Duyệt hoặc từ chối chủ quán pending | Trạng thái `ApprovalStatus` cập nhật; Approved mới đăng nhập được |
 | **US-04** | POI tồn tại | Admin toggle active | Trạng thái `IsActive` cập nhật qua API; app phản ánh sau sync |
 | **US-06** | Tôi là ShopOwner | Mở Edit POI của người khác | NotFound / không cho sửa |
 | **US-08** | Đã sync SQLite trước đó | Mở app không mạng | Vẫn thấy danh sách POI từ `pois.db` |
@@ -189,6 +200,12 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 
 ## 9. Data Requirements (field-level)
 
+### 9.0 User (Web/API)
+
+| Field | Kiểu | Ghi chú |
+|-------|------|---------|
+| `ApprovalStatus` | enum `AccountApprovalStatus` | **Pending** / **Approved** / **Rejected** — đăng ký chủ quán công khai; chỉ **Approved** mới login Web được. |
+
 ### 9.1 POI (API `HeriStepAI.API.Models.POI` — cho UI/Web/Mobile sync)
 
 | Field | Kiểu | Ghi chú UI |
@@ -199,7 +216,7 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | `Latitude`, `Longitude` | double | Bản đồ / geofence |
 | `Address` | string? | Địa chỉ |
 | `Radius` | double | mét — vòng geofence, mặc định 50 |
-| `Priority` | int | Sắp xếp gợi ý |
+| `Priority` | int | **1–3**; **nhiều POI trong cùng geofence** → **cao hơn** trước; **cùng Priority** → **gần GPS hơn** (Haversine) |
 | `OwnerId` | int? | ShopOwner |
 | `ImageUrl` | string? | Ảnh |
 | `MapLink` | string? | Link ngoài (nếu dùng) |
@@ -247,11 +264,15 @@ Base: `/api/...` — versioning do team quy ước.
 
 | Method | Path | Mục đích |
 |--------|------|----------|
-| POST | `/auth/login` | JWT + user info |
-| ~~POST~~ | ~~`/auth/register`~~ | ~~Đăng ký mobile~~ *(không dùng — Mobile không có auth)* |
-| GET | `/poi` | Danh sách POI |
+| POST | `/auth/login` | JWT + user info; **403** nếu ShopOwner chưa duyệt |
+| POST | `/auth/register-shop-owner` | Đăng ký chủ quán công khai → Pending |
+| GET | `/auth/pending-shop-owners` | Admin — danh sách chờ duyệt |
+| POST | `/auth/approve-shop-owner/{id}` | Admin — duyệt |
+| POST | `/auth/reject-shop-owner/{id}` | Admin — từ chối |
+| GET | `/poi` | Danh sách POI (sort **Priority** desc) |
 | GET | `/poi/{id}` | Chi tiết |
-| POST/PUT/DELETE | `/poi`, `/poi/{id}` | CRUD (authorize) |
+| POST | `/poi` | **ShopOwner** JWT — tạo POI |
+| PUT/DELETE | `/poi/{id}` | Sửa/xóa (policy hiện tại) |
 | GET | `/poi/{id}/content/{language}` | Nội dung theo ngôn ngữ |
 | GET | `/poi/my-pois` | ShopOwner |
 | POST | `/analytics/visit` | Ghi visit |
@@ -318,7 +339,7 @@ sequenceDiagram
     participant API as API
     participant SQL as SQLite
     App->>SQL: Load pois.db
-    App->>API: GET /api/poi
+    App->>API: GET /api/poi (sort Priority desc)
     API-->>App: JSON POIs
     App->>SQL: Replace cache nếu dữ liệu hợp lệ
 ```
@@ -351,12 +372,12 @@ flowchart TB
         SUP[Supabase Storage<br/>Ảnh POI]
     end
 
-    A -->|"1. Mở / 2. POST /Auth/Login<br/>3. Dashboard, POI, Analytics"| W
-    S -->|"Đăng nhập, Dashboard, Edit POI, Thống kê"| W
+    A -->|"Login, Dashboard, POI xem/sửa, Approvals, Analytics"| W
+    S -->|"register-shop-owner → chờ duyệt; sau Approved: Login, Dashboard, Create/Edit POI, Thống kê"| W
     U -->|"GET poi<br/>POST analytics/visit"| AP
 
-    W -->|"Bearer JWT (cookie)<br/>auth/login, poi, analytics/summary, top-pois"| AP
-    W -.->|"DbContext (ShopOwner)<br/>POIs, VisitLogs"| DB
+    W -->|"Bearer JWT: login, pending/approve/reject, poi, analytics"| AP
+    W -.->|"DbContext (ShopOwner)<br/>Create/Edit POI, VisitLogs"| DB
     W -->|"Upload ảnh POI"| SUP
     AP -->|"EF Core<br/>Auth, POI, VisitLogs"| DB
 ```
@@ -368,15 +389,15 @@ flowchart TB
 | **Users** | Ba loại người dùng: **Admin** (quản trị toàn hệ thống qua web), **ShopOwner** (chủ điểm POI, quản lý POI qua web), **Khách du lịch** (dùng app mobile để xem POI và ghi visit). |
 | **HeriStepAI.Web :5001** | Ứng dụng web MVC chạy cổng 5001. Dùng **cookie** để lưu session và lưu **JWT trong cookie** (AuthToken) sau khi đăng nhập. Admin và ShopOwner đều truy cập qua đây. |
 | **HeriStepAI.API :5000** | API REST chạy cổng 5000. Mọi request từ Web (Admin) và App đều xác thực bằng **JWT Bearer** trong header. |
-| **PostgreSQL** | Cơ sở dữ liệu chính: bảng **Users** (đăng nhập, role), **POIs** (điểm tham quan), **POIContents** (nội dung đa ngôn ngữ), **VisitLogs** (lịch sử khách ghé thăm). Có thể dùng Supabase hoặc PostgreSQL local. |
+| **PostgreSQL** | Bảng **Users** (role + **`ApprovalStatus`** cho ShopOwner), **POIs** (**`Priority`**, geofence), **POIContents**, **VisitLogs**. |
 | **Supabase Storage** | Lưu **ảnh POI**. Web upload ảnh khi Admin/ShopOwner tạo hoặc sửa POI; URL ảnh lưu trong DB. |
 
 **Các mũi tên (luồng):**
 
-- **Admin → Web:** (1) Mở trang chủ `/`, (2) POST `/Auth/Login` để đăng nhập, (3) Sau khi đăng nhập xem Dashboard, quản lý POI, xem Analytics.
-- **ShopOwner → Web:** Đăng nhập tương tự, sau đó dùng Dashboard riêng, chỉnh sửa POI của mình, xem thống kê visit.
+- **Admin → Web:** Đăng nhập → Dashboard, **Duyệt đăng ký chủ quán** (`/Approvals`), POI **xem/sửa/toggle** (không tạo POI mới qua `/POI/Create`), Analytics.
+- **ShopOwner → Web:** **Đăng ký** công khai (`register-shop-owner`) → **Pending**; sau khi Admin **Approved** → đăng nhập → Dashboard, **tạo POI** (`/ShopOwner/Create`), sửa POI của mình, thống kê.
 - **Khách du lịch → API (qua App):** App không qua Web; không cần đăng nhập. App GET danh sách POI và POST `analytics/visit` khi vào vùng POI. Trạng thái subscription lưu trong **SecureStorage**.
-- **Web → API:** Khi Admin xem Dashboard/POI/Analytics, Web gửi request với **Bearer JWT** (lấy từ cookie) tới các endpoint: `auth/login`, `poi`, `analytics/summary`, `analytics/top-pois`, `poi/{id}/statistics`.
+- **Web → API:** Admin gọi **Bearer JWT** tới `auth/login`, `auth/pending-shop-owners`, `approve-shop-owner` / `reject-shop-owner`, `poi`, `analytics/...`. ShopOwner **POST `/api/poi`** có thể dùng khi tích hợp client; luồng Web chính là **DbContext** cho Create/Edit.
 - **Web -.-→ DB (nét đứt):** **ShopOwner** đọc/ghi **trực tiếp** DB qua **DbContext** trong Web (cùng connection string với API), không đi qua API. Đây là luồng riêng so với Admin.
 - **Web → Supabase Storage:** Khi tạo/sửa POI, Web upload ảnh lên bucket Supabase Storage.
 - **API → DB:** API dùng **EF Core** để đọc/ghi Users, POI, VisitLogs (đăng nhập, danh sách POI, ghi visit từ App).
@@ -398,12 +419,17 @@ sequenceDiagram
     Web->>User: Form đăng nhập
     User->>Web: POST /Auth/Login (email, password)
     Web->>API: POST api/auth/login (JSON)
-    API->>DB: Kiểm tra Users
-    DB-->>API: User + Role
-    API->>API: Tạo JWT
-    API-->>Web: 200 { token, userId, ... }
-    Web->>Web: Cookie + AuthToken (JWT)
-    Web->>User: 302 → /Home/Dashboard (Admin) hoặc /ShopOwner/Dashboard
+    API->>DB: Kiểm tra Users + ApprovalStatus (ShopOwner)
+    alt ShopOwner Pending hoặc Rejected
+        API-->>Web: 403 { Message }
+        Web-->>User: ViewBag.Error / ở lại login
+    else Credentials hợp lệ + Approved (hoặc Admin)
+        DB-->>API: User + Role
+        API->>API: Tạo JWT
+        API-->>Web: 200 { token, userId, ... }
+        Web->>Web: Cookie + AuthToken (JWT)
+        Web->>User: 302 → /Home/Dashboard (Admin) hoặc /ShopOwner/Dashboard
+    end
 ```
 
 ### Giải thích chi tiết – Sơ đồ 2
@@ -416,12 +442,12 @@ sequenceDiagram
 | 4 | Web trả **form đăng nhập** | Hiển thị form email + password (Razor view). |
 | 5 | User gửi **POST /Auth/Login** (email, password) | Submit form. Web nhận dữ liệu từ form. |
 | 6 | Web gọi **POST api/auth/login** (JSON) | Web chuyển tiếp sang API (gửi email, password dạng JSON). API là nơi kiểm tra user. |
-| 7 | API truy vấn **DB (Users)** | Kiểm tra email tồn tại, verify password (hash), lấy role (Admin/ShopOwner). |
-| 8 | DB trả **User + Role** | API biết user hợp lệ và role để phân quyền. |
-| 9 | API **tạo JWT** | Ký token chứa userId, role, expiry. |
-| 10 | API trả **200 { token, userId, ... }** | Web nhận JWT và thông tin user. |
-| 11 | Web ghi **Cookie + AuthToken (JWT)** | Lưu JWT vào cookie (httpOnly nếu có) để các request sau gửi kèm. |
-| 12 | Web trả **302** tới Dashboard | **Admin** → `/Home/Dashboard`, **ShopOwner** → `/ShopOwner/Dashboard`. Trình duyệt chuyển sang trang tương ứng. |
+| 7 | API truy vấn **DB (Users)** | Kiểm tra email, hash mật khẩu, role; với **ShopOwner** kiểm tra **`ApprovalStatus`** (chỉ **Approved** mới cấp JWT). |
+| 8 | **403** nếu Pending/Rejected | API trả JSON message; Web hiển thị lỗi, **không** set cookie. |
+| 9 | DB trả **User + Role** (khi hợp lệ) | API tạo JWT. |
+| 10 | API **tạo JWT** | Ký token chứa userId, role, expiry. |
+| 11 | API trả **200 { token, ... }** | Web nhận JWT. |
+| 12 | Web ghi **Cookie + AuthToken** | Redirect **Admin** → `/Home/Dashboard`, **ShopOwner Approved** → `/ShopOwner/Dashboard`. |
 
 ---
 
@@ -486,9 +512,17 @@ sequenceDiagram
     else Hết hạn / chưa thanh toán
         App->>User: SubscriptionPage
         User->>App: Chọn gói, quét QR VietQR
-        User->>App: Tap "Tôi đã thanh toán"
-        App->>App: SubscriptionService.Activate (lưu SecureStorage)
+    User->>App: Tap "Tôi đã thanh toán"
+    App->>API: POST api/subscription-payments/report
+    App->>API: GET api/subscription-payments/entitlement?deviceKey=X
+    alt status = active
+        API-->>App: { status:"active", expiresAtUtc }
+        App->>App: SubscriptionService.ActivateFromServer(...)\n(lưu SecureStorage)
         App->>User: AppShell
+    else status = pending / none
+        API-->>App: { status:"pending" | "none" }
+        App->>User: Ở lại SubscriptionPage (chờ duyệt)
+    end
     end
 
     Note over App,API: User vào vùng POI (geofence)
@@ -504,7 +538,7 @@ sequenceDiagram
 | 1 | User **mở app** | Ứng dụng mobile (HeriStepAI.Mobile) khởi động. |
 | 2 | App gọi **SubscriptionService.IsActive** | Đọc trạng thái subscription từ **SecureStorage**. Nếu còn hạn → vào AppShell ngay. |
 | 3a | **Subscription còn hạn** | App chuyển thẳng tới **AppShell** (màn hình chính với tab). |
-| 3b | **Hết hạn / chưa thanh toán** | Hiển thị **SubscriptionPage**. User chọn gói, quét QR VietQR, tap xác nhận. App kích hoạt subscription và lưu vào SecureStorage, rồi chuyển sang AppShell. |
+| 3b | **Hết hạn / chưa thanh toán** | Hiển thị **SubscriptionPage**. User chọn gói, quét QR VietQR, tap xác nhận để **report**; app chỉ vào AppShell khi API entitlement trả `active` (sau khi Admin duyệt). |
 | 4 | **User vào vùng POI (geofence)** | App dùng GPS/geofencing; khi user vào vùng bán kính quanh POI, app coi là “đã ghé thăm”. |
 | 5 | App gửi **POST api/analytics/visit** (POId, VisitType, …) | Gửi POI id, loại visit (Geofence/Manual). API nhận payload và ghi nhận. |
 | 6 | API trả **202 Accepted** | API chấp nhận request. |
@@ -518,12 +552,14 @@ sequenceDiagram
 flowchart LR
     subgraph Admin["Admin Web"]
         D[Dashboard]
-        P[POI CRUD]
+        AP[Approvals\npending / approve / reject]
+        P[POI xem/sửa\ntoggle]
         AN[Analytics]
     end
 
     subgraph ShopOwner["ShopOwner Web"]
         SD[ShopOwner Dashboard]
+        SC[Create POI]
         SE[Edit POI]
         ST[Statistics]
     end
@@ -532,11 +568,13 @@ flowchart LR
     DB[(PostgreSQL)]
 
     D --> API
-    P --> API
+    AP --> API
     AN --> API
+    P -.-> DB
     API --> DB
 
     SD --> DB
+    SC --> DB
     SE --> DB
     ST --> DB
 ```
@@ -547,17 +585,18 @@ Sơ đồ này nhấn mạnh **hai cách Web lấy dữ liệu** tùy vai trò:
 
 | Nhánh | Thành phần | Nguồn dữ liệu | Giải thích |
 |-------|------------|----------------|------------|
-| **Admin Web** | Dashboard (D), POI CRUD (P), Analytics (AN) | **Luôn qua API** | Admin dùng các trang Web (Dashboard, quản lý POI, Analytics). Web **không** đọc DB trực tiếp; mỗi trang gọi **HeriStepAI.API** với Bearer JWT. API dùng EF Core đọc/ghi **PostgreSQL**. Cách này thống nhất logic nghiệp vụ ở API, dễ bảo trì và tái dùng cho App. |
-| **ShopOwner Web** | ShopOwner Dashboard (SD), Edit POI (SE), Statistics (ST) | **Trực tiếp DB** | ShopOwner chỉ xem/sửa POI và thống kê **của mình**. Web dùng **DbContext** (cùng connection string với API) để truy vấn trực tiếp **PostgreSQL** (bảng POIs, VisitLogs, …), **không** gọi API. Giảm số request qua API và tận dụng filter theo ShopOwnerId trong Web. |
+| **Admin Web** | Dashboard, **Approvals** (duyệt chủ quán), Analytics | **Qua API** | Gọi **HeriStepAI.API** với Bearer JWT. |
+| **Admin Web** | POI **danh sách / sửa / toggle** (không có Create mới cho Admin) | **DbContext** (theo codebase) | Một số màn Admin đọc/ghi **trực tiếp PostgreSQL** qua `ApplicationDbContext` (cùng DB với API). |
+| **ShopOwner Web** | Dashboard, **Create POI**, Edit, Statistics | **Trực tiếp DB** | ShopOwner tạo/sửa POI **của mình** qua DbContext; có thể đồng bộ dịch nội dung sau khi lưu. |
 
-**Tóm tắt:** Admin → Web → **API** → DB; ShopOwner → Web → **DB** trực tiếp. App luôn dùng API → DB.
+**Tóm tắt:** Admin (phần lớn) → Web → **API** → DB; Admin POI + ShopOwner → Web → **DB** trực tiếp. App luôn dùng API → DB.
 
 ---
 
 **Chú thích:**
-- **Admin:** Cookie + JWT trong cookie; mọi request Dashboard/POI/Analytics đều gọi API với Bearer.
-- **ShopOwner:** Đọc/ghi DB qua DbContext (cùng DB với API), không gọi API cho Dashboard/Edit/Statistics.
-- **App:** Không đăng nhập; subscription lưu trong SecureStorage. Gọi API trực tiếp (poi, analytics/visit).
+- **Admin:** JWT cho Dashboard, Approvals, Analytics; POI có thể DbContext.
+- **ShopOwner:** Đọc/ghi POI qua DbContext (Create/Edit/Statistics).
+- **App:** Không đăng nhập; subscription trong SecureStorage. Gọi API (`GET /poi` đã sort **Priority**).
 
 ## Phụ lục B.2 — Use Case Diagrams
 
@@ -590,11 +629,16 @@ graph LR
     subgraph Web["🌐 HeriStepAI Web"]
         UC12[Đăng nhập\nAdmin/ShopOwner]
         UC13[Xem Dashboard\nAdmin]
-        UC14[Quản lý POI\nCRUD + Auto-dịch]
+        UC14[Quản lý POI Admin\nxem/sửa/toggle]
         UC15[Xem Analytics\nVisitLogs]
         UC16[Xem Dashboard\nShopOwner]
-        UC17[Sửa POI\ncủa mình]
+        UC17[Tạo/sửa POI\ncủa mình]
         UC18[Xem thống kê\nPOI của mình]
+        UC22[Đăng ký chủ quán\nchờ duyệt]
+        UC23[Duyệt / từ chối\nchủ quán]
+        UC24[Báo thanh toán\nkích hoạt POI]
+        UC25[Đối soát thanh toán POI\nXác nhận / Từ chối]
+        UC26[Đối soát thanh toán gói Mobile\nXác nhận / Từ chối]
     end
 
     subgraph API["⚙️ HeriStepAI API"]
@@ -614,17 +658,22 @@ graph LR
     Guest --> UC9
     Guest --> UC10
     Guest --> UC19
+    Guest --> UC11
 
     ShopOwner --> UC12
     ShopOwner --> UC16
     ShopOwner --> UC17
     ShopOwner --> UC18
+    ShopOwner --> UC22
+    ShopOwner --> UC24
 
     Admin --> UC12
     Admin --> UC13
     Admin --> UC14
     Admin --> UC15
-    Admin --> UC11
+    Admin --> UC23
+    Admin --> UC25
+    Admin --> UC26
 
     UC4 --> UC20
     UC5 --> UC20
@@ -733,6 +782,8 @@ sequenceDiagram
     participant User
     participant SubPage as SubscriptionPage
     participant VM as SubscriptionViewModel
+    participant API as HeriStepAI.API
+    participant DB as PostgreSQL
     participant Sub as SubscriptionService
     participant Sec as SecureStorage
     participant VietQR as VietQR API
@@ -746,12 +797,20 @@ sequenceDiagram
     Note over SubPage: Hiển thị QR + nội dung CK: HSA{deviceKey}{W/M/Y/D}
     User->>SubPage: Tap "Tôi đã thanh toán"
     SubPage->>VM: ConfirmPaymentCommand()
-    VM->>VM: IsConfirming = true, delay 1500ms
-    VM->>Sub: Activate(plan)
-    Sub->>Sec: Set("sub_plan", "Monthly")
-    Sub->>Sec: Set("sub_expiry", DateTime.UtcNow.AddDays(30).ToString("O"))
-    Sub-->>VM: done
-    VM->>App: MainPage = AppShell
+    VM->>API: POST /api/subscription-payments/report\n{deviceKey, transferRef, planCode, amountVnd}
+    API->>DB: INSERT MobileSubscriptionPayment (Status=Pending)
+    API-->>VM: 200 OK
+    VM->>API: GET /api/subscription-payments/entitlement?deviceKey=X
+    alt status = active
+        API-->>VM: { status:"active", planCode, expiresAtUtc }
+        VM->>Sub: ActivateFromServer(planCode, expiresAtUtc)
+        Sub->>Sec: Set("sub_plan", plan)
+        Sub->>Sec: Set("sub_expiry", expiresAtUtc)
+        VM->>App: MainPage = AppShell
+    else status = pending / none
+        API-->>VM: { status:"pending" | "none" }
+        VM-->>User: Hiển thị "Đã ghi nhận, chờ Admin đối soát"
+    end
 ```
 
 ---
@@ -770,60 +829,51 @@ sequenceDiagram
     User->>Web: POST /Auth/Login (email, password)
     Web->>API: POST api/auth/login (JSON)
     API->>DB: SELECT Users WHERE Email = ?
-    DB-->>API: User + Role
+    DB-->>API: User + Role + ApprovalStatus
     API->>API: VerifyPasswordHash()
-    API->>API: Tạo JWT (userId, role, expiry)
-    API-->>Web: 200 { token, userId, role }
-    Web->>Web: Lưu Cookie AuthToken = JWT
-    alt Role = Admin (1)
-        Web-->>User: 302 → /Home/Dashboard
-    else Role = ShopOwner (2)
-        Web-->>User: 302 → /ShopOwner/Dashboard
+    alt ShopOwner + Pending hoặc Rejected
+        API-->>Web: 403 { Message }
+        Web-->>User: Lỗi ViewBag / không cookie
+    else Hợp lệ
+        API->>API: Tạo JWT (userId, role, expiry)
+        API-->>Web: 200 { token, userId, role }
+        Web->>Web: Lưu Cookie AuthToken = JWT
+        alt Role = Admin (1)
+            Web-->>User: 302 → /Home/Dashboard
+        else Role = ShopOwner (2) + Approved
+            Web-->>User: 302 → /ShopOwner/Dashboard
+        end
     end
 ```
 
 ---
 
-### C.4 Admin tạo POI mới + Auto-translate
+### C.4 ShopOwner tạo POI mới (+ đồng bộ dịch từ tiếng Việt)
 
 ```mermaid
 sequenceDiagram
-    participant Admin
+    participant SO as ShopOwner
     participant Web as HeriStepAI.Web
-    participant API as HeriStepAI.API
-    participant POISvc as POIService
-    participant GeoSvc as GeocodingService
-    participant TransSvc as MyMemoryTranslationService
-    participant MyMemory as MyMemory API
+    participant Store as Supabase Storage
+    participant Sync as POIContentTranslationSyncService
     participant DB as PostgreSQL
 
-    Admin->>Web: POST /POI/Create (form + nội dung vi)
-    Web->>API: POST api/poi (Bearer JWT)\n{ name, lat, lng, Contents:[{lang:"vi", text:"..."}] }
-    API->>POISvc: CreatePOIAsync(poi)
-    POISvc->>GeoSvc: GetAddressFromCoordinatesAsync(lat, lng)
-    GeoSvc-->>POISvc: address
-    POISvc->>DB: INSERT POI + POIContent[vi]
-    DB-->>POISvc: poi.Id = N
-    POISvc->>POISvc: AutoTranslateContentsAsync(poi)
-    POISvc->>TransSvc: TranslateToAllLanguagesAsync(viText)
-    par Dịch song song (max 3 concurrent)
-        TransSvc->>MyMemory: GET ?q={text}&langpair=vi|en&de=khanhcong460@gmail.com
-        MyMemory-->>TransSvc: { translatedText: "..." }
-    and
-        TransSvc->>MyMemory: GET ?q={text}&langpair=vi|ko
-        MyMemory-->>TransSvc: { translatedText: "..." }
-    and
-        TransSvc->>MyMemory: GET ?q={text}&langpair=vi|zh-CN
-        MyMemory-->>TransSvc: { translatedText: "..." }
+    SO->>Web: POST /ShopOwner/Create (form + Priority, nội dung vi…)
+    Web->>Web: Validate, đọc userId từ claims
+    opt Có file ảnh
+        Web->>Store: UploadImageAsync
+        Store-->>Web: ImageUrl
     end
-    Note over TransSvc: Tiếp theo: ja, th, fr (3 request nữa)
-    TransSvc-->>POISvc: { en:"...", ko:"...", zh:"...", ja:"...", th:"...", fr:"..." }
-    POISvc->>DB: INSERT POIContent × 6 (en, ko, zh, ja, th, fr)
-    DB-->>POISvc: OK
-    POISvc-->>API: poi (với 7 Contents)
-    API-->>Web: 201 Created
-    Web-->>Admin: TempData.Success, Redirect /POI
+    Web->>DB: INSERT POI (OwnerId = userId, Priority, …)
+    Web->>DB: INSERT POIContent các dòng đã nhập (vi, en, …)
+    opt Có TextContent_vi
+        Web->>Sync: SyncFromVietnameseAsync(poiId)
+        Sync->>DB: UPDATE/INSERT bản dịch các ngôn ngữ còn thiếu
+    end
+    Web-->>SO: TempData.Success → Redirect /ShopOwner/Dashboard
 ```
+
+> **Ghi chú:** `POST /api/poi` vẫn dành cho **ShopOwner JWT** (mobile/tooling); luồng Web chính là **DbContext** như trên.
 
 ---
 
@@ -875,11 +925,11 @@ sequenceDiagram
     GPS->>Main: LocationChanged(location)
     Main->>Analytics: AddDistance(meters) [if ≤ 500m]
     Main->>Geo: CheckGeofence(location)
-    Geo->>Geo: Tính Haversine distance đến từng POI
-    Geo->>Geo: Lớp 1: Trong bán kính? (max(radius,50m))
-    Geo->>Geo: Lớp 2: Đã ở POI này rồi? (_currentPOI)
-    Geo->>Geo: Lớp 3: Còn cooldown 5 phút? (_poiCooldowns)
-    alt Passed all 3 layers
+    Geo->>Geo: Haversine: gom POI có distance ≤ max(radius, 50m)
+    Geo->>Geo: Chọn 1 POI: OrderByDescending(Priority) ThenBy(distance)
+    Geo->>Geo: Lớp 1 Geofence: đang cùng POI (_currentPOI)? → không trigger lại
+    Geo->>Geo: Lớp 2: Cooldown 5 phút theo POI?
+    alt Geo: POI mới + hết cooldown
         Geo-->>Main: POIEntered event (poi)
         Main->>Analytics: RecordPOIVisit(poi)
         Main->>API: LogVisitAsync(poiId, Geofence) [fire & forget]
@@ -892,7 +942,7 @@ sequenceDiagram
         TTS-->>Narr: NarrationCompleted
         Narr->>Analytics: RecordNarration()
         Narr-->>Main: NarrationCompleted event
-    else Blocked by any layer
+    else Vẫn trong cùng POI hoặc cooldown
         Geo-->>Main: null (không trigger)
     end
 ```
@@ -1026,8 +1076,8 @@ sequenceDiagram
         API-->>Web: topPOIs JSON
     and
         Web->>API: GET api/poi (Bearer)
-        API->>DB: SELECT * FROM POIs WHERE IsActive=true
-        DB-->>API: [ POI list ]
+        API->>DB: SELECT * FROM POIs … ORDER BY Priority DESC, …
+        DB-->>API: [ POI list đã sort Priority ]
         API-->>Web: pois JSON
     end
 
@@ -1037,7 +1087,7 @@ sequenceDiagram
 
 ---
 
-### C.11 ShopOwner — Dashboard & Edit POI (trực tiếp DB)
+### C.11 ShopOwner Dashboard
 
 ```mermaid
 sequenceDiagram
@@ -1045,30 +1095,63 @@ sequenceDiagram
     participant Web as HeriStepAI.Web
     participant DB as PostgreSQL
 
-    SO->>Web: GET /ShopOwner/Dashboard (Cookie)
-    Web->>Web: Đọc userId từ Cookie session
+    SO->>Web: GET /ShopOwner/Dashboard (Cookie AuthToken, Approved)
+    Web->>Web: Đọc userId từ Cookie/Claims
     Web->>DB: SELECT POIs WHERE OwnerId = userId (DbContext)
-    DB-->>Web: [ POI của ShopOwner ]
+    DB-->>Web: [ danh sách POI của ShopOwner ]
     Web->>DB: SELECT VisitLogs JOIN POIs\nWHERE POIs.OwnerId = userId (DbContext)
-    DB-->>Web: VisitLogs của POI mình
-    Web-->>SO: ShopOwnerDashboard.cshtml
+    DB-->>Web: VisitLogs của các POI mình
+    Web-->>SO: ShopOwnerDashboard.cshtml\n(danh sách POI + tổng lượt visit)
+```
 
-    SO->>Web: GET /ShopOwner/Edit/{poiId}
+---
+
+### C.11b ShopOwner Edit POI
+
+```mermaid
+sequenceDiagram
+    participant SO as ShopOwner
+    participant Web as HeriStepAI.Web
+    participant DB as PostgreSQL
+
+    SO->>Web: GET /ShopOwner/Edit/{poiId} (Cookie)
     Web->>DB: SELECT POI WHERE Id=poiId AND OwnerId=userId
-    DB-->>Web: POI data
-    Web-->>SO: Edit form (pre-filled)
+    alt OwnerId không khớp
+        DB-->>Web: null
+        Web-->>SO: 403 Forbidden / NotFound
+    else Hợp lệ
+        DB-->>Web: POI data
+        Web-->>SO: Edit form (pre-filled)
+        SO->>Web: POST /ShopOwner/Edit/{poiId} (form data)
+        Web->>DB: SELECT POI (kiểm tra OwnerId == userId)
+        DB-->>Web: existing POI
+        Web->>DB: UPDATE POI SET Name, Description,\nPriority, Address, Lat, Lng, …
+        DB-->>Web: OK
+        Web-->>SO: TempData.Success → Redirect /ShopOwner/Dashboard
+    end
+```
 
-    SO->>Web: POST /ShopOwner/Edit/{poiId} (form data)
-    Web->>DB: SELECT POI (kiểm tra OwnerId == userId)
-    DB-->>Web: existing POI
-    Web->>DB: UPDATE POI SET Name=..., Description=...\n(chỉ các field được phép sửa)
-    DB-->>Web: OK
-    Web-->>SO: Redirect /ShopOwner/Dashboard
+---
 
-    SO->>Web: GET /ShopOwner/Statistics/{poiId}
-    Web->>DB: SELECT VisitLogs WHERE POId=poiId\nGROUP BY DATE(VisitTime)
-    DB-->>Web: daily visit counts
-    Web-->>SO: Statistics.cshtml (biểu đồ theo ngày)
+### C.11c ShopOwner Statistics POI
+
+```mermaid
+sequenceDiagram
+    participant SO as ShopOwner
+    participant Web as HeriStepAI.Web
+    participant DB as PostgreSQL
+
+    SO->>Web: GET /ShopOwner/Statistics/{poiId} (Cookie)
+    Web->>DB: SELECT POI WHERE Id=poiId AND OwnerId=userId
+    alt OwnerId không khớp
+        DB-->>Web: null
+        Web-->>SO: 403 / NotFound
+    else Hợp lệ
+        Web->>DB: SELECT VisitLogs WHERE POIId=poiId\nORDER BY VisitTime
+        DB-->>Web: visit logs
+        Web->>Web: Group by DATE(VisitTime)\n→ daily visit counts
+        Web-->>SO: Statistics.cshtml\n(biểu đồ cột theo ngày)
+    end
 ```
 
 ---
@@ -1177,6 +1260,222 @@ sequenceDiagram
 
 ---
 
+### C.15 ShopOwner báo thanh toán kích hoạt POI
+
+```mermaid
+sequenceDiagram
+    participant SO as ShopOwner
+    participant Web as HeriStepAI.Web
+    participant DB as PostgreSQL
+
+    SO->>Web: POST /ShopOwner/Create (tạo POI thành công)
+    Web->>DB: INSERT POI (IsActive = false, Priority = N)
+    DB-->>Web: POI.Id = X
+    Web-->>SO: Redirect Dashboard + hướng dẫn báo thanh toán
+
+    Note over SO,Web: Luồng hiện tại dùng Web + DbContext trực tiếp
+    SO->>Web: POST /ShopOwner/ReportPayment (poiId=X)
+    Web->>DB: SELECT POI WHERE Id=X AND OwnerId=userId
+    DB-->>Web: poi (Priority = N)
+    Web->>DB: SELECT POIPayments WHERE POIId=X\nAND Status IN (Pending, Verified)
+    DB-->>Web: existing? (null = không có)
+    alt Đã có bản ghi Pending/Verified
+        Web-->>SO: TempData PaymentReported + redirect PaymentPending
+    else Chưa có
+        Web->>Web: amount = POIPricing.GetPrice(Priority)\ntransferRef = "POIPAY-X-XXXXXX"
+        Web->>DB: INSERT POIPayment\n(Status=Pending, ReportedAtUtc=now)
+        DB-->>Web: payment.Id = Y
+        Web-->>SO: TempData PaymentReported + redirect PaymentPending
+    end
+    Note over SO: ShopOwner chuyển khoản ngân hàng\nvới nội dung = transferRef
+```
+
+---
+
+### C.16 Admin đối soát & xác nhận / từ chối POI Payment
+
+```mermaid
+sequenceDiagram
+    participant Admin
+    participant Web as HeriStepAI.Web
+    participant API as HeriStepAI.API
+    participant DB as PostgreSQL
+
+    Admin->>Web: GET /POIPayments (Cookie AuthToken)
+    Web->>API: GET api/poi-payments (Bearer)
+    API->>DB: SELECT POIPayments JOIN POIs JOIN Users\nORDER BY ReportedAtUtc DESC
+    DB-->>API: [ { id, poiId, poiName, ownerName, priority, amount,\ntransferRef, status, reportedAt } ]
+    API-->>Web: list JSON
+    Web->>API: GET api/poi-payments/summary (Bearer)
+    API->>DB: COUNT(*) GROUP BY Status
+    DB-->>API: { pending, verified, rejected, totalAmountVndVerified }
+    API-->>Web: summary JSON
+    Web-->>Admin: /POIPayments/Index.cshtml\n(stat cards + bảng danh sách)
+
+    alt Admin xác nhận (Verify)
+        Admin->>Web: POST /POIPayments/Verify (id=Y, AntiForgeryToken)
+        Web->>API: POST api/poi-payments/Y/verify (Bearer)\n{ note: null }
+        API->>DB: SELECT POIPayments.AsTracking()\nINCLUDE POI WHERE Id=Y
+        DB-->>API: row (tracked)
+        API->>API: row.Status = Verified\nrow.VerifiedAtUtc = now\nrow.VerifiedByUserId = adminId
+        API->>API: row.POI.IsActive = true\nrow.POI.UpdatedAt = now
+        API->>DB: SaveChangesAsync() → UPDATE POIPayments + POIs
+        DB-->>API: OK
+        API-->>Web: 200 { Message: "Đã xác nhận. POI đã được kích hoạt." }
+        Web-->>Admin: TempData.Success → Redirect /POIPayments
+    else Admin từ chối (Reject)
+        Admin->>Web: POST /POIPayments/Reject (id=Y, AntiForgeryToken)
+        Web->>API: POST api/poi-payments/Y/reject (Bearer)\n{ note: "Lý do" }
+        API->>DB: SELECT POIPayments.AsTracking() WHERE Id=Y
+        DB-->>API: row (tracked)
+        API->>API: row.Status = Rejected\nrow.VerifiedAtUtc = now\nrow.AdminNote = note
+        API->>DB: SaveChangesAsync() → UPDATE POIPayments
+        DB-->>API: OK
+        API-->>Web: 200 { Message: "Đã từ chối." }
+        Web-->>Admin: TempData.Success → Redirect /POIPayments
+    end
+```
+
+---
+
+### C.17 Mobile báo & Admin đối soát thanh toán gói Subscription
+
+```mermaid
+sequenceDiagram
+    participant App as HeriStepAI Mobile
+    participant API as HeriStepAI.API
+    participant DB as PostgreSQL
+    participant Admin
+    participant Web as HeriStepAI.Web
+
+    Note over App,DB: Sau khi user tap "Tôi đã thanh toán"
+    App->>API: POST api/subscription-payments/report (AllowAnonymous)\n{ deviceKey, transferRef, planCode, amountVnd, platform }
+    API->>DB: SELECT MobileSubscriptionPayments\nWHERE DeviceKey=X AND TransferRef=Y AND ReportedAt >= now-48h
+    DB-->>API: existing?
+    alt Đã báo trong 48h
+        API-->>App: 200 { duplicate: true }
+    else Chưa có
+        API->>DB: INSERT MobileSubscriptionPayment\n(Status=Pending, SubscriptionExpiresAtUtc=null)
+        DB-->>API: row.Id
+        API-->>App: 200 { id, duplicate: false }
+    end
+
+    Note over App,DB: App poll để biết trạng thái
+    App->>API: GET api/subscription-payments/entitlement?deviceKey=X
+    DB-->>API: status = "pending" / "active" / "none"
+    API-->>App: { status, planCode?, expiresAtUtc? }
+
+    Note over Admin,Web: Admin mở trang đối soát
+    Admin->>Web: GET /SubscriptionPayments (Cookie AuthToken)
+    Web->>API: GET api/subscription-payments (Bearer)
+    API->>DB: SELECT MobileSubscriptionPayments ORDER BY ReportedAtUtc DESC
+    DB-->>API: list
+    API-->>Web: list JSON
+    Web->>API: GET api/subscription-payments/summary (Bearer)
+    API-->>Web: { pending, verified, rejected, reportsLast7Days, totalAmountVndVerified }
+    Web-->>Admin: SubscriptionPayments/Index.cshtml
+
+    alt Admin xác nhận
+        Admin->>Web: POST /SubscriptionPayments/Verify (id, note)
+        Web->>API: POST api/subscription-payments/id/verify\n{ note }
+        API->>DB: SELECT AsTracking WHERE Id=id
+        DB-->>API: row (tracked)
+        API->>API: row.Status = Verified\nrow.VerifiedAtUtc = now\nrow.SubscriptionExpiresAtUtc = now + planDays
+        API->>DB: SaveChangesAsync()
+        DB-->>API: OK
+        API-->>Web: 200 "Đã xác nhận đối soát"
+        Web-->>Admin: TempData.Success → Redirect
+    else Admin từ chối
+        Admin->>Web: POST /SubscriptionPayments/Reject (id, note)
+        Web->>API: POST api/subscription-payments/id/reject\n{ note }
+        API->>DB: SELECT AsTracking WHERE Id=id
+        API->>API: row.Status = Rejected
+        API->>DB: SaveChangesAsync()
+        API-->>Web: 200 "Đã đánh dấu từ chối"
+        Web-->>Admin: TempData.Success → Redirect
+    end
+
+    Note over App,DB: App poll lại sau khi Admin xác nhận
+    App->>API: GET api/subscription-payments/entitlement?deviceKey=X
+    API->>DB: SELECT Verified WHERE DeviceKey=X AND ExpiresAt > now
+    DB-->>API: active row
+    API-->>App: { status: "active", planCode: "M", expiresAtUtc }
+    App->>App: SubscriptionService.ActivateFromServer(plan, expiresAtUtc)\n→ SecureStorage
+```
+
+---
+
+### C.18 ShopOwner đăng ký tài khoản
+
+```mermaid
+sequenceDiagram
+    participant SO as ShopOwner (chưa có tài khoản)
+    participant Web as HeriStepAI.Web
+    participant API as HeriStepAI.API
+    participant DB as PostgreSQL
+
+    SO->>Web: GET /Auth/RegisterShopOwner (AllowAnonymous)
+    Web-->>SO: Form đăng ký (Username, Email, Password, FullName, Phone)
+    SO->>Web: POST /Auth/RegisterShopOwner (form data)
+    Web->>Web: ModelState.IsValid?
+    alt Thiếu / sai field
+        Web-->>SO: Trả lại form + lỗi validation
+    else Hợp lệ
+        Web->>API: POST api/auth/register-shop-owner (AllowAnonymous)\n{ username, email, password, fullName, phone }
+        API->>DB: SELECT Users WHERE Email = email
+        alt Email đã tồn tại
+            DB-->>API: User exists
+            API-->>Web: 400 { Message: "Email đã tồn tại" }
+            Web-->>SO: ModelState lỗi
+        else Chưa có
+            API->>API: HashPassword(password)
+            API->>DB: INSERT User\n(Role=ShopOwner, ApprovalStatus=Pending, IsActive=false)
+            DB-->>API: userId
+            API-->>Web: 200 OK
+            Web-->>SO: TempData["LoginInfo"] → Redirect /Auth/Login\n"Đăng ký thành công. Vui lòng chờ Admin duyệt."
+        end
+    end
+```
+
+---
+
+### C.19 Admin duyệt / từ chối ShopOwner
+
+```mermaid
+sequenceDiagram
+    participant Admin
+    participant Web as HeriStepAI.Web
+    participant API as HeriStepAI.API
+    participant DB as PostgreSQL
+
+    Admin->>Web: GET /Approvals (Cookie AuthToken, Role=Admin)
+    Web->>API: GET api/auth/pending-shop-owners (Bearer)
+    API->>DB: SELECT Users WHERE Role=ShopOwner\nAND ApprovalStatus=Pending
+    DB-->>API: [ { id, username, email, fullName, phone, createdAt } ]
+    API-->>Web: list JSON
+    Web-->>Admin: Approvals/Index.cshtml (danh sách chờ duyệt)
+
+    alt Admin duyệt
+        Admin->>Web: POST /Approvals/Approve (id, AntiForgeryToken)
+        Web->>API: POST api/auth/approve-shop-owner/{id} (Bearer)
+        API->>DB: UPDATE Users SET ApprovalStatus=Approved, IsActive=true\nWHERE Id=id AND Role=ShopOwner
+        DB-->>API: OK
+        API-->>Web: 200 OK
+        Web-->>Admin: TempData.Success "Đã duyệt tài khoản chủ quán." → Redirect /Approvals
+        Note over Admin: ShopOwner có thể đăng nhập bình thường
+    else Admin từ chối
+        Admin->>Web: POST /Approvals/Reject (id, AntiForgeryToken)
+        Web->>API: POST api/auth/reject-shop-owner/{id} (Bearer)
+        API->>DB: UPDATE Users SET ApprovalStatus=Rejected\nWHERE Id=id AND Role=ShopOwner
+        DB-->>API: OK
+        API-->>Web: 200 OK
+        Web-->>Admin: TempData.Success "Đã từ chối đăng ký." → Redirect /Approvals
+        Note over Admin: ShopOwner đăng nhập → API trả 403
+    end
+```
+
+---
+
 ## Phụ lục D — Activity Diagrams
 
 > Sơ đồ hoạt động mô tả luồng xử lý nghiệp vụ của từng use case.
@@ -1200,8 +1499,12 @@ flowchart TD
     SubActive -->|Không| ShowSubPage[Hiển thị SubscriptionPage]
     ShowSubPage --> UserPay[User chọn gói & quét QR]
     UserPay --> Confirm[Tap Tôi đã thanh toán]
-    Confirm --> Activate[SubscriptionService.Activate\nLưu vào SecureStorage]
+    Confirm --> Report[POST /subscription-payments/report]
+    Report --> CheckEntitlement[GET /subscription-payments/entitlement]
+    CheckEntitlement --> ActiveNow{status = active?}
+    ActiveNow -->|Có| Activate[ActivateFromServer(plan, expiresAtUtc)\nLưu vào SecureStorage]
     Activate --> LoadShell
+    ActiveNow -->|Không| WaitAdmin[Giữ ở SubscriptionPage\nchờ Admin duyệt]
 ```
 
 ---
@@ -1212,7 +1515,7 @@ flowchart TD
 flowchart TD
     Start([GPS cập nhật 5s]) --> GetLoc[Lấy vị trí GPS thật\nhoặc giả lập Test Mode]
     GetLoc --> AddDist[AddDistance nếu ≤ 500m]
-    AddDist --> FindPOI[Haversine: tìm POI gần nhất\ntrong bán kính max\nradius, 50m]
+    AddDist --> FindPOI[Lọc POI trong bán kính\n→ OrderByDescending Priority\n→ chọn gần GPS nhất nếu cùng Priority]
     FindPOI --> InRadius{Trong bán kính\nPOI nào?}
     InRadius -->|Không| ResetCurrent[currentPOI = null]
     ResetCurrent --> Wait[Chờ 5s]
@@ -1237,11 +1540,11 @@ flowchart TD
 
 ---
 
-### D.3 Admin tạo POI + Auto-translate
+### D.3 ShopOwner tạo POI mới (+ đồng bộ dịch)
 
 ```mermaid
 flowchart TD
-    Start([Admin mở /POI/Create]) --> FillForm[Điền thông tin POI\nTên, tọa độ, mô tả Tiếng Việt, giá...]
+    Start([ShopOwner đã Approved\nmở /ShopOwner/Create]) --> FillForm[Điền thông tin POI\nPriority, tọa độ, mô tả vi, giá…]
     FillForm --> HasImg{Upload ảnh?}
     HasImg -->|Có| UploadImg[Upload lên Supabase Storage]
     UploadImg --> ImgOK{Thành công?}
@@ -1249,24 +1552,17 @@ flowchart TD
     ShowImgErr --> FillForm
     ImgOK -->|OK| SetUrl[Gán ImageUrl]
     SetUrl --> Submit
-    HasImg -->|Không| Submit[Submit tạo POI]
+    HasImg -->|Không| Submit[POST /ShopOwner/Create]
     Submit --> ValidSrv{Validate\nserver-side}
     ValidSrv -->|Thiếu field| ShowErr[Hiển thị lỗi form]
     ShowErr --> FillForm
-    ValidSrv -->|Hợp lệ| CallAPI[POST api/poi\nContents: vi only]
-    CallAPI --> SaveDB[Lưu POI + POIContent vi\nvào PostgreSQL]
-    SaveDB --> GeoCode[GeocodingService\nreverse-geocode nếu không có address]
-    GeoCode --> AutoTrans[AutoTranslateContentsAsync]
-    AutoTrans --> TransParallel[Dịch song song\nmax 3 concurrent\nen, ko, zh, ja, th, fr]
-    TransParallel --> TransOK{Từng ngôn ngữ\ndịch thành công?}
-    TransOK -->|OK| SaveContent[INSERT POIContent\ncho ngôn ngữ đó]
-    TransOK -->|Lỗi| SkipLang[Bỏ qua ngôn ngữ đó\nkhông crash]
-    SaveContent --> MoreLang{Còn ngôn ngữ\nchưa dịch?}
-    SkipLang --> MoreLang
-    MoreLang -->|Còn| TransParallel
-    MoreLang -->|Xong| Return201[API trả 201 Created]
-    Return201 --> ShowSuccess[TempData.Success\nRedirect /POI list]
-    ShowSuccess --> End([Kết thúc])
+    ValidSrv -->|Hợp lệ| SaveDB[DbContext: INSERT POI\nOwnerId = userId]
+    SaveDB --> SaveContent[INSERT POIContent\ncác dòng đã nhập]
+    SaveContent --> HasVi{Có mô tả vi?}
+    HasVi -->|Có| SyncTrans[SyncFromVietnameseAsync\nđiền dịch các ngôn ngữ còn trống]
+    HasVi -->|Không| RedirectOK
+    SyncTrans --> RedirectOK[TempData.Success\nRedirect /ShopOwner/Dashboard]
+    RedirectOK --> End([Kết thúc])
 ```
 
 ---
@@ -1311,6 +1607,8 @@ flowchart TD
     CallAPI --> APIResult{Kết quả API?}
     APIResult -->|401 sai credentials| ShowLoginErr[ViewBag.Error]
     ShowLoginErr --> EnterCreds
+    APIResult -->|403 ShopOwner Pending/Rejected| ShowPending[Thông báo chờ duyệt / bị từ chối]
+    ShowPending --> EnterCreds
     APIResult -->|500 / network| ShowSrvErr[Lỗi hệ thống]
     ShowSrvErr --> End2([Thử lại sau])
     APIResult -->|200 OK + JWT| SaveCookie[Lưu Cookie AuthToken = JWT]
@@ -1335,10 +1633,149 @@ flowchart TD
     SelectPlan --> ShowQR[Hiển thị QR VietQR\nICB-104879400502\namount + nội dung: HSA+DeviceKey+PlanCode]
     ShowQR --> UserTransfer[User chuyển khoản\nngân hàng]
     UserTransfer --> TapConfirm[Tap Tôi đã thanh toán]
-    TapConfirm --> Processing[IsConfirming = true\nDelay 1500ms]
-    Processing --> Activate[SubscriptionService.Activate\nsub_plan + sub_expiry → SecureStorage]
+    TapConfirm --> Report[POST /subscription-payments/report]
+    Report --> WaitApprove[Hiển thị chờ đối soát\nkhông vào app ngay]
+    WaitApprove --> CheckBtn[Tap Kiểm tra đã duyệt\nhoặc OnAppearing]
+    CheckBtn --> Poll[GET /subscription-payments/entitlement]
+    Poll --> Entitled{status=active?}
+    Entitled -->|Không| WaitApprove
+    Entitled -->|Có| Activate[ActivateFromServer(plan, expiresAtUtc)\nsub_plan + sub_expiry → SecureStorage]
     Activate --> LoadApp[MainPage = AppShell\nvào app bình thường]
     LoadApp --> End([Kết thúc])
+```
+
+---
+
+### D.7 POI Payment — Luồng kích hoạt POI qua thanh toán
+
+```mermaid
+flowchart TD
+    Start([ShopOwner tạo POI thành công]) --> POIInactive[POI được tạo\nIsActive = false]
+    POIInactive --> CallReport[POST /ShopOwner/ReportPayment\npoiId = X]
+    CallReport --> HasExisting{Đã có bản ghi\nPending/Verified?}
+    HasExisting -->|Có| ReturnExisting[Giữ bản ghi hiện có\nredirect PaymentPending]
+    ReturnExisting --> ShowRef[ShopOwner thấy transferRef\nđã có từ trước]
+    HasExisting -->|Không| CalcPrice[Tính giá theo Priority\n1→50k / 2→150k / 3→350k VND]
+    CalcPrice --> GenRef[Tạo TransferRef\nPOIPAY-X-XXXXXX]
+    GenRef --> SavePending[DbContext INSERT POIPayment\nStatus = Pending]
+    SavePending --> ShowQR[Redirect PaymentPending\nShopOwner thấy TransferRef để chuyển khoản]
+    ShowRef --> ShowQR
+    ShowQR --> AdminCheck[Admin mở /POIPayments\nxem danh sách Pending]
+    AdminCheck --> Decision{Admin quyết định?}
+    Decision -->|Xác nhận - đã nhận tiền| Verify[POST api/poi-payments/id/verify\nrow.AsTracking → Status=Verified\nPOI.IsActive=true]
+    Decision -->|Từ chối - sai / gian lận| Reject[POST api/poi-payments/id/reject\nrow.AsTracking → Status=Rejected\nPOI vẫn IsActive=false]
+    Verify --> POIActive[POI hiển thị\ntrên Mobile App]
+    Reject --> NotifyReject[ShopOwner xem trạng thái\nTừ chối + AdminNote]
+    POIActive --> End([Kết thúc])
+    NotifyReject --> End2([ShopOwner có thể báo lại\nnếu thanh toán lại])
+```
+
+---
+
+### D.8 Subscription Payment — Luồng báo & đối soát
+
+```mermaid
+flowchart TD
+    Start([User tap Tôi đã thanh toán\ntrên SubscriptionPage]) --> Report[POST api/subscription-payments/report\ndeviceKey + transferRef + planCode + amount]
+    Report --> Dup{Đã báo trong 48h\nvới cùng transferRef?}
+    Dup -->|Có| UseDup[Dùng bản ghi cũ\nduplicate = true]
+    Dup -->|Không| SavePending[INSERT MobileSubscriptionPayment\nStatus = Pending\nSubscriptionExpiresAtUtc = null]
+    SavePending --> AppWait[App lưu id\nhiển thị Đang chờ xác nhận]
+    UseDup --> AppWait
+
+    AppWait --> Poll[App poll GET entitlement?deviceKey=X]
+    Poll --> PollResult{Kết quả?}
+    PollResult -->|pending| AppWait
+    PollResult -->|active| Activate[SubscriptionService.ActivateFromServer\nLưu expiresAtUtc → SecureStorage]
+    Activate --> LoadApp[Vào app bình thường\nAppShell]
+    LoadApp --> End([Kết thúc])
+
+    AppWait --> AdminSide[Admin mở /SubscriptionPayments\nxem danh sách Pending]
+    AdminSide --> AdminDecide{Admin đối chiếu\nsao kê ngân hàng?}
+    AdminDecide -->|Đúng - xác nhận| Verify[POST api/subscription-payments/id/verify\nStatus=Verified\nSubscriptionExpiresAtUtc = now + planDays]
+    AdminDecide -->|Sai / gian lận - từ chối| Reject[POST api/subscription-payments/id/reject\nStatus=Rejected]
+    Verify --> PollResult
+    Reject --> NotifyReject[App poll → status=none\nHiển thị lỗi / thử lại]
+    NotifyReject --> End2([Kết thúc])
+```
+
+---
+
+### D.9 ShopOwner đăng ký & Admin duyệt
+
+```mermaid
+flowchart TD
+    Start([ShopOwner truy cập\n/Auth/RegisterShopOwner]) --> FillForm[Điền Username, Email\nPassword, FullName, Phone]
+    FillForm --> Validate{Validate\nclient/server?}
+    Validate -->|Thiếu field| ShowErr[Hiển thị lỗi form]
+    ShowErr --> FillForm
+    Validate -->|Hợp lệ| CallAPI[POST api/auth/register-shop-owner]
+    CallAPI --> EmailExist{Email đã tồn tại?}
+    EmailExist -->|Có| ErrDup[Lỗi: Email đã tồn tại]
+    ErrDup --> FillForm
+    EmailExist -->|Không| SavePending[INSERT User\nApprovalStatus = Pending\nIsActive = false]
+    SavePending --> ShowWait[Redirect /Auth/Login\nThông báo chờ Admin duyệt]
+    ShowWait --> AdminReview[Admin mở /Approvals\nxem danh sách Pending]
+    AdminReview --> Decision{Admin quyết định?}
+    Decision -->|Duyệt| Approve[POST api/auth/approve-shop-owner/id\nApprovalStatus = Approved\nIsActive = true]
+    Decision -->|Từ chối| Reject[POST api/auth/reject-shop-owner/id\nApprovalStatus = Rejected]
+    Approve --> CanLogin[ShopOwner đăng nhập\n→ Redirect /ShopOwner/Dashboard]
+    Reject --> Blocked[ShopOwner đăng nhập\n→ API 403: Tài khoản bị từ chối]
+    CanLogin --> End([Kết thúc])
+    Blocked --> End2([Kết thúc])
+```
+
+---
+
+### D.10 Admin sửa POI (+ Smart Re-translation)
+
+```mermaid
+flowchart TD
+    Start([Admin mở /POI/Edit/id]) --> LoadPOI[GET POI từ DB hoặc API\ncùng POIContents hiện tại]
+    LoadPOI --> ShowForm[Hiển thị form edit\npre-filled]
+    ShowForm --> Submit[PUT api/poi/id\nBearerJWT]
+    Submit --> POISvcLoad[POIService: SELECT POI + Contents WHERE Id=id]
+    POISvcLoad --> CompareVi{oldViText.Trim()\n== newViText.Trim()?}
+    CompareVi -->|Không đổi| UpdateBasic[UPDATE basic fields only\nName, Price, Image, IsActive…\nGiữ nguyên tất cả POIContents]
+    UpdateBasic --> Return200[200 OK — không gọi MyMemory\ntiết kiệm quota dịch]
+    CompareVi -->|Đã đổi| DeleteContents[DELETE POIContents WHERE POIId=id]
+    DeleteContents --> InsertVi[INSERT POIContent vi mới]
+    InsertVi --> Translate[TranslateToAllLanguagesAsync\n6 requests song song → MyMemory]
+    Translate --> TransOK{Dịch thành công?}
+    TransOK -->|Có| InsertAll[INSERT POIContent × 6\nen / ko / zh / ja / th / fr]
+    TransOK -->|Lỗi 1 ngôn ngữ| Partial[INSERT các ngôn ngữ thành công\nbỏ qua ngôn ngữ lỗi]
+    InsertAll --> Return200
+    Partial --> Return200
+    Return200 --> Redirect[Admin: Redirect /POI\nTempData.Success]
+    Redirect --> End([Kết thúc])
+```
+
+---
+
+### D.11 Nghe thuyết minh thủ công (POI Detail)
+
+```mermaid
+flowchart TD
+    Start([User mở POIDetailPage\nchọn 1 POI]) --> LoadPOI[POIDetailViewModel\nSelectedPoi = poi]
+    LoadPOI --> RecordVisit[LocalAnalyticsService\nRecordPOIVisit]
+    RecordVisit --> ShowDetail[Hiển thị tên, mô tả, ảnh\ntheo ngôn ngữ hiện tại]
+    ShowDetail --> TapPlay[User tap Nghe thuyết minh]
+    TapPlay --> PlayCmd[PlayNarrationCommand\nforcePlay = true]
+    PlayCmd --> Cancel[NarrationService.CancelAsync\ndừng TTS đang phát nếu có]
+    Cancel --> ClearQueue[Xóa queue hiện tại]
+    ClearQueue --> GetContent[Lấy nội dung:\nContents lang → vi → Description]
+    GetContent --> HasContent{Có nội dung?}
+    HasContent -->|Không| ShowEmpty[Hiển thị thông báo\nKhông có nội dung thuyết minh]
+    ShowEmpty --> End2([Kết thúc])
+    HasContent -->|Có| HasAudio{Có AudioUrl?}
+    HasAudio -->|Có| PlayAudio[Phát file audio]
+    HasAudio -->|Không| GetVoice[VoicePreferenceService\nGetVoiceGender → Male/Female]
+    GetVoice --> FindVoice[TTS.GetVoicesAsync\nFilter: locale + gender]
+    FindVoice --> SpeakTTS[SpeakAsync text\nSpeechOptions Voice/Pitch/Volume]
+    PlayAudio --> RecordNarr[LocalAnalyticsService\nRecordNarration]
+    SpeakTTS --> RecordNarr
+    RecordNarr --> Done[NarrationCompleted event\nVM cập nhật IsPlaying = false]
+    Done --> End([Kết thúc])
 ```
 
 ---
@@ -1357,6 +1794,7 @@ classDiagram
         +string Email
         +string PasswordHash
         +UserRole Role
+        +AccountApprovalStatus ApprovalStatus
         +string? FullName
         +string? Phone
         +DateTime CreatedAt
@@ -1415,9 +1853,50 @@ classDiagram
         +long PriceMax
     }
 
+    class POIPayment {
+        +int Id
+        +int POIId
+        +int OwnerId
+        +int Priority
+        +long AmountVnd
+        +string TransferRef
+        +PaymentReconciliationStatus Status
+        +DateTime ReportedAtUtc
+        +DateTime? VerifiedAtUtc
+        +int? VerifiedByUserId
+        +string? AdminNote
+    }
+
+    class MobileSubscriptionPayment {
+        +int Id
+        +string DeviceKey
+        +string TransferRef
+        +string PlanCode
+        +string? PlanLabel
+        +int AmountVnd
+        +DateTime? SubscriptionExpiresAtUtc
+        +string? Platform
+        +PaymentReconciliationStatus Status
+        +DateTime ReportedAtUtc
+        +DateTime? VerifiedAtUtc
+        +int? VerifiedByUserId
+        +string? AdminNote
+    }
+
+    class PaymentReconciliationStatus {
+        <<enumeration>>
+        Pending = 0
+        Verified = 1
+        Rejected = 2
+    }
+
     User "1" --> "0..*" POI : owns
     POI "1" --> "0..*" POIContent : has localized content
     POI "1" --> "0..*" VisitLog : records visits
+    POI "1" --> "0..*" POIPayment : payment records
+    User "1" --> "0..*" POIPayment : reports (OwnerId)
+    POIPayment --> PaymentReconciliationStatus : status
+    MobileSubscriptionPayment --> PaymentReconciliationStatus : status
     Tour "1" o-- "0..*" POI : runtime grouping (mobile)
 ```
 
@@ -1430,6 +1909,10 @@ classDiagram
         +Login(LoginRequest): IActionResult
         +Register(RegisterRequest): IActionResult
         +RegisterTourist(TouristRegisterRequest): IActionResult
+        +RegisterShopOwner(ShopOwnerSelfRegisterRequest): IActionResult
+        +GetPendingShopOwners(): IActionResult
+        +ApproveShopOwner(id): IActionResult
+        +RejectShopOwner(id): IActionResult
         +GetCurrentUser(): IActionResult
     }
 
@@ -1454,11 +1937,31 @@ classDiagram
         +GetUserDailyVisits(token, date): IActionResult
     }
 
+    class POIPaymentsController {
+        +Report(ReportPOIPaymentDto): IActionResult
+        +GetByPOI(poiId): IActionResult
+        +List(status, take): IActionResult
+        +Summary(): IActionResult
+        +Verify(id, VerifyDto): IActionResult
+        +Reject(id, VerifyDto): IActionResult
+    }
+
+    class SubscriptionPaymentsController {
+        +Report(ReportSubscriptionPaymentDto): IActionResult
+        +Entitlement(deviceKey): IActionResult
+        +List(status, take): IActionResult
+        +Summary(): IActionResult
+        +Verify(id, VerifyDto): IActionResult
+        +Reject(id, VerifyDto): IActionResult
+    }
+
     class IAuthService {
         <<interface>>
         +LoginAsync(email, password): Task~string~
-        +RegisterAsync(username, email, password, role, fullName, phone): Task~User?~
+        +RegisterAsync(..., approvalStatus?): Task~User?~
         +GetUserByIdAsync(id): Task~User?~
+        +ApproveShopOwnerAsync(userId): Task~bool~
+        +RejectShopOwnerAsync(userId): Task~bool~
     }
 
     class IPOIService {
@@ -1495,11 +1998,15 @@ classDiagram
         +DbSet~POI~ POIs
         +DbSet~POIContent~ POIContents
         +DbSet~VisitLog~ VisitLogs
+        +DbSet~POIPayment~ POIPayments
+        +DbSet~MobileSubscriptionPayment~ MobileSubscriptionPayments
     }
 
     AuthController --> IAuthService : uses
     POIController --> IPOIService : uses
     AnalyticsController --> IAnalyticsService : uses
+    POIPaymentsController --> AppDbContext : reads/writes (AsTracking for updates)
+    SubscriptionPaymentsController --> AppDbContext : reads/writes (AsTracking for updates)
     POIService ..|> IPOIService
     AnalyticsService ..|> IAnalyticsService
     MyMemoryTranslationService ..|> ITranslationService
@@ -1526,14 +2033,18 @@ classDiagram
     class SubscriptionViewModel {
         +SelectedPlan
         +ConfirmPaymentCommand
-        +ActivateAsync()
+        +CheckEntitlementCommand
+        +OnAppearingAsync()
     }
 
     class ISubscriptionService {
         <<interface>>
         +IsActive(): bool
-        +Activate(plan): Task
-        +GetExpiry(): DateTime?
+        +CurrentPlan: SubscriptionPlan?
+        +ExpiryDate: DateTime?
+        +Activate(plan): void
+        +ActivateFromServer(plan, expiresAtUtc): void
+        +Clear(): void
     }
 
     class SubscriptionService
@@ -1610,15 +2121,19 @@ classDiagram
 
     class AuthEndpoints {
         +POST /api/auth/login
-        +POST /api/auth/register
+        +POST /api/auth/register (Admin)
+        +POST /api/auth/register-shop-owner (AllowAnonymous)
+        +GET /api/auth/pending-shop-owners (Admin)
+        +POST /api/auth/approve-shop-owner/{id} (Admin)
+        +POST /api/auth/reject-shop-owner/{id} (Admin)
         +POST /api/auth/register-tourist
         +GET /api/auth/me
     }
 
     class POIEndpoints {
-        +GET /api/poi
+        +GET /api/poi (sort Priority desc)
         +GET /api/poi/{id}
-        +POST /api/poi
+        +POST /api/poi (ShopOwner)
         +PUT /api/poi/{id}
         +DELETE /api/poi/{id}
         +GET /api/poi/my-pois
@@ -1633,15 +2148,37 @@ classDiagram
         +GET /api/analytics/poi/{id}/logs
     }
 
-    Admin --> AuthEndpoints : seed/login/register/me
-    Admin --> POIEndpoints : full CRUD + read
+    class POIPaymentEndpoints {
+        +POST /api/poi-payments/report (ShopOwner)
+        +GET /api/poi-payments/by-poi/{poiId} (ShopOwner+Admin)
+        +GET /api/poi-payments (Admin)
+        +GET /api/poi-payments/summary (Admin)
+        +POST /api/poi-payments/{id}/verify (Admin)
+        +POST /api/poi-payments/{id}/reject (Admin)
+    }
+
+    class SubscriptionPaymentEndpoints {
+        +POST /api/subscription-payments/report (AllowAnonymous)
+        +GET /api/subscription-payments/entitlement (AllowAnonymous)
+        +GET /api/subscription-payments (Admin)
+        +GET /api/subscription-payments/summary (Admin)
+        +POST /api/subscription-payments/{id}/verify (Admin)
+        +POST /api/subscription-payments/{id}/reject (Admin)
+    }
+
+    Admin --> AuthEndpoints : seed/login/register/pending/approve/reject/me
+    Admin --> POIEndpoints : GET/PUT/DELETE + read — POST create chỉ ShopOwner
     Admin --> AnalyticsEndpoints : read + write
+    Admin --> POIPaymentEndpoints : GET list/summary + verify/reject
+    Admin --> SubscriptionPaymentEndpoints : GET list/summary + verify/reject
 
-    ShopOwner --> AuthEndpoints : login/me
-    ShopOwner --> POIEndpoints : read + my-pois (+ owner-scoped edit theo policy)
+    ShopOwner --> AuthEndpoints : login (403 nếu Pending); register-shop-owner khi chưa có tài khoản
+    ShopOwner --> POIEndpoints : POST tạo POI + my-pois + owner-scoped theo policy
     ShopOwner --> AnalyticsEndpoints : owner scope summary
+    ShopOwner --> POIPaymentEndpoints : report + by-poi (own POIs only)
 
-    GuestMobile --> AuthEndpoints : register-tourist/login (optional endpoint)
+    GuestMobile --> AuthEndpoints : register-tourist (optional)
     GuestMobile --> POIEndpoints : GET only
     GuestMobile --> AnalyticsEndpoints : visit write (AllowAnonymous)
+    GuestMobile --> SubscriptionPaymentEndpoints : report + entitlement (AllowAnonymous)
 ```
