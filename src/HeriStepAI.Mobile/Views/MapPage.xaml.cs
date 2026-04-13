@@ -181,7 +181,9 @@ public partial class MapPage : ContentPage
         {
             _mapLoaded = true;
             _lastLoadedTourId = currentTourId;
-            LoadMapAsync();
+            // Phải reload POI từ ViewModel sau khi SelectedTour đã set (vd. vừa Bắt đầu Tour).
+            // Constructor VM chạy LoadPOIsAsync khi chưa có tour → nếu chỉ LoadMapAsync sẽ vẽ map sai và không có banner tour.
+            _ = ReloadForTourAsync();
         }
         else if (currentTourId != _lastLoadedTourId)
         {
@@ -199,6 +201,7 @@ public partial class MapPage : ContentPage
 
     private void OnMapNeedsUpdate(object? sender, EventArgs e)
     {
+        _lastLoadedTourId = _viewModel.CurrentTourId;
         LoadMapAsync();
     }
 
@@ -601,7 +604,10 @@ public partial class MapPage : ContentPage
         // Find nearest POI to highlight (only from valid POIs)
         var validPois = pois.Where(p => p.Latitude != 0 && p.Longitude != 0).ToList();
         var nearestPoiId = currentLocation != null && validPois.Any()
-            ? validPois.OrderBy(p => HaversineDistance(currentLocation.Latitude, currentLocation.Longitude, p.Latitude, p.Longitude)).First().Id
+            ? validPois
+                .OrderBy(p => HaversineDistance(currentLocation.Latitude, currentLocation.Longitude, p.Latitude, p.Longitude))
+                .ThenByDescending(p => p.Priority)
+                .First().Id
             : (int?)null;
 
         // Add POI markers with geofence radius circles

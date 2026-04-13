@@ -18,5 +18,9 @@ public interface ISubscriptionService
     string DeviceKey { get; }
 
     void Activate(SubscriptionPlan plan);
+
+    /// <summary>Kích hoạt theo ngày hết hạn do server gán sau khi Admin duyệt CK.</summary>
+    void ActivateFromServer(SubscriptionPlan plan, DateTime expiresAtUtc);
+
     void Clear();
 }

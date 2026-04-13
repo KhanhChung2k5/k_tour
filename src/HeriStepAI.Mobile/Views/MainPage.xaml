@@ -23,7 +23,7 @@
                         <Label Text="{Binding LblWelcome}"
                                TextColor="{StaticResource TextMuted}"
                                FontSize="12" />
-                        <Label Text="Phố Hồ Thị Kỷ"
+                        <Label Text="{Binding LblDistrictName}"
                                TextColor="{StaticResource TextPrimary}"
                                FontSize="22" FontAttributes="Bold" />
                     </VerticalStackLayout>
@@ -53,7 +53,7 @@
                     <Grid ColumnDefinitions="Auto,*">
                         <Label Text="🔍" FontSize="12" TextColor="{StaticResource TextFaint}"
                                VerticalOptions="Center" Margin="0,0,8,0" />
-                        <Label Grid.Column="1" Text="Tìm quán ăn, món ăn..."
+                        <Label Grid.Column="1" Text="{Binding LblSearchFoodHint}"
                                TextColor="{StaticResource TextFaint}"
                                FontSize="13" VerticalOptions="Center" />
                     </Grid>
@@ -69,9 +69,10 @@
 
                 <!-- TOUR HÔM NAY — Featured card (dark brown) -->
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="TOUR HÔM NAY"
+                    <Label Text="{Binding LblTourTodaySection}"
                            TextColor="{StaticResource TextMuted}"
-                           FontSize="10" CharacterSpacing="1.2" FontAttributes="Bold" />
+                           FontSize="10" CharacterSpacing="1.2" FontAttributes="Bold"
+                           TextTransform="Uppercase" />
 
                     <!-- Featured tour card (binds to FeaturedTour — safe when empty) -->
                     <Border StrokeShape="RoundRectangle 18"
@@ -145,10 +146,10 @@
                                                IsVisible="{Binding IsLoading}"
                                                Color="{StaticResource CreamDark}"
                                                HorizontalOptions="Start" />
-                            <Label Text="Đang tải tour..."
+                            <Label Text="{Binding LblLoadingTours}"
                                    IsVisible="{Binding IsLoading}"
                                    TextColor="{StaticResource TextFaint}" FontSize="13" />
-                            <Label Text="Chưa có tour nào. Nhấn Làm mới để tải."
+                            <Label Text="{Binding LblNoToursYet}"
                                    IsVisible="{Binding IsLoading, Converter={StaticResource InvertBoolConverter}}"
                                    TextColor="{StaticResource TextFaint}" FontSize="13" />
                         </VerticalStackLayout>
@@ -158,11 +159,12 @@
                 <!-- ĐIỂM NỔI BẬT GẦN ĐÂY — horizontal POI cards -->
                 <VerticalStackLayout Spacing="10">
                     <Grid ColumnDefinitions="*,Auto">
-                        <Label Grid.Column="0" Text="ĐIỂM NỔI BẬT GẦN ĐÂY"
+                        <Label Grid.Column="0" Text="{Binding LblFeaturedSpotsSection}"
                                TextColor="{StaticResource TextMuted}"
                                FontSize="10" CharacterSpacing="1.2" FontAttributes="Bold"
-                               VerticalOptions="Center" />
-                        <Label Grid.Column="1" Text="Xem tất cả →"
+                               VerticalOptions="Center"
+                               TextTransform="Uppercase" />
+                        <Label Grid.Column="1" Text="{Binding LblSeeAll}"
                                TextColor="{StaticResource PrimaryLight}"
                                FontSize="12" VerticalOptions="Center" />
                     </Grid>
@@ -227,9 +229,10 @@
 
                 <!-- TOUR GẦN ĐÂY -->
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="TOUR GẦN ĐÂY"
+                    <Label Text="{Binding LblRecentTours}"
                            TextColor="{StaticResource TextMuted}"
-                           FontSize="10" CharacterSpacing="1.2" FontAttributes="Bold" />
+                           FontSize="10" CharacterSpacing="1.2" FontAttributes="Bold"
+                           TextTransform="Uppercase" />
 
                     <CollectionView ItemsSource="{Binding RecentTours}" SelectionMode="None">
                         <CollectionView.ItemTemplate>

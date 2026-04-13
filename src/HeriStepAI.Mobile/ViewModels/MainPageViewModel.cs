@@ -104,10 +104,20 @@ public partial class MainPageViewModel : ObservableObject
             OnPropertyChanged(nameof(LblChooseTour));
             OnPropertyChanged(nameof(LblCreateNewTour));
             OnPropertyChanged(nameof(LblRecentTours));
+            OnPropertyChanged(nameof(LblTourTodaySection));
+            OnPropertyChanged(nameof(LblDistrictName));
+            OnPropertyChanged(nameof(LblSearchFoodHint));
+            OnPropertyChanged(nameof(LblFeaturedSpotsSection));
+            OnPropertyChanged(nameof(LblSeeAll));
+            OnPropertyChanged(nameof(LblLoadingTours));
+            OnPropertyChanged(nameof(LblNoToursYet));
             OnPropertyChanged(nameof(LblSettings));
             OnPropertyChanged(nameof(LblRefresh));
             OnPropertyChanged(nameof(LblLanguageSwitch));
         });
+
+        // Tên tour / phụ đề phút·điểm theo ngôn ngữ hiện tại
+        _ = LoadToursAsync();
     }
 
     public string LblWelcome => _localizationService.GetString("Welcome");
@@ -122,6 +132,13 @@ public partial class MainPageViewModel : ObservableObject
     public string LblChooseTour => _localizationService.GetString("ChooseTour");
     public string LblCreateNewTour => _localizationService.GetString("CreateNewTour");
     public string LblRecentTours => _localizationService.GetString("RecentTours");
+    public string LblTourTodaySection => _localizationService.GetString("TourTodaySection");
+    public string LblDistrictName => _localizationService.GetString("DistrictHoThiKy");
+    public string LblSearchFoodHint => _localizationService.GetString("SearchFoodHint");
+    public string LblFeaturedSpotsSection => _localizationService.GetString("FeaturedSpotsSection");
+    public string LblSeeAll => _localizationService.GetString("SeeAll");
+    public string LblLoadingTours => _localizationService.GetString("LoadingTours");
+    public string LblNoToursYet => _localizationService.GetString("NoToursYet");
     public string LblSettings => _localizationService.GetString("Settings");
     public string LblRefresh => _localizationService.GetString("Refresh");
     private static readonly string[] _langCycle = { "vi", "en", "ko", "zh", "ja", "th", "fr" };

@@ -1,0 +1,127 @@
+@model List<HeriStepAI.Web.Models.SubscriptionPaymentRow>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Thanh toán gói (Mobile)";
+    var summary = ViewBag.Summary as HeriStepAI.Web.Models.SubscriptionPaymentSummary;
+    var filter = ViewBag.FilterStatus as string ?? "";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title-text">Báo thanh toán &amp; đối soát CK</h1>
+        <p class="page-subtitle-text">Khách bấm &quot;Tôi đã thanh toán&quot; trên app → tra mã nội dung CK (HSA…) với sao kê ngân hàng → Xác nhận / Từ chối.</p>
+    </div>
+    <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-light btn-sm">← Dashboard</a>
+</div>
+
+@if (summary != null)
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card amber">
+                <div class="stat-label">Chờ đối soát</div>
+                <div class="stat-number">@summary.Pending</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card green">
+                <div class="stat-label">Đã xác nhận</div>
+                <div class="stat-number">@summary.Verified</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card red">
+                <div class="stat-label">Từ chối</div>
+                <div class="stat-number">@summary.Rejected</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card blue">
+                <div class="stat-label">Báo 7 ngày</div>
+                <div class="stat-number">@summary.ReportsLast7Days</div>
+            </div>
+        </div>
+    </div>
+    <p class="text-muted small mb-3">Tổng tiền các giao dịch đã xác nhận (ước tính): <strong>@summary.TotalAmountVndVerified.ToString("N0")</strong> đ</p>
+}
+
+<div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
+    <span class="text-muted small">Lọc:</span>
+    <a href="@Url.Action("Index", new { status = (string?)null })" class="btn btn-sm @(string.IsNullOrEmpty(filter) ? "btn-primary" : "btn-outline-secondary")">Tất cả</a>
+    <a href="@Url.Action("Index", new { status = "Pending" })" class="btn btn-sm @(filter == "Pending" ? "btn-warning" : "btn-outline-secondary")">Chờ</a>
+    <a href="@Url.Action("Index", new { status = "Verified" })" class="btn btn-sm @(filter == "Verified" ? "btn-success" : "btn-outline-secondary")">Đã duyệt</a>
+    <a href="@Url.Action("Index", new { status = "Rejected" })" class="btn btn-sm @(filter == "Rejected" ? "btn-danger" : "btn-outline-secondary")">Từ chối</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="table-responsive rounded-3 border border-secondary border-opacity-25">
+    <table class="table table-dark table-hover table-sm align-middle mb-0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Thời gian báo (UTC)</th>
+                <th>Device</th>
+                <th>Mã CK</th>
+                <th>Gói</th>
+                <th>Số tiền</th>
+                <th>Trạng thái</th>
+                <th>Hết hạn gói (UTC)</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var row in Model)
+        {
+            <tr>
+                <td>@row.Id</td>
+                <td class="text-nowrap small">@row.ReportedAtUtc.ToString("yyyy-MM-dd HH:mm")</td>
+                <td><code>@row.DeviceKey</code></td>
+                <td><code class="user-select-all">@row.TransferRef</code></td>
+                <td>@row.PlanLabel (@row.PlanCode)</td>
+                <td>@row.AmountVnd.ToString("N0") đ</td>
+                <td>
+                    @if (row.Status == "Pending")
+                    { <span class="badge bg-warning text-dark">Chờ</span> }
+                    else if (row.Status == "Verified")
+                    { <span class="badge bg-success">OK</span> }
+                    else
+                    { <span class="badge bg-secondary">@row.Status</span> }
+                </td>
+                <td class="small">@(row.SubscriptionExpiresAtUtc?.ToString("yyyy-MM-dd HH:mm") ?? "—")</td>
+                <td class="text-nowrap">
+                    @if (row.Status == "Pending")
+                    {
+                        <form asp-action="Verify" method="post" class="d-inline" onsubmit="return confirm('Xác nhận đã thấy tiền trên sao kê?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@row.Id" />
+                            <input type="hidden" name="note" value="" />
+                            <button type="submit" class="btn btn-success btn-sm py-0">Xác nhận</button>
+                        </form>
+                        <form asp-action="Reject" method="post" class="d-inline ms-1" onsubmit="return confirm('Từ chối / không khớp?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@row.Id" />
+                            <button type="submit" class="btn btn-outline-danger btn-sm py-0">Từ chối</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <span class="text-muted small">@(row.AdminNote ?? "—")</span>
+                    }
+                </td>
+            </tr>
+        }
+        @if (!Model.Any())
+        {
+            <tr><td colspan="9" class="text-center text-muted py-4">Chưa có báo thanh toán nào.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

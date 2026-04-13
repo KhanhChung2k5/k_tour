@@ -750,10 +750,22 @@
                 <span>Dashboard</span>
             </a>
 
-            <a href="@Url.Action("Index", "Approvals")"
-               class="sidebar-item @(ctrl == "Approvals" ? "active" : "")">
-                <i class="bi bi-person-check"></i>
-                <span>Duyệt chủ quán</span>
+            <a href="@Url.Action("Index", "ShopOwners")"
+               class="sidebar-item @(ctrl == "ShopOwners" ? "active" : "")">
+                <i class="bi bi-people-fill"></i>
+                <span>Quản lý chủ quán</span>
+            </a>
+
+            <a href="@Url.Action("Index", "SubscriptionPayments")"
+               class="sidebar-item @(ctrl == "SubscriptionPayments" ? "active" : "")">
+                <i class="bi bi-credit-card-2-front"></i>
+                <span>Thanh toán gói (CK)</span>
+            </a>
+
+            <a href="@Url.Action("Index", "POIPayments")"
+               class="sidebar-item @(ctrl == "POIPayments" ? "active" : "")">
+                <i class="bi bi-shop-window"></i>
+                <span>Thanh toán kích hoạt POI</span>
             </a>
 
             <a href="@Url.Action("Index", "POI")"

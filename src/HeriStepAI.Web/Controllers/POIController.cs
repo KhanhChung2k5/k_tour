@@ -24,7 +24,8 @@ public class POIController : Controller
     public async Task<IActionResult> Index()
     {
         var pois = await _context.POIs
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.Priority)
+            .ThenByDescending(p => p.CreatedAt)
             .Select(p => new POIViewModel
             {
                 Id = p.Id,

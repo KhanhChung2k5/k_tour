@@ -1,0 +1,145 @@
+@using HeriStepAI.API.Models
+@{
+    Layout = "_ShopOwnerLayout";
+    ViewData["Title"] = "Thanh toán kích hoạt POI";
+    var poi = ViewBag.POI as POI;
+    var payment = ViewBag.Payment as POIPayment;
+    var amount = (long)ViewBag.Amount;
+    var priorityLabel = ViewBag.PriorityLabel as string;
+    var reported = TempData["PaymentReported"] as string == "true";
+
+    // Thông tin ngân hàng — đồng bộ với SubscriptionViewModel.cs (QR URL cần mã BIN ICB)
+    string bankId = "ICB";
+    string bankDisplayName = "Vietinbank";
+    string accountNo = "104879400502";
+    string accountName = "CHUNG HOANG CONG KHANH";
+    string transferRef = payment?.TransferRef ?? $"POIPAY-{poi?.Id}";
+    string qrUrl = $"https://img.vietqr.io/image/{bankId}-{accountNo}-compact2.png?amount={amount}&addInfo={Uri.EscapeDataString(transferRef)}&accountName={Uri.EscapeDataString(accountName)}";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item active">Thanh toán kích hoạt</li>
+    </ol>
+</nav>
+
+@if (reported)
+{
+    <div class="alert alert-success mb-4">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        Đã ghi nhận báo thanh toán! Admin sẽ đối soát và kích hoạt POI trong thời gian sớm nhất.
+    </div>
+}
+
+@if (payment?.Status == PaymentReconciliationStatus.Verified)
+{
+    <div class="alert alert-success mb-4">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        Thanh toán đã được xác nhận! POI của bạn đang hoạt động.
+        <a asp-action="Dashboard" class="alert-link ms-2">Về Dashboard →</a>
+    </div>
+}
+else if (payment?.Status == PaymentReconciliationStatus.Rejected)
+{
+    <div class="alert alert-danger mb-4">
+        <i class="bi bi-x-circle-fill me-2"></i>
+        Thanh toán bị từ chối@(payment.AdminNote != null ? $": {payment.AdminNote}" : ""). Vui lòng liên hệ Admin.
+    </div>
+}
+
+<div class="row g-4 justify-content-center">
+    <div class="col-lg-6">
+        <!-- Thông tin POI -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-geo-alt-fill me-2" style="color:var(--accent);"></i>Địa điểm vừa tạo
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3">
+                    @if (!string.IsNullOrEmpty(poi?.ImageUrl))
+                    {
+                        <img src="@poi.ImageUrl" style="width:64px;height:64px;object-fit:cover;border-radius:10px;" />
+                    }
+                    <div>
+                        <div style="font-weight:600;font-size:1.05rem;">@poi?.Name</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);">@poi?.Address</div>
+                        <span class="badge mt-1" style="background:var(--accent-dim);color:var(--accent);font-size:0.75rem;">
+                            Ưu tiên: @priorityLabel
+                        </span>
+                    </div>
+                </div>
+                <div class="mt-3 p-3 rounded" style="background:var(--input-bg);border:1px solid var(--border);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span style="color:var(--text-muted);font-size:0.875rem;">Phí kích hoạt</span>
+                        <span style="font-size:1.25rem;font-weight:700;color:var(--accent);">@amount.ToString("N0") đ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thanh toán QR -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-qr-code me-2" style="color:var(--blue);"></i>Thanh toán chuyển khoản
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <img src="@qrUrl" alt="VietQR" style="width:220px;height:220px;border-radius:12px;border:2px solid var(--border);" />
+                </div>
+                <div class="text-start p-3 rounded mb-3" style="background:var(--input-bg);border:1px solid var(--border);font-size:0.875rem;">
+                    <div class="row mb-2">
+                        <div class="col-5" style="color:var(--text-muted);">Ngân hàng</div>
+                        <div class="col-7 fw-600">@bankDisplayName</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5" style="color:var(--text-muted);">Số tài khoản</div>
+                        <div class="col-7 fw-600">@accountNo</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5" style="color:var(--text-muted);">Chủ tài khoản</div>
+                        <div class="col-7 fw-600">@accountName</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-5" style="color:var(--text-muted);">Số tiền</div>
+                        <div class="col-7 fw-600" style="color:var(--accent);">@amount.ToString("N0") đ</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-5" style="color:var(--text-muted);">Nội dung CK</div>
+                        <div class="col-7">
+                            <code style="background:var(--dark3);padding:2px 8px;border-radius:6px;color:var(--accent);font-size:0.9rem;user-select:all;">@transferRef</code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert" style="background:rgba(232,161,75,0.08);border:1px solid var(--border);color:var(--cream-muted);font-size:0.8rem;text-align:left;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Vui lòng nhập <strong>đúng nội dung chuyển khoản</strong> để Admin có thể đối soát nhanh chóng.
+                    Sau khi chuyển khoản, nhấn nút bên dưới để thông báo.
+                </div>
+
+                @if (payment == null || payment.Status == PaymentReconciliationStatus.Rejected)
+                {
+                    <form asp-action="ReportPayment" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="poiId" value="@poi?.Id" />
+                        <button type="submit" class="btn-save w-100 mt-2">
+                            <i class="bi bi-send-check me-2"></i>Tôi đã chuyển khoản
+                        </button>
+                    </form>
+                }
+                else if (payment.Status == PaymentReconciliationStatus.Pending)
+                {
+                    <div class="mt-2 p-3 rounded text-center" style="background:rgba(91,138,240,0.1);border:1px solid rgba(91,138,240,0.2);">
+                        <i class="bi bi-hourglass-split me-2" style="color:var(--blue);"></i>
+                        <span style="color:var(--blue);font-size:0.875rem;">Đang chờ Admin đối soát...</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a asp-action="Dashboard" class="btn-back w-100 text-center d-block">Về Dashboard</a>
+        </div>
+    </div>
+</div>

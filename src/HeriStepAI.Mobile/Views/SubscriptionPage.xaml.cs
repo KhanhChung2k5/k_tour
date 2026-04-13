@@ -13,6 +13,12 @@ public partial class SubscriptionPage : ContentPage
         BindingContext = viewModel;
     }
 
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        await _viewModel.OnAppearingAsync();
+    }
+
     private async void OnCopyRefTapped(object sender, TappedEventArgs e)
     {
         var text = _viewModel.TransferRef;

@@ -14,9 +14,18 @@
         <h1 class="page-title-text">Dashboard</h1>
         <p class="page-subtitle-text">Tổng quan hệ thống HeriStepAI — @DateTime.Now.ToString("dd/MM/yyyy")</p>
     </div>
-    <a href="@Url.Action("Index", "Approvals")" class="btn btn-primary btn-sm">
-        <i class="bi bi-person-check"></i>Duyệt đăng ký chủ quán
-    </a>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="@Url.Action("Index", "Approvals")" class="btn btn-primary btn-sm">
+            <i class="bi bi-person-check"></i>Duyệt đăng ký chủ quán
+        </a>
+        <a href="@Url.Action("Index", "SubscriptionPayments")" class="btn btn-outline-warning btn-sm">
+            <i class="bi bi-credit-card-2-front"></i>Thanh toán CK
+            @if ((int)(ViewBag.SubPayPending ?? 0) > 0)
+            {
+                <span class="badge bg-danger ms-1">@(ViewBag.SubPayPending)</span>
+            }
+        </a>
+    </div>
 </div>
 
 <!-- Stat Cards -->

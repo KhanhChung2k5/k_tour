@@ -41,14 +41,14 @@
                             BackgroundColor="{StaticResource Secondary}"
                             StrokeShape="RoundRectangle 8"
                             Stroke="Transparent" Padding="9,4">
-                        <Label Text="Đang mở" TextColor="{StaticResource White}"
+                        <Label Text="{Binding LblOpenStatus}" TextColor="{StaticResource White}"
                                FontSize="10" FontAttributes="Bold" />
                     </Border>
                 </Grid>
 
                 <!-- POI name + category -->
                 <VerticalStackLayout Grid.Row="2" Spacing="5">
-                    <Label Text="{Binding SelectedPoi.CategoryText}"
+                    <Label Text="{Binding PoiCategoryDisplay}"
                            TextColor="{StaticResource CreamDark}"
                            FontSize="10" CharacterSpacing="1.0"
                            FontAttributes="Bold" TextTransform="Uppercase" />
@@ -61,7 +61,7 @@
                         <Label Text="⭐" FontSize="12" TextColor="{StaticResource Accent}" />
                         <Label Text="{Binding SelectedPoi.RatingText}"
                                FontSize="12" FontAttributes="Bold" TextColor="{StaticResource White}" />
-                        <Label Text="{Binding SelectedPoi.ReviewCount, StringFormat='({0} đánh giá)'}"
+                        <Label Text="{Binding ReviewCountText}"
                                FontSize="12" TextColor="{StaticResource CreamDark}" />
                     </HorizontalStackLayout>
                 </VerticalStackLayout>
@@ -77,13 +77,13 @@
                     <Border BackgroundColor="{StaticResource WarmCream}"
                             Stroke="{StaticResource WarmBorder}"
                             StrokeShape="RoundRectangle 8" Padding="10,5">
-                        <Label Text="{Binding SelectedPoi.EstimatedTimeText}"
+                        <Label Text="{Binding PoiEstimatedTimeDisplay}"
                                FontSize="11" TextColor="{StaticResource TextSecondary}" />
                     </Border>
                     <Border BackgroundColor="{StaticResource WarmCream}"
                             Stroke="{StaticResource WarmBorder}"
                             StrokeShape="RoundRectangle 8" Padding="10,5">
-                        <Label Text="{Binding SelectedPoi.FoodTypeText}"
+                        <Label Text="{Binding PoiFoodTypeDisplay}"
                                FontSize="11" TextColor="{StaticResource TextSecondary}" />
                     </Border>
                     <Border BackgroundColor="{StaticResource WarmCream}"
@@ -103,7 +103,7 @@
                         <!-- Label row -->
                         <Grid ColumnDefinitions="*,Auto">
                             <VerticalStackLayout Grid.Column="0" Spacing="2">
-                                <Label Text="AI THUYẾT MINH"
+                                <Label Text="{Binding LblAiNarrationTitle}"
                                        TextColor="{StaticResource CreamDark}"
                                        FontSize="9" CharacterSpacing="1.2"
                                        FontAttributes="Bold" />
@@ -119,7 +119,7 @@
                                     StrokeShape="RoundRectangle 8"
                                     Padding="9,5"
                                     VerticalOptions="Start">
-                                <Label Text="🌐 VI" TextColor="{StaticResource CreamDark}"
+                                <Label Text="{Binding LangBadge}" TextColor="{StaticResource CreamDark}"
                                        FontSize="10" FontAttributes="Bold" />
                             </Border>
                         </Grid>
@@ -189,8 +189,9 @@
                                    HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
-                            <Label Text="ĐỊA CHỈ" TextColor="{StaticResource TextMuted}"
-                                   FontSize="9" CharacterSpacing="1.0" FontAttributes="Bold" />
+                            <Label Text="{Binding LblAddress}" TextColor="{StaticResource TextMuted}"
+                                   FontSize="9" CharacterSpacing="1.0" FontAttributes="Bold"
+                                   TextTransform="Uppercase" />
                             <Label Text="{Binding SelectedPoi.Address}"
                                    TextColor="{StaticResource TextPrimary}"
                                    FontSize="13" LineBreakMode="WordWrap" />
@@ -206,10 +207,11 @@
                             StrokeShape="RoundRectangle 14" Padding="14">
                         <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                             <Label Text="🍽️" FontSize="22" HorizontalOptions="Center" />
-                            <Label Text="LOẠI MÓN" TextColor="{StaticResource TextFaint}"
+                            <Label Text="{Binding LblFoodType}" TextColor="{StaticResource TextFaint}"
                                    FontSize="9" CharacterSpacing="0.8"
-                                   HorizontalOptions="Center" FontAttributes="Bold" />
-                            <Label Text="{Binding SelectedPoi.FoodTypeText}"
+                                   HorizontalOptions="Center" FontAttributes="Bold"
+                                   TextTransform="Uppercase" />
+                            <Label Text="{Binding PoiFoodTypeDisplay}"
                                    TextColor="{StaticResource TextPrimary}"
                                    FontSize="12" FontAttributes="Bold"
                                    HorizontalOptions="Center"
@@ -222,9 +224,10 @@
                             StrokeShape="RoundRectangle 14" Padding="14">
                         <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                             <Label Text="💰" FontSize="22" HorizontalOptions="Center" />
-                            <Label Text="GIÁ" TextColor="{StaticResource TextFaint}"
+                            <Label Text="{Binding LblPrice}" TextColor="{StaticResource TextFaint}"
                                    FontSize="9" CharacterSpacing="0.8"
-                                   HorizontalOptions="Center" FontAttributes="Bold" />
+                                   HorizontalOptions="Center" FontAttributes="Bold"
+                                   TextTransform="Uppercase" />
                             <Label Text="{Binding SelectedPoi.PriceRangeText}"
                                    TextColor="{StaticResource Secondary}"
                                    FontSize="12" FontAttributes="Bold"
@@ -248,9 +251,10 @@
                                    HorizontalOptions="Center" VerticalOptions="Center" />
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
-                            <Label Text="THỜI GIAN THAM QUAN" TextColor="{StaticResource TextMuted}"
-                                   FontSize="9" CharacterSpacing="1.0" FontAttributes="Bold" />
-                            <Label Text="{Binding SelectedPoi.EstimatedTimeText}"
+                            <Label Text="{Binding LblVisitTime}" TextColor="{StaticResource TextMuted}"
+                                   FontSize="9" CharacterSpacing="1.0" FontAttributes="Bold"
+                                   TextTransform="Uppercase" />
+                            <Label Text="{Binding PoiEstimatedTimeDisplay}"
                                    TextColor="{StaticResource TextPrimary}" FontSize="13" />
                         </VerticalStackLayout>
                     </Grid>
@@ -261,8 +265,9 @@
                         Stroke="{StaticResource WarmBorder}" StrokeThickness="0.5"
                         StrokeShape="RoundRectangle 14" Padding="14">
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="GIỚI THIỆU" TextColor="{StaticResource TextMuted}"
-                               FontSize="9" CharacterSpacing="1.0" FontAttributes="Bold" />
+                        <Label Text="{Binding LblIntro}" TextColor="{StaticResource TextMuted}"
+                               FontSize="9" CharacterSpacing="1.0" FontAttributes="Bold"
+                               TextTransform="Uppercase" />
                         <Label Text="{Binding LocalizedDescription}"
                                TextColor="{StaticResource TextSecondary}"
                                FontSize="13" LineBreakMode="WordWrap" LineHeight="1.5" />

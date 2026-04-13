@@ -164,8 +164,8 @@ public class TourGeneratorService : ITourGeneratorService
             budgetTours.Add(new Tour
             {
                 Id = 201,
-                Name = "🍽️ Ăn vừa túi tiền",
-                Description = "Các nhà hàng tầm trung, giá 50k-150k",
+                Name = $"🍽️ {_loc.GetString("TourMidRangeName")}",
+                Description = _loc.GetString("TourMidRangeDesc"),
                 ImageUrl = midRangePOIs.FirstOrDefault()?.ImageUrl,
                 POIs = midRangePOIs,
                 POICount = midRangePOIs.Count,
@@ -191,8 +191,8 @@ public class TourGeneratorService : ITourGeneratorService
             budgetTours.Add(new Tour
             {
                 Id = 202,
-                Name = "👑 Nhà hàng cao cấp",
-                Description = "Trải nghiệm ẩm thực sang trọng, giá trên 150k",
+                Name = $"👑 {_loc.GetString("TourPremiumName")}",
+                Description = _loc.GetString("TourPremiumDesc"),
                 ImageUrl = premiumPOIs.FirstOrDefault()?.ImageUrl,
                 POIs = premiumPOIs,
                 POICount = premiumPOIs.Count,
@@ -212,23 +212,23 @@ public class TourGeneratorService : ITourGeneratorService
 
     private string GetFoodTypeName(FoodType foodType) => foodType switch
     {
-        FoodType.Seafood => "🦞 Tour Hải sản",
-        FoodType.Vegetarian => "🥗 Tour Món chay",
-        FoodType.Vietnamese => "🇻🇳 Tour Đặc sản Việt",
-        FoodType.StreetFood => "🍜 Tour Ẩm thực đường phố",
-        FoodType.BBQ => "🔥 Tour Đồ nướng",
-        FoodType.Noodles => "🍝 Tour Bún Phở Mì",
-        _ => "🍴 Tour Ẩm thực"
+        FoodType.Seafood => $"🦞 {_loc.GetString("TourGen_SeafoodName")}",
+        FoodType.Vegetarian => $"🥗 {_loc.GetString("TourGen_VegetarianName")}",
+        FoodType.Vietnamese => $"🇻🇳 {_loc.GetString("TourGen_VietnameseName")}",
+        FoodType.StreetFood => $"🍜 {_loc.GetString("TourGen_StreetName")}",
+        FoodType.BBQ => $"🔥 {_loc.GetString("TourGen_BBQName")}",
+        FoodType.Noodles => $"🍝 {_loc.GetString("TourGen_NoodlesName")}",
+        _ => $"🍴 {_loc.GetString("TourGen_DefaultName")}"
     };
 
     private string GetFoodTypeDescription(FoodType foodType) => foodType switch
     {
-        FoodType.Seafood => "Khám phá hương vị biển cả với các món hải sản tươi ngon",
-        FoodType.Vegetarian => "Thưởng thức ẩm thực chay thanh đạm, tốt cho sức khỏe",
-        FoodType.Vietnamese => "Trải nghiệm đặc sản Việt Nam đậm đà bản sắc",
-        FoodType.StreetFood => "Khám phá ẩm thực đường phố đầy hấp dẫn",
-        FoodType.BBQ => "Thưởng thức các món nướng thơm ngon, hấp dẫn",
-        FoodType.Noodles => "Khám phá thế giới bún, phở, mì đa dạng",
-        _ => "Khám phá ẩm thực đa dạng và phong phú"
+        FoodType.Seafood => _loc.GetString("TourGen_SeafoodDesc"),
+        FoodType.Vegetarian => _loc.GetString("TourGen_VegetarianDesc"),
+        FoodType.Vietnamese => _loc.GetString("TourGen_VietnameseDesc"),
+        FoodType.StreetFood => _loc.GetString("TourGen_StreetDesc"),
+        FoodType.BBQ => _loc.GetString("TourGen_BBQDesc"),
+        FoodType.Noodles => _loc.GetString("TourGen_NoodlesDesc"),
+        _ => _loc.GetString("TourGen_DefaultDesc")
     };
 }

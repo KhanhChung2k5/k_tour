@@ -125,4 +125,81 @@ public class ApiService : IApiService
             AppLog.Error($"LogVisit error: {ex.Message}");
         }
     }
+
+    public async Task<bool> ReportSubscriptionPaymentAsync(SubscriptionPaymentReport report)
+    {
+        var previousAuth = _httpClient.DefaultRequestHeaders.Authorization;
+        try
+        {
+            // Endpoint AllowAnonymous — không gửi Bearer (tránh 401 nếu token hết hạn)
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+
+            var payload = new
+            {
+                report.DeviceKey,
+                report.TransferRef,
+                report.PlanCode,
+                report.PlanLabel,
+                report.AmountVnd,
+                report.SubscriptionExpiresAtUtc,
+                report.Platform
+            };
+            var json = JsonConvert.SerializeObject(payload, new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore,
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("subscription-payments/report", content);
+            var body = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                AppLog.Info($"ReportSubscriptionPayment OK: {body}");
+                return true;
+            }
+
+            AppLog.Error($"ReportSubscriptionPayment {response.StatusCode}: {body}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error($"ReportSubscriptionPayment error: {ex.Message}");
+            return false;
+        }
+        finally
+        {
+            _httpClient.DefaultRequestHeaders.Authorization = previousAuth;
+        }
+    }
+
+    public async Task<SubscriptionEntitlementDto?> GetSubscriptionEntitlementAsync(string deviceKey)
+    {
+        var previousAuth = _httpClient.DefaultRequestHeaders.Authorization;
+        try
+        {
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+            var url = $"subscription-payments/entitlement?deviceKey={Uri.EscapeDataString(deviceKey)}";
+            var response = await _httpClient.GetAsync(url);
+            var body = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                AppLog.Error($"GetSubscriptionEntitlement {response.StatusCode}: {body}");
+                return null;
+            }
+
+            return JsonConvert.DeserializeObject<SubscriptionEntitlementDto>(body, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error($"GetSubscriptionEntitlement error: {ex.Message}");
+            return null;
+        }
+        finally
+        {
+            _httpClient.DefaultRequestHeaders.Authorization = previousAuth;
+        }
+    }
 }

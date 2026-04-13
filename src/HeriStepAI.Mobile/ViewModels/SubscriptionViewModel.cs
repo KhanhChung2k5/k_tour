@@ -1,6 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HeriStepAI.Mobile.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Maui.Devices;
 
 namespace HeriStepAI.Mobile.ViewModels;
 
@@ -23,6 +25,7 @@ public partial class SubscriptionViewModel : ObservableObject
 
     private readonly ISubscriptionService _subscription;
     private readonly ILocalizationService _localizationService;
+    private readonly IApiService _apiService;
 
     private static readonly string[] _langCycle = { "vi", "en", "ko", "zh", "ja", "th", "fr" };
     private static readonly Dictionary<string, string> _langLabels = new()
@@ -54,7 +57,18 @@ public partial class SubscriptionViewModel : ObservableObject
     private bool isPaying;      // QR panel visible
 
     [ObservableProperty]
-    private bool isConfirming;  // spinner while "activating"
+    [NotifyPropertyChangedFor(nameof(IsInteractionEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsSubscriptionBusy))]
+    private bool isConfirming;  // spinner while reporting
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsInteractionEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsSubscriptionBusy))]
+    private bool isCheckingEntitlement;
+
+    public bool IsInteractionEnabled => !IsConfirming && !IsCheckingEntitlement;
+
+    public bool IsSubscriptionBusy => IsConfirming || IsCheckingEntitlement;
 
     public bool HasSelectedPlan => SelectedPlan is not null;
 
@@ -140,6 +154,7 @@ public partial class SubscriptionViewModel : ObservableObject
     public string LblWarning       => T("SubWarning");
     public string LblConfirmBtn    => T("SubConfirmBtn");
     public string LblConfirmNote   => T("SubConfirmNote");
+    public string LblCheckEntitlementBtn => T("SubCheckEntitlementBtn");
 
     private void RefreshTranslations()
     {
@@ -178,13 +193,15 @@ public partial class SubscriptionViewModel : ObservableObject
             OnPropertyChanged(nameof(LblWarning));
             OnPropertyChanged(nameof(LblConfirmBtn));
             OnPropertyChanged(nameof(LblConfirmNote));
+            OnPropertyChanged(nameof(LblCheckEntitlementBtn));
         });
     }
 
-    public SubscriptionViewModel(ISubscriptionService subscription, ILocalizationService localizationService)
+    public SubscriptionViewModel(ISubscriptionService subscription, ILocalizationService localizationService, IApiService apiService)
     {
         _subscription = subscription;
         _localizationService = localizationService;
+        _apiService = apiService;
         currentLangLabel = _langLabels.GetValueOrDefault(_localizationService.CurrentLanguage, "🇻🇳 VI");
         _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
     }
@@ -216,9 +233,7 @@ public partial class SubscriptionViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Called when user taps "Tôi đã thanh toán".
-    /// In a production app this would verify via API; here we activate locally.
-    /// The unique TransferRef lets the admin correlate the bank transfer to this device.
+    /// Báo đã CK lên server; quyền vào app chỉ khi Admin xác nhận (đồng bộ qua entitlement).
     /// </summary>
     [RelayCommand]
     private async Task ConfirmPayment()
@@ -226,12 +241,99 @@ public partial class SubscriptionViewModel : ObservableObject
         if (SelectedPlan is null) return;
 
         IsConfirming = true;
-        await Task.Delay(1500); // simulate brief processing
+        try
+        {
+            var reported = await _apiService.ReportSubscriptionPaymentAsync(new SubscriptionPaymentReport
+            {
+                DeviceKey = _subscription.DeviceKey,
+                TransferRef = TransferRef,
+                PlanCode = SelectedPlan.PlanCode.ToString(),
+                PlanLabel = SelectedPlan.Label,
+                AmountVnd = SelectedPlan.Amount,
+                SubscriptionExpiresAtUtc = null,
+                Platform = DeviceInfo.Current.Platform.ToString()
+            });
 
-        _subscription.Activate(SelectedPlan.Plan);
-        IsConfirming = false;
+            if (!reported)
+            {
+                await AlertAsync(T("SubReportFailTitle"), T("SubReportFailMsg"));
+                return;
+            }
 
-        // Navigate to main shell
-        Application.Current!.MainPage = App.Services!.GetRequiredService<AppShell>();
+            await AlertAsync(T("SubReportSentTitle"), T("SubReportSentMsg"));
+            await TryEnterAppIfEntitledAsync();
+        }
+        finally
+        {
+            IsConfirming = false;
+        }
+    }
+
+    /// <summary>Kiểm tra server — dùng sau khi Admin đã duyệt hoặc khi quay lại màn hình.</summary>
+    [RelayCommand]
+    private async Task CheckEntitlement()
+    {
+        IsCheckingEntitlement = true;
+        try
+        {
+            var entered = await TryEnterAppIfEntitledAsync();
+            if (!entered)
+                await AlertAsync(T("SubNotApprovedTitle"), T("SubNotApprovedMsg"));
+        }
+        finally
+        {
+            IsCheckingEntitlement = false;
+        }
+    }
+
+    /// <summary>Gọi từ OnAppearing: nếu đã có gói hợp lệ trên server thì vào app (không hiện popup).</summary>
+    public async Task OnAppearingAsync()
+    {
+        if (_subscription.IsActive)
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+                Application.Current!.MainPage = App.Services!.GetRequiredService<AppShell>());
+            return;
+        }
+
+        await TryEnterAppIfEntitledAsync();
+    }
+
+    private static bool TryMapPlanCode(string? code, out SubscriptionPlan plan)
+    {
+        plan = SubscriptionPlan.Monthly;
+        switch (code?.Trim().ToUpperInvariant())
+        {
+            case "D": plan = SubscriptionPlan.Daily; return true;
+            case "W": plan = SubscriptionPlan.Weekly; return true;
+            case "M": plan = SubscriptionPlan.Monthly; return true;
+            case "Y": plan = SubscriptionPlan.Yearly; return true;
+            default: return false;
+        }
+    }
+
+    /// <returns>true nếu đã chuyển sang AppShell.</returns>
+    private async Task<bool> TryEnterAppIfEntitledAsync()
+    {
+        var ent = await _apiService.GetSubscriptionEntitlementAsync(_subscription.DeviceKey);
+        if (ent is null || !string.Equals(ent.Status, "active", StringComparison.OrdinalIgnoreCase)
+            || ent.ExpiresAtUtc is not DateTime exp)
+            return false;
+
+        if (!TryMapPlanCode(ent.PlanCode, out var plan))
+            plan = SubscriptionPlan.Monthly;
+
+        _subscription.ActivateFromServer(plan, exp);
+
+        MainThread.BeginInvokeOnMainThread(() =>
+            Application.Current!.MainPage = App.Services!.GetRequiredService<AppShell>());
+        return true;
+    }
+
+    private static Task AlertAsync(string title, string message)
+    {
+        var page = Application.Current?.MainPage;
+        if (page is null) return Task.CompletedTask;
+        return page.DisplayAlert(title, message, "OK");
     }
 }

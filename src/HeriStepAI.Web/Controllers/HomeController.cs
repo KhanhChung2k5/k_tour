@@ -45,12 +45,28 @@ public class HomeController : Controller
             var topPoisTask = client.GetAsync("analytics/top-pois?count=10");
             var poisClient = CreateAuthenticatedClient();
             var poisTask = poisClient.GetAsync("poi");
+            var subPayTask = client.GetAsync("subscription-payments/summary");
 
-            await Task.WhenAll(summaryTask, topPoisTask, poisTask);
+            await Task.WhenAll(summaryTask, topPoisTask, poisTask, subPayTask);
 
             var summaryResponse = summaryTask.Result;
             var topPoisResponse = topPoisTask.Result;
             var poisResponse = poisTask.Result;
+            var subPayResponse = subPayTask.Result;
+
+            if (subPayResponse.IsSuccessStatusCode)
+            {
+                var subJson = await subPayResponse.Content.ReadAsStringAsync();
+                using var subDoc = JsonDocument.Parse(subJson);
+                var sr = subDoc.RootElement;
+                ViewBag.SubPayPending = sr.TryGetProperty("pending", out var p) ? p.GetInt32() : 0;
+                ViewBag.SubPayVerified = sr.TryGetProperty("verified", out var v) ? v.GetInt32() : 0;
+            }
+            else
+            {
+                ViewBag.SubPayPending = 0;
+                ViewBag.SubPayVerified = 0;
+            }
 
             if (summaryResponse.IsSuccessStatusCode)
             {
@@ -113,6 +129,8 @@ public class HomeController : Controller
             ViewBag.TotalPOIs = 0;
             ViewBag.ActivePOIs = 0;
             ViewBag.POINames = new Dictionary<string, string>();
+            ViewBag.SubPayPending = 0;
+            ViewBag.SubPayVerified = 0;
         }
 
         return View();

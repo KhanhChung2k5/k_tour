@@ -26,22 +26,27 @@ public class GeofenceService : IGeofenceService
         if (_pois == null || !_pois.Any())
             return null;
 
-        // Find the CLOSEST POI within its effective radius.
-        // This prevents overlapping geofences from blocking each other:
-        // when 2 POIs overlap, the one nearest to the user always wins.
-        POI? closestPOI = null;
-        double closestDistance = double.MaxValue;
-
+        // Trong vùng geofence: ưu tiên Priority (cao nhất = 3), sau đó mới tới khoảng cách (gần nhất).
+        // Trùng vùng nhiều POI → POI có Priority cao hơn được thuyết minh trước; cùng Priority → gần hơn thắng.
+        var candidates = new List<(POI Poi, double DistanceMeters)>();
         foreach (var poi in _pois)
         {
             var effectiveRadius = Math.Max(poi.Radius, MinRadius);
             var distance = CalculateDistance(location.Latitude, location.Longitude, poi.Latitude, poi.Longitude);
+            if (distance <= effectiveRadius)
+                candidates.Add((poi, distance));
+        }
 
-            if (distance <= effectiveRadius && distance < closestDistance)
-            {
-                closestPOI = poi;
-                closestDistance = distance;
-            }
+        POI? closestPOI = null;
+        double closestDistance = 0;
+        if (candidates.Count > 0)
+        {
+            var best = candidates
+                .OrderByDescending(x => x.Poi.Priority)
+                .ThenBy(x => x.DistanceMeters)
+                .First();
+            closestPOI = best.Poi;
+            closestDistance = best.DistanceMeters;
         }
 
         if (closestPOI != null)

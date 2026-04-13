@@ -15,6 +15,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<POIContent> POIContents { get; set; }
     public DbSet<VisitLog> VisitLogs { get; set; }
     public DbSet<Analytics> Analytics { get; set; }
+    public DbSet<MobileSubscriptionPayment> MobileSubscriptionPayments { get; set; }
+    public DbSet<POIPayment> POIPayments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -60,6 +62,30 @@ public class ApplicationDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(e => e.POId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<MobileSubscriptionPayment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.TransferRef);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.ReportedAtUtc);
+        });
+
+        modelBuilder.Entity<POIPayment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.TransferRef).IsUnique();
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.POIId);
+            entity.HasOne(e => e.POI)
+                  .WithMany()
+                  .HasForeignKey(e => e.POIId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Owner)
+                  .WithMany()
+                  .HasForeignKey(e => e.OwnerId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

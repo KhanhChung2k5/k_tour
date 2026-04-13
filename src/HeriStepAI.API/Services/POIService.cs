@@ -22,6 +22,8 @@ public class POIService : IPOIService
         return await _context.POIs
             .Include(p => p.Contents)
             .Where(p => p.IsActive)
+            .OrderByDescending(p => p.Priority)
+            .ThenBy(p => p.Id)
             .ToListAsync();
     }
 
@@ -166,6 +168,8 @@ public class POIService : IPOIService
         return await _context.POIs
             .Include(p => p.Contents)
             .Where(p => p.OwnerId == ownerId && p.IsActive)
+            .OrderByDescending(p => p.Priority)
+            .ThenByDescending(p => p.CreatedAt)
             .ToListAsync();
     }
 

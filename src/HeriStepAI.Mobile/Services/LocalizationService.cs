@@ -66,6 +66,8 @@ public class LocalizationService : ILocalizationService
         ["CreateTour"] = new() { ["vi"]="Tạo Tour", ["en"]="Create Tour", ["ko"]="투어 만들기", ["zh"]="创建路线", ["ja"]="ツアー作成", ["th"]="สร้างทัวร์", ["fr"]="Créer un tour" },
         ["CreateTourComingSoon"] = new() { ["vi"]="Tính năng tạo tour mới sẽ sớm có mặt!", ["en"]="New tour creation coming soon!", ["ko"]="새 투어 만들기 기능이 곧 출시됩니다!", ["zh"]="创建新路线功能即将推出！", ["ja"]="新しいツアー作成機能は近日公開予定です！", ["th"]="ฟีเจอร์สร้างทัวร์ใหม่เร็วๆ นี้!", ["fr"]="Création de tour bientôt disponible !" },
         ["StartTour"] = new() { ["vi"]="Bắt đầu Tour", ["en"]="Start Tour", ["ko"]="투어 시작", ["zh"]="开始路线", ["ja"]="ツアー開始", ["th"]="เริ่มทัวร์", ["fr"]="Démarrer le tour" },
+        ["TourModeBanner"] = new() { ["vi"]="Đang xem theo tour", ["en"]="Tour mode", ["ko"]="투어 모드", ["zh"]="路线模式", ["ja"]="ツアーモード", ["th"]="โหมดทัวร์", ["fr"]="Mode tour" },
+        ["ShowAllPlaces"] = new() { ["vi"]="Hiện tất cả địa điểm", ["en"]="Show all places", ["ko"]="모든 장소 표시", ["zh"]="显示全部地点", ["ja"]="すべて表示", ["th"]="แสดงทุกสถานที่", ["fr"]="Tout afficher" },
         ["POIList"] = new() { ["vi"]="Danh sách quán ăn", ["en"]="Restaurant list", ["ko"]="음식점 목록", ["zh"]="餐厅列表", ["ja"]="レストランリスト", ["th"]="รายการร้านอาหาร", ["fr"]="Liste des restaurants" },
 
         // ── Units ──
@@ -153,6 +155,42 @@ public class LocalizationService : ILocalizationService
         ["TourBudget"] = new() { ["vi"]="Ăn ngon - Giá rẻ", ["en"]="Delicious & Budget", ["ko"]="맛있고 저렴한", ["zh"]="美味又实惠", ["ja"]="美味しくてリーズナブル", ["th"]="อร่อยและประหยัด", ["fr"]="Bon et pas cher" },
         ["TourBudgetDesc"] = new() { ["vi"]="Các quán ăn bình dân, giá dưới 50,000đ", ["en"]="Affordable restaurants, under 50,000 VND", ["ko"]="50,000동 이하 저렴한 맛집", ["zh"]="人均5万越南盾以下的平价餐厅", ["ja"]="5万ドン以下のお手頃レストラン", ["th"]="ร้านอาหารราคาประหยัด ต่ำกว่า 50,000 ด่ง", ["fr"]="Restaurants abordables, moins de 50 000 VND" },
 
+        // ── Main / Home screen ──
+        ["DistrictHoThiKy"] = new() { ["vi"]="Phố Hồ Thị Kỷ", ["en"]="Ho Thi Ky Street", ["ko"]="호티키 거리", ["zh"]="胡氏纪街", ["ja"]="ホティキー通り", ["th"]="ถนนโฮถีกี", ["fr"]="Rue Ho Thi Ky" },
+        ["SearchFoodHint"] = new() { ["vi"]="Tìm quán ăn, món ăn...", ["en"]="Search restaurants, dishes...", ["ko"]="맛집·메뉴 검색...", ["zh"]="搜索餐厅、菜品…", ["ja"]="店・料理を検索…", ["th"]="ค้นหาร้านอาหาร อาหาร...", ["fr"]="Rechercher restaurants, plats…" },
+        ["TourTodaySection"] = new() { ["vi"]="Tour hôm nay", ["en"]="Today's tour", ["ko"]="오늘의 투어", ["zh"]="今日路线", ["ja"]="今日のツアー", ["th"]="ทัวร์วันนี้", ["fr"]="Tour du jour" },
+        ["FeaturedSpotsSection"] = new() { ["vi"]="Điểm nổi bật gần đây", ["en"]="Featured nearby", ["ko"]="주변 추천", ["zh"]="附近精选", ["ja"]="近くのおすすめ", ["th"]="แนะนำใกล้คุณ", ["fr"]="À découvrir près d’ici" },
+        ["SeeAll"] = new() { ["vi"]="Xem tất cả →", ["en"]="See all →", ["ko"]="전체 보기 →", ["zh"]="查看全部 →", ["ja"]="すべて見る →", ["th"]="ดูทั้งหมด →", ["fr"]="Tout voir →" },
+        ["LoadingTours"] = new() { ["vi"]="Đang tải tour...", ["en"]="Loading tours...", ["ko"]="투어 불러오는 중...", ["zh"]="正在加载路线…", ["ja"]="ツアーを読み込み中…", ["th"]="กำลังโหลดทัวร์...", ["fr"]="Chargement des tours…" },
+        ["NoToursYet"] = new() { ["vi"]="Chưa có tour nào. Nhấn Làm mới để tải.", ["en"]="No tours yet. Tap Refresh to load.", ["ko"]="투어가 없습니다. 새로고침을 누르세요.", ["zh"]="暂无路线，请点刷新加载。", ["ja"]="ツアーがありません。更新をタップ。", ["th"]="ยังไม่มีทัวร์ กดรีเฟรชเพื่อโหลด", ["fr"]="Aucun tour. Appuyez sur Actualiser." },
+        ["HelloGreeting"] = new() { ["vi"]="Xin chào 👋", ["en"]="Hello 👋", ["ko"]="안녕하세요 👋", ["zh"]="你好 👋", ["ja"]="こんにちは 👋", ["th"]="สวัสดี 👋", ["fr"]="Bonjour 👋" },
+
+        // ── POI Detail extra ──
+        ["OpenNow"] = new() { ["vi"]="Đang mở", ["en"]="Open", ["ko"]="영업 중", ["zh"]="营业中", ["ja"]="営業中", ["th"]="เปิดอยู่", ["fr"]="Ouvert" },
+        ["AiNarrationTitle"] = new() { ["vi"]="AI THUYẾT MINH", ["en"]="AI NARRATION", ["ko"]="AI 해설", ["zh"]="AI 解说", ["ja"]="AIナレーション", ["th"]="AI บรรยาย", ["fr"]="NARRATION IA" },
+        ["ReviewCountFormat"] = new() { ["vi"]="({0} đánh giá)", ["en"]="({0} reviews)", ["ko"]="(리뷰 {0}개)", ["zh"]="（{0} 条评价）", ["ja"]="（レビュー{0}件）", ["th"]="({0} รีวิว)", ["fr"]="({0} avis)" },
+        ["IntroTitle"] = new() { ["vi"]="Giới thiệu", ["en"]="About", ["ko"]="소개", ["zh"]="简介", ["ja"]="紹介", ["th"]="แนะนำ", ["fr"]="Présentation" },
+
+        // ── Smart tour by food type (titles + descriptions) ──
+        ["TourGen_SeafoodName"] = new() { ["vi"]="Tour Hải sản", ["en"]="Seafood Tour", ["ko"]="해산물 투어", ["zh"]="海鲜之旅", ["ja"]="シーフードツアー", ["th"]="ทัวร์อาหารทะเล", ["fr"]="Tour fruits de mer" },
+        ["TourGen_SeafoodDesc"] = new() { ["vi"]="Khám phá hương vị biển cả với các món hải sản tươi ngon", ["en"]="Discover ocean flavors with fresh seafood", ["ko"]="신선한 해산물로 바다의 맛을 만나보세요", ["zh"]="用新鲜海鲜探索海洋风味", ["ja"]="新鮮なシーフードで海の味を", ["th"]="อาหารทะเลสดจากท้องทะเล", ["fr"]="Saveurs de la mer, fruits de mer frais" },
+        ["TourGen_VegetarianName"] = new() { ["vi"]="Tour Món chay", ["en"]="Vegetarian Tour", ["ko"]="채식 투어", ["zh"]="素食之旅", ["ja"]="ベジタリアンツアー", ["th"]="ทัวร์มังสวิรัติ", ["fr"]="Tour végétarien" },
+        ["TourGen_VegetarianDesc"] = new() { ["vi"]="Thưởng thức ẩm thực chay thanh đạm, tốt cho sức khỏe", ["en"]="Enjoy wholesome vegetarian cuisine", ["ko"]="건강한 채식 요리를 즐기세요", ["zh"]="健康清爽的素食", ["ja"]="ヘルシーな精進料理", ["th"]="อาหารเจเพื่อสุขภาพ", ["fr"]="Cuisine végétarienne équilibrée" },
+        ["TourGen_VietnameseName"] = new() { ["vi"]="Tour Đặc sản Việt", ["en"]="Vietnamese Specialties Tour", ["ko"]="베트남 특산 투어", ["zh"]="越南特产之旅", ["ja"]="ベトナム名物ツアー", ["th"]="ทัวร์อาหารพิเศษเวียดนาม", ["fr"]="Tour spécialités vietnamiennes" },
+        ["TourGen_VietnameseDesc"] = new() { ["vi"]="Trải nghiệm đặc sản Việt Nam đậm đà bản sắc", ["en"]="Authentic Vietnamese flavors", ["ko"]="정통 베트남 맛", ["zh"]="正宗越南风味", ["ja"]="本格的なベトナムの味", ["th"]="รสชาติเวียดนามแท้", ["fr"]="Saveurs vietnamiennes authentiques" },
+        ["TourGen_StreetName"] = new() { ["vi"]="Tour Ẩm thực đường phố", ["en"]="Street Food Tour", ["ko"]="길거리 음식 투어", ["zh"]="街头美食之旅", ["ja"]="ストリートフードツアー", ["th"]="ทัวร์อาหารริมทาง", ["fr"]="Tour street food" },
+        ["TourGen_StreetDesc"] = new() { ["vi"]="Khám phá ẩm thực đường phố đầy hấp dẫn", ["en"]="Explore vibrant street food", ["ko"]="활기찬 길거리 음식", ["zh"]="探索街头烟火气", ["ja"]="活気あるストリートフード", ["th"]="สำรวจอาหารริมทาง", ["fr"]="Street food animée" },
+        ["TourGen_BBQName"] = new() { ["vi"]="Tour Đồ nướng", ["en"]="BBQ & Grill Tour", ["ko"]="바비큐 투어", ["zh"]="烧烤之旅", ["ja"]="焼き・BBQツアー", ["th"]="ทัวร์ปิ้งย่าง", ["fr"]="Tour grillades" },
+        ["TourGen_BBQDesc"] = new() { ["vi"]="Thưởng thức các món nướng thơm ngon, hấp dẫn", ["en"]="Sizzling grilled dishes", ["ko"]="갓 구운 요리", ["zh"]="喷香烧烤", ["ja"]="香ばしい焼き料理", ["th"]="เมนูย่างหอมกรุ่น", ["fr"]="Plats grillés savoureux" },
+        ["TourGen_NoodlesName"] = new() { ["vi"]="Tour Bún Phở Mì", ["en"]="Noodles Tour", ["ko"]="쌀국수·면 투어", ["zh"]="河粉面食之旅", ["ja"]="フォー・麺ツアー", ["th"]="ทัวร์ก๋วยเตี๋ยว", ["fr"]="Tour nouilles" },
+        ["TourGen_NoodlesDesc"] = new() { ["vi"]="Khám phá thế giới bún, phở, mì đa dạng", ["en"]="Noodles, pho, and more", ["ko"]="쌀국수와 면 요리의 세계", ["zh"]="河粉、面类大千世界", ["ja"]="フォーと麺の世界", ["th"]="โลกของก๋วยเตี๋ยว", ["fr"]="Pho, nouilles et cie." },
+        ["TourGen_DefaultName"] = new() { ["vi"]="Tour Ẩm thực", ["en"]="Food Tour", ["ko"]="맛집 투어", ["zh"]="美食之旅", ["ja"]="グルメツアー", ["th"]="ทัวร์อาหาร", ["fr"]="Tour gastronomique" },
+        ["TourGen_DefaultDesc"] = new() { ["vi"]="Khám phá ẩm thực đa dạng và phong phú", ["en"]="Diverse local flavors", ["ko"]="다양한 로컬 맛", ["zh"]="丰富多样的本地风味", ["ja"]="多彩なローカルグルメ", ["th"]="หลากหลายรสท้องถิ่น", ["fr"]="Saveurs locales variées" },
+        ["TourMidRangeName"] = new() { ["vi"]="Ăn vừa túi tiền", ["en"]="Mid-range dining", ["ko"]="가성비 맛집", ["zh"]="性价比之选", ["ja"]="お手頃グルメ", ["th"]="ราคากลางคุณภาพดี", ["fr"]="Bon rapport qualité-prix" },
+        ["TourMidRangeDesc"] = new() { ["vi"]="Các nhà hàng tầm trung, giá 50k-150k", ["en"]="Restaurants around 50k–150k VND", ["ko"]="5만~15만 동대 레스토랑", ["zh"]="人均约5–15万越南盾的餐厅", ["ja"]="5〜15万ドン帯のレストラン", ["th"]="ร้านราคากลาง 50k–150k", ["fr"]="Restaurants milieu de gamme 50k–150k" },
+        ["TourPremiumName"] = new() { ["vi"]="Nhà hàng cao cấp", ["en"]="Fine dining", ["ko"]="파인다이닝", ["zh"]="高端餐厅", ["ja"]="高級レストラン", ["th"]="ร้านหรู", ["fr"]="Gastronomie haut de gamme" },
+        ["TourPremiumDesc"] = new() { ["vi"]="Trải nghiệm ẩm thực sang trọng, giá trên 150k", ["en"]="Premium experience, from 150k VND", ["ko"]="15만 동 이상 프리미엄", ["zh"]="15万盾以上的精致体验", ["ja"]="15万ドン以上の上質体験", ["th"]="ประสบการณ์พรีเมียม ตั้งแต่ 150k", ["fr"]="Expérience premium dès 150k" },
+
         // ── Language names ──
         ["LanguageVi"] = new() { ["vi"]="Tiếng Việt", ["en"]="Vietnamese", ["ko"]="베트남어", ["zh"]="越南语", ["ja"]="ベトナム語", ["th"]="ภาษาเวียดนาม", ["fr"]="Vietnamien" },
         ["LanguageEn"] = new() { ["vi"]="English", ["en"]="English", ["ko"]="영어", ["zh"]="英语", ["ja"]="英語", ["th"]="ภาษาอังกฤษ", ["fr"]="Anglais" },
@@ -239,7 +277,14 @@ public class LocalizationService : ILocalizationService
         ["SubRefImportant"]    = new() { ["vi"]="(quan trọng — không được thiếu)", ["en"]="(important — do not omit)", ["ko"]="(중요 — 생략 불가)", ["zh"]="(重要 — 不能省略)", ["ja"]="（重要 — 省略不可）", ["th"]="(สำคัญ — ห้ามละเว้น)", ["fr"]="(important — ne pas omettre)" },
         ["SubWarning"]         = new() { ["vi"]="Vui lòng ghi đúng nội dung chuyển khoản để chúng tôi xác nhận thanh toán của bạn.", ["en"]="Please enter the exact transfer reference so we can confirm your payment.", ["ko"]="결제 확인을 위해 이체 내용을 정확히 입력하세요.", ["zh"]="请正确填写转账备注以便我们确认您的付款。", ["ja"]="お支払いを確認するために振込内容を正確に入力してください。", ["th"]="กรุณากรอกเนื้อหาการโอนให้ถูกต้องเพื่อยืนยันการชำระเงิน", ["fr"]="Veuillez saisir la référence exacte pour confirmer votre paiement." },
         ["SubConfirmBtn"]      = new() { ["vi"]="✅  Tôi đã thanh toán", ["en"]="✅  I have paid", ["ko"]="✅  결제 완료", ["zh"]="✅  我已支付", ["ja"]="✅  支払い完了", ["th"]="✅  ฉันชำระแล้ว", ["fr"]="✅  J'ai payé" },
-        ["SubConfirmNote"]     = new() { ["vi"]="Sau khi chuyển khoản thành công, nhấn nút trên để tiếp tục.", ["en"]="After a successful transfer, tap the button above to continue.", ["ko"]="이체 성공 후 위 버튼을 눌러 계속하세요.", ["zh"]="转账成功后，点击上方按钮继续。", ["ja"]="振込完了後、上のボタンをタップして続行してください。", ["th"]="หลังโอนเงินสำเร็จ กดปุ่มด้านบนเพื่อดำเนินการต่อ", ["fr"]="Après le virement, appuyez sur le bouton ci-dessus pour continuer." },
+        ["SubConfirmNote"]     = new() { ["vi"]="Sau khi CK, nhấn nút để báo. Vào app sau khi Admin xác nhận — dùng nút bên dưới để kiểm tra.", ["en"]="After paying, tap to report. You enter after Admin confirms — use the button below to check.", ["ko"]="이체 후 버튼으로 알림. 관리자 확인 후에 앱 이용 — 아래에서 확인.", ["zh"]="转账后点按钮上报。管理员确认后方可进入应用 — 可用下方按钮查询。", ["ja"]="振込後にボタンで報告。管理者確認後にアプリへ — 下のボタンで確認。", ["th"]="หลังโอนแล้วกดแจ้ง เข้าแอปหลังแอดมินยืนยัน — ใช้ปุ่มด้านล่างเพื่อตรวจสอบ", ["fr"]="Après le virement, appuyez pour signaler. Accès après confirmation admin — bouton ci-dessous pour vérifier." },
+        ["SubCheckEntitlementBtn"] = new() { ["vi"]="🔁  Kiểm tra đã duyệt", ["en"]="🔁  Check approval", ["ko"]="🔁  승인 확인", ["zh"]="🔁  查询是否已批准", ["ja"]="🔁  承認を確認", ["th"]="🔁  ตรวจสอบการอนุมัติ", ["fr"]="🔁  Vérifier l’approbation" },
+        ["SubReportSentTitle"] = new() { ["vi"]="Đã gửi báo", ["en"]="Report sent", ["ko"]="알림 전송됨", ["zh"]="已上报", ["ja"]="報告を送信しました", ["th"]="ส่งแล้ว", ["fr"]="Signalement envoyé" },
+        ["SubReportSentMsg"]   = new() { ["vi"]="Chúng tôi đã ghi nhận. Vui lòng chờ Admin đối soát CK — bạn vào app sau khi được xác nhận.", ["en"]="Recorded. Please wait for Admin to reconcile — you can enter the app after confirmation.", ["ko"]="접수되었습니다. 관리자 대조 확인을 기다려 주세요.", ["zh"]="已记录。请等待管理员对账 — 确认后即可进入应用。", ["ja"]="受付しました。管理者の照合確認をお待ちください。", ["th"]="บันทึกแล้ว รอแอดมินตรวจสอบ — ยืนยันแล้วจึงเข้าแอปได้", ["fr"]="Enregistré. Attendez la réconciliation du compte admin." },
+        ["SubReportFailTitle"] = new() { ["vi"]="Không gửi được", ["en"]="Could not send", ["ko"]="전송 실패", ["zh"]="发送失败", ["ja"]="送信できませんでした", ["th"]="ส่งไม่สำเร็จ", ["fr"]="Envoi impossible" },
+        ["SubReportFailMsg"]   = new() { ["vi"]="Kiểm tra kết nối mạng và thử lại.", ["en"]="Check your network and try again.", ["ko"]="네트워크를 확인하고 다시 시도하세요.", ["zh"]="请检查网络后重试。", ["ja"]="ネットワークを確認して再試行してください。", ["th"]="ตรวจสอบเครือข่ายแล้วลองอีกครั้ง", ["fr"]="Vérifiez le réseau et réessayez." },
+        ["SubNotApprovedTitle"] = new() { ["vi"]="Chưa vào được", ["en"]="Not approved yet", ["ko"]="아직 승인 안 됨", ["zh"]="尚未通过", ["ja"]="まだ承認されていません", ["th"]="ยังไม่อนุมัติ", ["fr"]="Pas encore approuvé" },
+        ["SubNotApprovedMsg"]  = new() { ["vi"]="Chưa thấy xác nhận từ Admin hoặc đang chờ đối soát. Thử lại sau khi đã chuyển khoản đúng nội dung.", ["en"]="No admin confirmation yet or pending reconciliation. Try again after a correct transfer.", ["ko"]="관리자 확인이 없거나 대기 중입니다. 올바른 이체 후 다시 시도하세요.", ["zh"]="尚无管理员确认或正在对账。请正确转账后再试。", ["ja"]="管理者の確認がないか照合待ちです。正しい振込後に再試行してください。", ["th"]="ยังไม่มีการยืนยันหรือรอตรวจสอบ ลองอีกครั้งหลังโอนถูกต้อง", ["fr"]="Pas encore confirmé ou en attente de réconciliation." },
     };
 
     // Helper: same text for all languages

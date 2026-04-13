@@ -55,11 +55,21 @@ public partial class MapPageViewModel : ObservableObject
     [ObservableProperty]
     private string testModeCurrentPOIName = "";
 
+    /// <summary>True when map is filtered to the active tour’s POIs only.</summary>
+    [ObservableProperty]
+    private bool isTourModeActive;
+
+    /// <summary>Name of the active tour for the banner (empty when not in tour mode).</summary>
+    [ObservableProperty]
+    private string activeTourName = "";
+
     // Localized labels
     public string LblSearch => _localizationService.GetString("Search");
     public string LblNearbyPlaces => _localizationService.GetString("NearbyPlaces");
     public string LblListenNarration => $"🔊 {_localizationService.GetString("ListenNarration")}";
     public string LblGetDirections => $"🗺️ {_localizationService.GetString("GetDirections")}";
+    public string LblTourModeBanner => _localizationService.GetString("TourModeBanner");
+    public string LblShowAllPlaces => _localizationService.GetString("ShowAllPlaces");
 
     /// <summary>Exposes the current selected tour ID so MapPage can detect tour changes.</summary>
     public int? CurrentTourId => _tourSelectionService.SelectedTour?.Id;
@@ -137,6 +147,8 @@ public partial class MapPageViewModel : ObservableObject
             OnPropertyChanged(nameof(LblNearbyPlaces));
             OnPropertyChanged(nameof(LblListenNarration));
             OnPropertyChanged(nameof(LblGetDirections));
+            OnPropertyChanged(nameof(LblTourModeBanner));
+            OnPropertyChanged(nameof(LblShowAllPlaces));
         });
     }
 
@@ -222,6 +234,9 @@ public partial class MapPageViewModel : ObservableObject
                 POIs = allPois;
             }
 
+            IsTourModeActive = selectedTour != null && selectedTour.POIs != null && selectedTour.POIs.Any();
+            ActiveTourName = selectedTour?.Name ?? "";
+
             // Initialize geofence with all POIs
             _geofenceService.Initialize(POIs);
             AppLog.Info($"🎯 GeofenceService initialized with {POIs.Count} POIs");
@@ -283,7 +298,10 @@ public partial class MapPageViewModel : ObservableObject
                 // Re-sort nearby POIs by distance
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    var sorted = NearbyPOIs.OrderBy(p => p.DistanceMeters).ToList();
+                    var sorted = NearbyPOIs
+                        .OrderBy(p => p.DistanceMeters)
+                        .ThenByDescending(p => p.Priority)
+                        .ToList();
                     NearbyPOIs.Clear();
                     foreach (var poi in sorted)
                     {
@@ -365,6 +383,19 @@ public partial class MapPageViewModel : ObservableObject
     private async Task ShowList()
     {
         await Shell.Current.GoToAsync("//POIListPage");
+    }
+
+    /// <summary>Clears tour filter and reloads all POIs from cache onto the map.</summary>
+    [RelayCommand]
+    private async Task ClearTourFilter()
+    {
+        if (IsTestMode)
+            StopTestMode();
+
+        _tourSelectionService.SelectedTour = null;
+        await LoadPOIsAsync();
+        await GetCurrentLocationAsync();
+        MapNeedsUpdate?.Invoke(this, EventArgs.Empty);
     }
 
     [RelayCommand]

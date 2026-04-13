@@ -42,6 +42,8 @@ public partial class POIListViewModel : ObservableObject
     public string LblCatAccommodation => _localizationService.GetString("CatAccommodation");
     public string LblNoPlacesFound => _localizationService.GetString("NoPlacesFound");
     public string LblTryDifferentSearch => _localizationService.GetString("TryDifferentSearch");
+    public string LblHello => _localizationService.GetString("HelloGreeting");
+    public string LblDistrictName => _localizationService.GetString("DistrictHoThiKy");
 
     public POIListViewModel(
         IPOIService poiService,
@@ -71,6 +73,9 @@ public partial class POIListViewModel : ObservableObject
             OnPropertyChanged(nameof(LblCatAccommodation));
             OnPropertyChanged(nameof(LblNoPlacesFound));
             OnPropertyChanged(nameof(LblTryDifferentSearch));
+            OnPropertyChanged(nameof(LblHello));
+            OnPropertyChanged(nameof(LblDistrictName));
+            ApplyFilters();
         });
     }
 
@@ -113,8 +118,11 @@ public partial class POIListViewModel : ObservableObject
                         poi.Longitude);
                 }
 
-                // Sort by distance
-                _allPOIs = _allPOIs.OrderBy(p => p.DistanceMeters).ToList();
+                // Gần trước; cùng khoảng cách (hoặc gần bằng nhau) → Priority cao hơn trước
+                _allPOIs = _allPOIs
+                    .OrderBy(p => p.DistanceMeters)
+                    .ThenByDescending(p => p.Priority)
+                    .ToList();
             }
 
             // Apply filters

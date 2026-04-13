@@ -37,7 +37,8 @@ public class ShopOwnerController : Controller
         var myPOIs = await _context.POIs
             .Include(p => p.Contents)
             .Where(p => p.OwnerId == userId)
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.Priority)
+            .ThenByDescending(p => p.CreatedAt)
             .ToListAsync();
 
         var poiIds = myPOIs.Select(p => p.Id).ToList();
@@ -147,7 +148,7 @@ public class ShopOwnerController : Controller
             OwnerId = userId.Value,
             ImageUrl = imageUrl,
             MapLink = model.MapLink,
-            IsActive = model.IsActive,
+            IsActive = false, // Chờ thanh toán → Admin duyệt mới kích hoạt
             Category = model.Category,
             TourId = model.TourId,
             EstimatedMinutes = model.EstimatedMinutes,
@@ -191,21 +192,12 @@ public class ShopOwnerController : Controller
 
         if (!string.IsNullOrWhiteSpace(model.TextContent_vi))
         {
-            try
-            {
-                await _translationSync.SyncFromVietnameseAsync(poi.Id);
-                TempData["Success"] = "Đã tạo địa điểm. Nội dung các ngôn ngữ khác đã được dịch từ tiếng Việt.";
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ShopOwner Create] Translation sync: {ex.Message}");
-                TempData["Success"] = "Đã tạo địa điểm. Bạn có thể bổ sung thuyết minh các ngôn ngữ sau.";
-            }
+            try { await _translationSync.SyncFromVietnameseAsync(poi.Id); }
+            catch (Exception ex) { Console.WriteLine($"[ShopOwner Create] Translation sync: {ex.Message}"); }
         }
-        else
-            TempData["Success"] = "Đã tạo địa điểm.";
 
-        return RedirectToAction(nameof(Edit), new { id = poi.Id });
+        // Chuyển sang trang thanh toán
+        return RedirectToAction(nameof(PaymentPending), new { id = poi.Id });
     }
 
     // POST: /ShopOwner/Edit/{id}
@@ -313,6 +305,65 @@ public class ShopOwnerController : Controller
             TempData["Success"] = "Cập nhật thông tin thành công!";
 
         return RedirectToAction(nameof(Edit), new { id });
+    }
+
+    // GET: /ShopOwner/PaymentPending/{id}
+    public async Task<IActionResult> PaymentPending(int id)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
+        var poi = await _context.POIs.FirstOrDefaultAsync(p => p.Id == id && p.OwnerId == userId);
+        if (poi == null) return NotFound();
+
+        // Lấy bản ghi thanh toán nếu đã có
+        var payment = await _context.POIPayments
+            .Where(p => p.POIId == id)
+            .OrderByDescending(p => p.Id)
+            .FirstOrDefaultAsync();
+
+        ViewBag.POI = poi;
+        ViewBag.Payment = payment;
+        ViewBag.Amount = HeriStepAI.API.Models.POIPricing.GetPrice(poi.Priority);
+        ViewBag.PriorityLabel = HeriStepAI.API.Models.POIPricing.GetLabel(poi.Priority);
+        return View();
+    }
+
+    // POST: /ShopOwner/ReportPayment
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ReportPayment(int poiId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
+        var poi = await _context.POIs.FirstOrDefaultAsync(p => p.Id == poiId && p.OwnerId == userId);
+        if (poi == null) return NotFound();
+
+        // Kiểm tra đã có bản ghi chưa
+        var existing = await _context.POIPayments
+            .FirstOrDefaultAsync(p => p.POIId == poiId &&
+                (p.Status == PaymentReconciliationStatus.Pending || p.Status == PaymentReconciliationStatus.Verified));
+
+        if (existing == null)
+        {
+            var transferRef = $"POIPAY-{poi.Id}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
+            var payment = new HeriStepAI.API.Models.POIPayment
+            {
+                POIId = poi.Id,
+                OwnerId = userId.Value,
+                Priority = poi.Priority,
+                AmountVnd = HeriStepAI.API.Models.POIPricing.GetPrice(poi.Priority),
+                TransferRef = transferRef,
+                Status = PaymentReconciliationStatus.Pending,
+                ReportedAtUtc = DateTime.UtcNow
+            };
+            _context.POIPayments.Add(payment);
+            await _context.SaveChangesAsync();
+        }
+
+        TempData["PaymentReported"] = "true";
+        return RedirectToAction(nameof(PaymentPending), new { id = poiId });
     }
 
     // GET: /ShopOwner/Statistics/{id}

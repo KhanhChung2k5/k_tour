@@ -166,6 +166,46 @@ public class AuthController : ControllerBase
         return Ok(list);
     }
 
+    /// <summary>Lấy tất cả ShopOwner (Admin) — có thể lọc theo ApprovalStatus.</summary>
+    [HttpGet("shop-owners")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAllShopOwners([FromQuery] string? status)
+    {
+        var q = _context.Users
+            .AsNoTracking()
+            .Where(u => u.Role == UserRole.ShopOwner);
+
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<AccountApprovalStatus>(status, true, out var st))
+            q = q.Where(u => u.ApprovalStatus == st);
+
+        var list = await q
+            .OrderByDescending(u => u.CreatedAt)
+            .Select(u => new
+            {
+                u.Id, u.Username, u.Email, u.FullName, u.Phone,
+                u.IsActive, u.CreatedAt,
+                ApprovalStatus = u.ApprovalStatus.ToString()
+            })
+            .ToListAsync();
+
+        return Ok(list);
+    }
+
+    /// <summary>Admin bật/tắt IsActive của một ShopOwner.</summary>
+    [HttpPost("toggle-active/{id:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ToggleActive(int id)
+    {
+        var user = await _context.Users.AsTracking()
+            .FirstOrDefaultAsync(u => u.Id == id && u.Role == UserRole.ShopOwner);
+        if (user == null) return NotFound(new { Message = "Không tìm thấy ShopOwner." });
+
+        user.IsActive = !user.IsActive;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { Message = user.IsActive ? "Đã kích hoạt tài khoản." : "Đã vô hiệu hóa tài khoản.", isActive = user.IsActive });
+    }
+
     [HttpPost("approve-shop-owner/{id:int}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ApproveShopOwner(int id)

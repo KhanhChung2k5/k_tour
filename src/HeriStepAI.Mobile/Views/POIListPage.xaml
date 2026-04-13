@@ -20,10 +20,10 @@
             </Grid.Background>
             <Grid ColumnDefinitions="*,Auto">
                 <VerticalStackLayout Grid.Column="0" Spacing="2">
-                    <Label Text="Xin chào 👋"
+                    <Label Text="{Binding LblHello}"
                            TextColor="{StaticResource TextFaint}"
                            FontSize="12" />
-                    <Label Text="Phố Hồ Thị Kỷ"
+                    <Label Text="{Binding LblDistrictName}"
                            TextColor="{StaticResource White}"
                            FontSize="20" FontAttributes="Bold" />
                 </VerticalStackLayout>
@@ -133,7 +133,7 @@
                                                      Spacing="4"
                                                      VerticalOptions="Center">
                                     <!-- Category tag -->
-                                    <Label Text="{Binding Category}"
+                                    <Label Text="{Binding CategoryText}"
                                            TextColor="{StaticResource TextMuted}"
                                            FontSize="9"
                                            CharacterSpacing="0.8"

@@ -84,6 +84,15 @@ public class SubscriptionService : ISubscriptionService
         SecureStorage.Default.SetAsync(KeyExpiry, expiry).GetAwaiter().GetResult();
     }
 
+    public void ActivateFromServer(SubscriptionPlan plan, DateTime expiresAtUtc)
+    {
+        var utc = expiresAtUtc.Kind == DateTimeKind.Unspecified
+            ? DateTime.SpecifyKind(expiresAtUtc, DateTimeKind.Utc)
+            : expiresAtUtc.ToUniversalTime();
+        SecureStorage.Default.SetAsync(KeyPlan, plan.ToString()).GetAwaiter().GetResult();
+        SecureStorage.Default.SetAsync(KeyExpiry, utc.ToString("O")).GetAwaiter().GetResult();
+    }
+
     public void Clear()
     {
         SecureStorage.Default.Remove(KeyPlan);

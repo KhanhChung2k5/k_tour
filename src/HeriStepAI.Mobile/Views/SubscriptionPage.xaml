@@ -390,7 +390,7 @@
                 <!-- Confirm Button -->
                 <Button Text="{Binding LblConfirmBtn}"
                         Command="{Binding ConfirmPaymentCommand}"
-                        IsEnabled="{Binding IsConfirming, Converter={StaticResource InvertBoolConverter}}"
+                        IsEnabled="{Binding IsInteractionEnabled}"
                         BackgroundColor="{StaticResource Secondary}"
                         TextColor="White"
                         FontSize="16" FontAttributes="Bold"
@@ -398,9 +398,19 @@
                         CornerRadius="14"
                         Margin="0,0,0,12" />
 
+                <Button Text="{Binding LblCheckEntitlementBtn}"
+                        Command="{Binding CheckEntitlementCommand}"
+                        IsEnabled="{Binding IsInteractionEnabled}"
+                        BackgroundColor="{StaticResource WarmCream}"
+                        TextColor="{StaticResource Primary}"
+                        FontSize="15" FontAttributes="Bold"
+                        HeightRequest="50"
+                        CornerRadius="14"
+                        Margin="0,0,0,12" />
+
                 <!-- Loading indicator -->
-                <ActivityIndicator IsRunning="{Binding IsConfirming}"
-                                   IsVisible="{Binding IsConfirming}"
+                <ActivityIndicator IsRunning="{Binding IsSubscriptionBusy}"
+                                   IsVisible="{Binding IsSubscriptionBusy}"
                                    Color="{StaticResource Secondary}"
                                    HorizontalOptions="Center" />
 

@@ -10,12 +10,13 @@
 
     <Grid RowDefinitions="Auto,*,Auto">
 
-        <!-- Top Bar with Search -->
-        <Grid Grid.Row="0"
-              BackgroundColor="{StaticResource CardBackground}"
+        <!-- Top Bar with Search + optional tour mode strip -->
+        <VerticalStackLayout Grid.Row="0"
+                             Spacing="0"
+                             ZIndex="10">
+        <Grid BackgroundColor="{StaticResource CardBackground}"
               x:Name="TopBar"
-              Padding="16,48,16,12"
-              ZIndex="10">
+              Padding="16,48,16,12">
             <Grid.Shadow>
                 <Shadow Brush="{StaticResource Black}" Offset="0,2" Radius="8" Opacity="0.05" />
             </Grid.Shadow>
@@ -85,6 +86,39 @@
                 </Frame>
             </Grid>
         </Grid>
+
+        <!-- Tour mode: show all POIs again -->
+        <Frame BackgroundColor="#FFF8E7"
+               Padding="12,8"
+               Margin="0,0,0,0"
+               HasShadow="False"
+               BorderColor="{StaticResource WarmBorder}"
+               IsVisible="{Binding IsTourModeActive}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="{Binding LblTourModeBanner}"
+                           FontSize="11"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextSecondary}" />
+                    <Label Text="{Binding ActiveTourName}"
+                           FontSize="13"
+                           TextColor="{StaticResource TextPrimary}"
+                           LineBreakMode="TailTruncation"
+                           MaxLines="1" />
+                </VerticalStackLayout>
+                <Button Grid.Column="1"
+                        Text="{Binding LblShowAllPlaces}"
+                        Command="{Binding ClearTourFilterCommand}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource White}"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        CornerRadius="14"
+                        Padding="12,6"
+                        VerticalOptions="Center" />
+            </Grid>
+        </Frame>
+        </VerticalStackLayout>
 
         <!-- Map View - spans into Row 2 so map is visible behind collapsed bottom sheet -->
         <WebView Grid.Row="1"
