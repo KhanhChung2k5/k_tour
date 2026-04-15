@@ -10,4 +10,6 @@ public interface IAnalyticsService
     Task<object> GetPOIStatisticsAsync(int poiId, DateTime? startDate, DateTime? endDate);
     /// <summary>Tổng lượt ghé thăm và phân loại (Geofence / MapClick / QRCode) — tính trực tiếp từ VisitLogs.</summary>
     Task<(int TotalVisits, int Geofence, int MapClick, int QRCode)> GetVisitSummaryAsync(DateTime? startDate, DateTime? endDate);
+    Task<object> GetDeviceStatsAsync(int page, int pageSize);
+    Task<object> GetDeviceSummaryAsync();
 }

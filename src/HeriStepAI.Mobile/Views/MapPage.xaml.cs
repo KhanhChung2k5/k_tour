@@ -1,6 +1,7 @@
 using HeriStepAI.Mobile.Models;
 using HeriStepAI.Mobile.ViewModels;
 using HeriStepAI.Mobile.Helpers;
+using HeriStepAI.Mobile.Services;
 using System.Globalization;
 using System.Text;
 
@@ -77,16 +78,24 @@ public partial class MapPage : ContentPage
                 // Enable remote debugging for troubleshooting
                 Android.Webkit.WebView.SetWebContentsDebuggingEnabled(true);
 
-                // Set custom WebViewClient to prevent external navigation and handle poi:// scheme
-                androidWebView.SetWebViewClient(new MapWebViewClient(poiId =>
+                // Shared callback: invoked from both JavascriptInterface and URL-scheme fallback
+                Action<string> onPoiSelected = poiId =>
                 {
+                    AppLog.Info($"[MapPage] POI callback: '{poiId}'");
                     if (int.TryParse(poiId, out var id))
                     {
                         var poi = _viewModel.POIs.FirstOrDefault(p => p.Id == id);
+                        AppLog.Info($"[MapPage] POI lookup id={id} → {(poi != null ? poi.Name : "null")}");
                         if (poi != null)
-                            _viewModel.POISelectedCommand.ExecuteAsync(poi);
+                            _ = _viewModel.POISelectedCommand.ExecuteAsync(poi);
                     }
-                }));
+                };
+
+                // Primary: JavascriptInterface — most reliable, works on all API levels
+                androidWebView.AddJavascriptInterface(new MapJsBridge(onPoiSelected), "Android");
+
+                // Fallback: custom WebViewClient to intercept poi:// URL scheme
+                androidWebView.SetWebViewClient(new MapWebViewClient(onPoiSelected));
 
                 // Set custom WebChromeClient to capture JavaScript console messages
                 androidWebView.SetWebChromeClient(new MapWebChromeClient());
@@ -122,6 +131,28 @@ public partial class MapPage : ContentPage
                 System.Diagnostics.Debug.WriteLine($"[JS Console] {level}: {consoleMessage.Message()} at {consoleMessage.SourceId()}:{consoleMessage.LineNumber()}");
             }
             return true;
+        }
+    }
+
+    /// <summary>
+    /// JavaScript → native bridge (addJavascriptInterface).
+    /// Exposed as window.Android in the WebView; JavaScript calls Android.selectPOI(id).
+    /// </summary>
+    private class MapJsBridge : Java.Lang.Object
+    {
+        private readonly Action<string> _onPoiSelected;
+
+        public MapJsBridge(Action<string> onPoiSelected)
+        {
+            _onPoiSelected = onPoiSelected;
+        }
+
+        [Android.Webkit.JavascriptInterface]
+        [Java.Interop.Export("selectPOI")]
+        public void SelectPOI(string poiId)
+        {
+            AppLog.Info($"[MapJsBridge] selectPOI('{poiId}')");
+            MainThread.BeginInvokeOnMainThread(() => _onPoiSelected?.Invoke(poiId));
         }
     }
 
@@ -683,8 +714,20 @@ public partial class MapPage : ContentPage
         sb.AppendLine("  }, 1000);");
 
         // Function to handle POI selection
+        // Primary: Android JavascriptInterface bridge (most reliable on Android).
+        // Fallback: poi:// URL scheme intercepted by MapWebViewClient / MAUI Navigating.
         sb.AppendLine("  function selectPOI(poiId) {");
-        sb.AppendLine("    console.log('[Map] POI selected: ' + poiId);");
+        sb.AppendLine("    console.log('[Map] selectPOI called: ' + poiId);");
+        sb.AppendLine("    try {");
+        sb.AppendLine("      if (typeof Android !== 'undefined') {");
+        sb.AppendLine("        Android.selectPOI(String(poiId));");
+        sb.AppendLine("        console.log('[Map] Android.selectPOI bridge used');");
+        sb.AppendLine("        return;");
+        sb.AppendLine("      }");
+        sb.AppendLine("    } catch(e) {");
+        sb.AppendLine("      console.log('[Map] Android bridge error: ' + e);");
+        sb.AppendLine("    }");
+        sb.AppendLine("    console.log('[Map] Falling back to poi:// scheme');");
         sb.AppendLine("    window.location.href = 'poi://' + poiId;");
         sb.AppendLine("  }");
 

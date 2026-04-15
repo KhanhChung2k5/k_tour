@@ -13,14 +13,20 @@ public class ApiService : IApiService
     private static string GetBaseUrl()
     {
 #if DEBUG
-        // Local API: Android emulator dùng 10.0.2.2, iOS simulator / máy thật trong mạng LAN dùng IP máy PC
+        // Đổi NGROK_URL thành URL ngrok hiện tại khi test trên thiết bị thật
+        // Để trống ("") để dùng localhost (emulator)
+        const string NgrokUrl = "https://52b0-2402-800-6314-5ab0-dcc-a6da-64bd-69b5.ngrok-free.app/api/";
+
+        if (!string.IsNullOrEmpty(NgrokUrl)) return NgrokUrl;
+
         if (DeviceInfo.Platform == DevicePlatform.Android)
             return "http://10.0.2.2:5000/api/";
         if (DeviceInfo.Platform == DevicePlatform.iOS)
-            return "http://127.0.0.1:5000/api/"; // iOS simulator; máy thật: đổi thành IP PC (vd 192.168.1.x:5000)
+            return "http://127.0.0.1:5000/api/";
         return "http://localhost:5000/api/";
 #else
-        return "https://heristep.onrender.com/api/";
+        // TODO: Thay bằng URL production thực tế khi deploy
+        return "https://52b0-2402-800-6314-5ab0-dcc-a6da-64bd-69b5.ngrok-free.app/api/";
 #endif
     }
 
@@ -81,13 +87,25 @@ public class ApiService : IApiService
         return null;
     }
 
+    private static async Task<string> GetOrCreateDeviceIdAsync()
+    {
+        const string key = "device_id";
+        var stored = await SecureStorage.Default.GetAsync(key);
+        if (!string.IsNullOrEmpty(stored)) return stored;
+        var newId = "dev_" + Guid.NewGuid().ToString("N");
+        await SecureStorage.Default.SetAsync(key, newId);
+        return newId;
+    }
+
     public async Task LogVisitAsync(int poiId, double? latitude, double? longitude, VisitType visitType)
     {
         try
         {
-            var userId = _authService.CurrentUser?.Id.ToString();
+            // Dùng user ID nếu đã đăng nhập, ngược lại dùng device ID ổn định
+            var userId = _authService.CurrentUser?.Id.ToString()
+                         ?? await GetOrCreateDeviceIdAsync();
             var hasToken = _authService.GetToken() is { };
-            AppLog.Info($"LogVisit: POI={poiId}, UserId={userId ?? "null"}, HasToken={hasToken}, URL={_httpClient.BaseAddress}analytics/visit");
+            AppLog.Info($"LogVisit: POI={poiId}, UserId={userId}, HasToken={hasToken}, URL={_httpClient.BaseAddress}analytics/visit");
 
             var visitLog = new
             {

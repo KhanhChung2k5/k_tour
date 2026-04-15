@@ -105,4 +105,58 @@ public class AnalyticsService : IAnalyticsService
         var qrCode = await query.CountAsync(v => v.VisitType == VisitType.QRCode);
         return (total, geofence, mapClick, qrCode);
     }
+
+    public async Task<object> GetDeviceStatsAsync(int page, int pageSize)
+    {
+        var skip = (page - 1) * pageSize;
+
+        var logs = await _context.VisitLogs
+            .Where(v => v.UserId != null)
+            .Select(v => new { v.UserId, v.VisitTime, v.POId })
+            .ToListAsync();
+
+        var grouped = logs
+            .GroupBy(v => v.UserId!)
+            .Select(g => new
+            {
+                DeviceId    = g.Key,
+                VisitCount  = g.Count(),
+                UniquePOIs  = g.Select(v => v.POId).Distinct().Count(),
+                FirstSeen   = g.Min(v => v.VisitTime),
+                LastSeen    = g.Max(v => v.VisitTime),
+            })
+            .OrderByDescending(d => d.LastSeen)
+            .ToList();
+
+        var total = grouped.Count;
+        var items = grouped.Skip(skip).Take(pageSize).ToList();
+
+        return new { Total = total, Page = page, PageSize = pageSize, Items = items };
+    }
+
+    public async Task<object> GetDeviceSummaryAsync()
+    {
+        var now = DateTime.UtcNow;
+        var today    = now.Date;
+        var week7    = now.AddDays(-7);
+        var month30  = now.AddDays(-30);
+
+        var logs = await _context.VisitLogs
+            .Where(v => v.UserId != null)
+            .Select(v => new { v.UserId, v.VisitTime })
+            .ToListAsync();
+
+        var total       = logs.Select(v => v.UserId).Distinct().Count();
+        var activeToday = logs.Where(v => v.VisitTime >= today).Select(v => v.UserId).Distinct().Count();
+        var activeWeek  = logs.Where(v => v.VisitTime >= week7).Select(v => v.UserId).Distinct().Count();
+        var activeMonth = logs.Where(v => v.VisitTime >= month30).Select(v => v.UserId).Distinct().Count();
+
+        return new
+        {
+            TotalDevices  = total,
+            ActiveToday   = activeToday,
+            ActiveThisWeek = activeWeek,
+            ActiveThisMonth = activeMonth,
+        };
+    }
 }

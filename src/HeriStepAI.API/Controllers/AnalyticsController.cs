@@ -116,6 +116,22 @@ public class AnalyticsController : ControllerBase
         var logs = await _analyticsService.GetVisitLogsAsync(poiId, startDate, endDate);
         return Ok(logs);
     }
+
+    [HttpGet("devices")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetDevices([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+    {
+        var devices = await _analyticsService.GetDeviceStatsAsync(page, pageSize);
+        return Ok(devices);
+    }
+
+    [HttpGet("devices/summary")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetDevicesSummary()
+    {
+        var summary = await _analyticsService.GetDeviceSummaryAsync();
+        return Ok(summary);
+    }
 }
 
 public class VisitLogRequest

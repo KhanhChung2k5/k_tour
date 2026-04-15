@@ -1,0 +1,166 @@
+@model List<HeriStepAI.Web.Models.DeviceRow>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Người dùng thiết bị";
+    var summary     = ViewBag.Summary as HeriStepAI.Web.Models.DeviceSummary;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages  = ViewBag.TotalPages  ?? 1;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title-text">Người dùng thiết bị</h1>
+        <p class="page-subtitle-text">Người dùng app được nhận diện ẩn danh theo Device ID — mỗi thiết bị là một người dùng.</p>
+    </div>
+    <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-light btn-sm">← Dashboard</a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+@if (summary != null)
+{
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="stat-card blue">
+                <div class="stat-top">
+                    <div class="stat-icon"><i class="bi bi-phone-fill"></i></div>
+                    <span class="stat-badge">Tổng</span>
+                </div>
+                <div class="stat-number">@summary.TotalDevices</div>
+                <div class="stat-label">Thiết bị đã dùng app</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card green">
+                <div class="stat-top">
+                    <div class="stat-icon"><i class="bi bi-circle-fill"></i></div>
+                    <span class="stat-badge">Hôm nay</span>
+                </div>
+                <div class="stat-number">@summary.ActiveToday</div>
+                <div class="stat-label">Hoạt động hôm nay</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card amber">
+                <div class="stat-top">
+                    <div class="stat-icon"><i class="bi bi-calendar-week"></i></div>
+                    <span class="stat-badge">7 ngày</span>
+                </div>
+                <div class="stat-number">@summary.ActiveThisWeek</div>
+                <div class="stat-label">Hoạt động 7 ngày qua</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card red">
+                <div class="stat-top">
+                    <div class="stat-icon"><i class="bi bi-calendar-month"></i></div>
+                    <span class="stat-badge">30 ngày</span>
+                </div>
+                <div class="stat-number">@summary.ActiveThisMonth</div>
+                <div class="stat-label">Hoạt động 30 ngày qua</div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="table-card">
+    <div class="table-responsive">
+        <table class="table" style="table-layout:fixed;width:100%;">
+            <colgroup>
+                <col style="width:4%;">
+                <col style="width:35%;">
+                <col style="width:12%;">
+                <col style="width:12%;">
+                <col style="width:18%;">
+                <col style="width:19%;">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th style="padding-left:20px;">#</th>
+                    <th>Device ID</th>
+                    <th style="text-align:center;">Lượt thăm</th>
+                    <th style="text-align:center;">POI đã ghé</th>
+                    <th>Lần đầu</th>
+                    <th>Lần cuối</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int startIndex = (currentPage - 1) * 50;
+                }
+                @foreach (var (row, i) in Model.Select((r, idx) => (r, idx)))
+                {
+                    var daysSince = (DateTime.UtcNow - row.LastSeen).TotalDays;
+                    var isActive  = daysSince <= 7;
+                    <tr>
+                        <td style="padding-left:20px;color:var(--cream-muted);font-size:0.78rem;">
+                            @(startIndex + i + 1)
+                        </td>
+                        <td>
+                            <code style="font-size:0.72rem;background:var(--dark4);padding:3px 8px;border-radius:5px;color:var(--amber);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@row.DeviceId">
+                                @row.DeviceId
+                            </code>
+                        </td>
+                        <td style="text-align:center;">
+                            <span style="font-weight:600;color:var(--cream);">@row.VisitCount</span>
+                        </td>
+                        <td style="text-align:center;">
+                            <span class="badge-soft-info">@row.UniquePOIs POI</span>
+                        </td>
+                        <td style="font-size:0.78rem;color:var(--cream-muted);white-space:nowrap;">
+                            @row.FirstSeen.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                        </td>
+                        <td style="white-space:nowrap;">
+                            <div style="font-size:0.78rem;color:var(--cream);">
+                                @row.LastSeen.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                            </div>
+                            @if (isActive)
+                            {
+                                <span class="badge-soft-success" style="font-size:0.65rem;margin-top:2px;">
+                                    <i class="bi bi-circle-fill" style="font-size:0.45rem;vertical-align:middle;"></i> Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="font-size:0.68rem;color:var(--cream-muted);margin-top:2px;display:inline-block;">
+                                    @((int)daysSince) ngày trước
+                                </span>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5" style="color:var(--cream-muted);">
+                            <i class="bi bi-phone" style="font-size:2rem;display:block;margin-bottom:8px;opacity:0.4;"></i>
+                            Chưa có thiết bị nào ghé thăm POI.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:0.78rem;color:var(--cream-muted);">
+                Trang @currentPage / @totalPages
+            </span>
+            <div class="d-flex gap-2">
+                @if (currentPage > 1)
+                {
+                    <a href="@Url.Action("Index", new { page = currentPage - 1 })" class="btn btn-ghost btn-sm">← Trước</a>
+                }
+                @if (currentPage < totalPages)
+                {
+                    <a href="@Url.Action("Index", new { page = currentPage + 1 })" class="btn btn-ghost btn-sm">Tiếp →</a>
+                }
+            </div>
+        </div>
+    }
+</div>

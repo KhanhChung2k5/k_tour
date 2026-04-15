@@ -788,11 +788,11 @@
                 <span style="margin-left:auto;font-size:0.65rem;color:var(--cream-muted);background:var(--cream-dim);padding:2px 7px;border-radius:99px;">Soon</span>
             </span>
 
-            <span class="sidebar-item disabled">
-                <i class="bi bi-people"></i>
-                <span>Người dùng</span>
-                <span style="margin-left:auto;font-size:0.65rem;color:var(--cream-muted);background:var(--cream-dim);padding:2px 7px;border-radius:99px;">Soon</span>
-            </span>
+            <a href="@Url.Action("Index", "Devices")"
+               class="sidebar-item @(ctrl == "Devices" ? "active" : "")">
+                <i class="bi bi-phone-fill"></i>
+                <span>Người dùng thiết bị</span>
+            </a>
         </nav>
 
         <div class="sidebar-footer">

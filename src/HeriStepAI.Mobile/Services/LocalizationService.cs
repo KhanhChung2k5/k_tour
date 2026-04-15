@@ -219,7 +219,7 @@ public class LocalizationService : ILocalizationService
 
         // ── Settings Stats section ──
         ["StatsSection"] = new() { ["vi"]="THỐNG KÊ", ["en"]="STATISTICS", ["ko"]="통계", ["zh"]="统计", ["ja"]="統計", ["th"]="สถิติ", ["fr"]="STATISTIQUES" },
-        ["LblShopsVisited"] = new() { ["vi"]="Quán đã ghé", ["en"]="Shops Visited", ["ko"]="방문한 상점", ["zh"]="已访问店铺", ["ja"]="訪問した店", ["th"]="ร้านที่เยี่ยมชม", ["fr"]="Boutiques visitées" },
+        ["LblShopsVisited"] = new() { ["vi"]="Lượt ghé thăm", ["en"]="Visit Count", ["ko"]="방문 횟수", ["zh"]="访问次数", ["ja"]="訪問回数", ["th"]="จำนวนการเข้าชม", ["fr"]="Nombre de visites" },
         ["LblDistance"] = new() { ["vi"]="Quãng đường", ["en"]="Distance", ["ko"]="이동 거리", ["zh"]="距离", ["ja"]="移動距離", ["th"]="ระยะทาง", ["fr"]="Distance" },
         ["LblToursCompleted"] = new() { ["vi"]="Tour hoàn thành", ["en"]="Tours Completed", ["ko"]="완료한 투어", ["zh"]="已完成路线", ["ja"]="完了したツアー", ["th"]="ทัวร์ที่เสร็จแล้ว", ["fr"]="Tours terminés" },
         ["LblNarrationCount"] = new() { ["vi"]="Nghe thuyết minh", ["en"]="Narrations", ["ko"]="해설 청취", ["zh"]="已听解说", ["ja"]="ナレーション再生", ["th"]="ฟังบรรยาย", ["fr"]="Narrations" },

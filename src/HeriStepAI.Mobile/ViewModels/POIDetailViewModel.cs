@@ -11,6 +11,7 @@ public partial class POIDetailViewModel : ObservableObject
     private readonly INarrationService _narrationService;
     private readonly ILocalizationService _localizationService;
     private readonly IAnalyticsService _analytics;
+    private readonly IApiService _apiService;
 
     [ObservableProperty]
     private POI selectedPoi = new();
@@ -72,11 +73,13 @@ public partial class POIDetailViewModel : ObservableObject
     public POIDetailViewModel(
         INarrationService narrationService,
         ILocalizationService localizationService,
-        IAnalyticsService analytics)
+        IAnalyticsService analytics,
+        IApiService apiService)
     {
         _narrationService = narrationService;
         _localizationService = localizationService;
         _analytics = analytics;
+        _apiService = apiService;
 
         _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
     }
@@ -122,6 +125,8 @@ public partial class POIDetailViewModel : ObservableObject
     [RelayCommand]
     private async Task PlayNarration()
     {
+        AppLog.Info($"🔵 POIDetail PlayNarration: {SelectedPoi.Name} (id={SelectedPoi.Id})");
+        await _apiService.LogVisitAsync(SelectedPoi.Id, null, null, VisitType.MapClick);
         await _narrationService.PlayNarrationAsync(SelectedPoi, _localizationService.CurrentLanguage, forcePlay: true);
         _analytics.RecordPOIVisit(SelectedPoi);
         _analytics.RecordNarration();

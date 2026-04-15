@@ -320,6 +320,7 @@ public partial class MapPageViewModel : ObservableObject
     private async Task POISelected(POI poi)
     {
         if (poi == null) return;
+        AppLog.Info($"🔵 POISelected: {poi.Name} (id={poi.Id})");
 
         SelectedPOI = poi;
 
@@ -333,11 +334,12 @@ public partial class MapPageViewModel : ObservableObject
                 poi.Longitude);
         }
 
-        // Log visit
-        if (CurrentLocation != null)
-        {
-            await _apiService.LogVisitAsync(poi.Id, CurrentLocation.Latitude, CurrentLocation.Longitude, VisitType.MapClick);
-        }
+        // Log visit — location optional, ghi nhận dù không có GPS
+        await _apiService.LogVisitAsync(
+            poi.Id,
+            CurrentLocation?.Latitude,
+            CurrentLocation?.Longitude,
+            VisitType.MapClick);
 
         await _narrationService.PlayNarrationAsync(poi, _localizationService.CurrentLanguage, forcePlay: true);
     }
@@ -345,8 +347,15 @@ public partial class MapPageViewModel : ObservableObject
     [RelayCommand]
     private async Task PlayNarration()
     {
+        AppLog.Info($"🔵 PlayNarration: SelectedPOI={(SelectedPOI?.Name ?? "null")}");
         if (SelectedPOI != null)
         {
+            await _apiService.LogVisitAsync(
+                SelectedPOI.Id,
+                CurrentLocation?.Latitude,
+                CurrentLocation?.Longitude,
+                VisitType.MapClick);
+
             await _narrationService.PlayNarrationAsync(SelectedPOI, _localizationService.CurrentLanguage, forcePlay: true);
         }
     }
