@@ -75,6 +75,7 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | POI Index | `/POI` | Danh sách (sort theo **Priority** rồi thời gian); **GET /POI/Create** redirect về Index (Admin không tạo POI mới) |
 | POI Edit / Details | `/POI/...` | Admin sửa POI có sẵn (DbContext/API tùy flow); upload ảnh Supabase |
 | Analytics | `/Analytics` | Admin; top POI + breakdown (API) |
+| Devices | `/Devices` | Admin; danh sách thiết bị ẩn danh (`dev_<guid>`) từ `VisitLogs`; thống kê ActiveToday / 7 ngày / 30 ngày; phân trang 50 item |
 | POI Payments | `/POIPayments` | Admin; tổng hợp `Pending/Verified/Rejected`; xác nhận → POI.IsActive = true; từ chối → POI vẫn inactive |
 | Subscription Payments | `/SubscriptionPayments` | Admin; đối soát gói thanh toán Mobile; xác nhận → tính `SubscriptionExpiresAtUtc`; từ chối → không kích hoạt |
 | ShopOwner Dashboard / **Create** / Edit / Statistics | `/ShopOwner/...` | **Tạo POI** mới + DbContext; 403/NotFound nếu không sở hữu POI |
@@ -148,7 +149,9 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | ID | Yêu cầu |
 |----|---------|
 | **FR-ANA-01** | Mọi metric dashboard/API **tính từ `VisitLogs`** (không dùng bảng entity `Analytics`). |
-| **FR-ANA-02** | Mobile/API: `POST .../analytics/visit` ghi `VisitLog` với `VisitType` (Geofence, MapClick, QRCode). |
+| **FR-ANA-02** | Mobile/API: `POST .../analytics/visit` ghi `VisitLog` với `VisitType` (Geofence, MapClick, QRCode). Visit được kích hoạt từ 3 điểm: (1) Geofence trigger, (2) Click "Nghe thuyết minh" trên Map popup (JS bridge → `POISelectedCommand`), (3) Click "Nghe thuyết minh" trên `POIDetailPage`. |
+| **FR-ANA-03** | Người dùng ẩn danh (không đăng nhập) được nhận diện bằng **Device ID** (`dev_<guid>`) lưu trong `SecureStorage`. Device ID được tạo một lần và tái sử dụng cho mọi request. `UserId` trong `VisitLog` = Device ID khi ẩn danh, = account ID khi đã đăng nhập. |
+| **FR-ANA-04** | Admin xem thống kê thiết bị qua `/Devices`: danh sách `DeviceId`, số lượt visit, số POI đã ghé, lần đầu/lần cuối truy cập; tóm tắt ActiveToday / 7 ngày / 30 ngày. |
 
 ### 6.5 Mobile — Tour (như đã code)
 
@@ -275,8 +278,10 @@ Base: `/api/...` — versioning do team quy ước.
 | PUT/DELETE | `/poi/{id}` | Sửa/xóa (policy hiện tại) |
 | GET | `/poi/{id}/content/{language}` | Nội dung theo ngôn ngữ |
 | GET | `/poi/my-pois` | ShopOwner |
-| POST | `/analytics/visit` | Ghi visit |
-| GET | `/analytics/summary`, `/analytics/top-pois`, … | Dashboard |
+| POST | `/analytics/visit` | Ghi visit (AllowAnonymous; userId từ JWT claim nếu authed, từ body nếu ẩn danh) |
+| GET | `/analytics/summary`, `/analytics/top-pois`, … | Dashboard (Admin JWT) |
+| GET | `/analytics/devices` | Danh sách thiết bị ẩn danh, phân trang (`?page=&pageSize=`) (Admin JWT) |
+| GET | `/analytics/devices/summary` | Tóm tắt: TotalDevices, ActiveToday, ActiveThisWeek, ActiveThisMonth (Admin JWT) |
 
 ---
 
@@ -466,7 +471,7 @@ sequenceDiagram
         Web->>API: GET api/analytics/summary (Bearer)
         API->>DB: SELECT VisitLogs (count, VisitType)
         DB-->>API: Kết quả
-        API-->>Web: { TotalVisits, Geofence, ... }
+        API-->>Web: { TotalVisits, Geofence, MapClick, ... }
     and
         Web->>API: GET api/analytics/top-pois?count=10 (Bearer)
         API->>DB: GroupBy POId, Count
@@ -478,6 +483,20 @@ sequenceDiagram
     end
     Web->>Web: ViewBag.TotalVisits, TopPOIs, ...
     Web->>User: Dashboard.cshtml
+
+    Note over User,Web: Admin vào trang Người dùng thiết bị
+    User->>Web: GET /Devices (Cookie)
+    par Gọi song song
+        Web->>API: GET api/analytics/devices/summary (Bearer)
+        API->>DB: GROUP BY UserId WHERE UserId != null
+        DB-->>API: TotalDevices, ActiveToday, ActiveThisWeek, ActiveThisMonth
+        API-->>Web: DeviceSummary
+    and
+        Web->>API: GET api/analytics/devices?page=1 (Bearer)
+        API->>DB: GROUP BY UserId, paginate
+        API-->>Web: { Items: [DeviceRow], Total }
+    end
+    Web->>User: Devices/Index.cshtml (bảng thiết bị + stat cards)
 ```
 
 ### Giải thích chi tiết – Sơ đồ 3
@@ -525,10 +544,30 @@ sequenceDiagram
     end
     end
 
-    Note over App,API: User vào vùng POI (geofence)
-    App->>API: POST api/analytics/visit (POId, VisitType, ...)
+    Note over App,API: Trigger 1 — User vào vùng POI (Geofence tự động)
+    App->>App: GeofenceService.CheckGeofence(location)
+    App->>App: Lấy userId = CurrentUser.Id\nhoặc SecureStorage “dev_<guid>”
+    App->>API: POST api/analytics/visit\n{ poiId, userId, lat, lon, visitType=Geofence }
     API-->>App: 202 Accepted
     API->>DB: Insert VisitLog (background)
+    App->>App: NarrationService.PlayNarration (auto)
+
+    Note over App,API: Trigger 2 — Click POI trên bản đồ (Map popup)
+    App->>App: JS selectPOI(id) → Android.selectPOI bridge
+    App->>App: POISelectedCommand(poi)
+    App->>App: Lấy userId (CurrentUser.Id hoặc dev_<guid>)
+    App->>API: POST api/analytics/visit\n{ poiId, userId, lat?, lon?, visitType=MapClick }
+    API-->>App: 202 Accepted
+    API->>DB: Insert VisitLog (background)
+    App->>App: NarrationService.PlayNarration (force)
+
+    Note over App,API: Trigger 3 — Click “Nghe thuyết minh” tại POIDetailPage
+    App->>App: POIDetailViewModel.PlayNarration
+    App->>App: Lấy userId (CurrentUser.Id hoặc dev_<guid>)
+    App->>API: POST api/analytics/visit\n{ poiId, userId, visitType=MapClick }
+    API-->>App: 202 Accepted
+    API->>DB: Insert VisitLog (background)
+    App->>App: NarrationService.PlayNarration (force)
 ```
 
 ### Giải thích chi tiết – Sơ đồ 4
@@ -539,10 +578,12 @@ sequenceDiagram
 | 2 | App gọi **SubscriptionService.IsActive** | Đọc trạng thái subscription từ **SecureStorage**. Nếu còn hạn → vào AppShell ngay. |
 | 3a | **Subscription còn hạn** | App chuyển thẳng tới **AppShell** (màn hình chính với tab). |
 | 3b | **Hết hạn / chưa thanh toán** | Hiển thị **SubscriptionPage**. User chọn gói, quét QR VietQR, tap xác nhận để **report**; app chỉ vào AppShell khi API entitlement trả `active` (sau khi Admin duyệt). |
-| 4 | **User vào vùng POI (geofence)** | App dùng GPS/geofencing; khi user vào vùng bán kính quanh POI, app coi là “đã ghé thăm”. |
-| 5 | App gửi **POST api/analytics/visit** (POId, VisitType, …) | Gửi POI id, loại visit (Geofence/Manual). API nhận payload và ghi nhận. |
-| 6 | API trả **202 Accepted** | API chấp nhận request. |
-| 7 | API **Insert VisitLog** (background) | Ghi một dòng vào bảng VisitLogs để Admin/ShopOwner xem thống kê. |
+| 4 | **Trigger 1 — Geofence tự động** | GPS cập nhật 5s/lần; khi user vào bán kính POI, `GeofenceService` kích hoạt. App lấy userId (đã đăng nhập → User.Id; ẩn danh → `SecureStorage “dev_<guid>”`). Gọi `LogVisitAsync(visitType=Geofence)` bất đồng bộ, phát thuyết minh tự động. |
+| 5 | **Trigger 2 — Click POI trên bản đồ** | Tap marker → JS `selectPOI(id)` gọi `Android.selectPOI` bridge (JavascriptInterface) → `POISelectedCommand` → `LogVisitAsync(visitType=MapClick)`. Phát thuyết minh ngay (forcePlay). |
+| 6 | **Trigger 3 — Nút “Nghe thuyết minh” tại POIDetailPage** | `POIDetailViewModel.PlayNarration` → `LogVisitAsync(visitType=MapClick)` → phát thuyết minh (forcePlay). |
+| 7 | **userId ẩn danh** | Khi chưa đăng nhập, app dùng `SecureStorage.GetAsync(“device_id”)`; nếu chưa có → tạo `”dev_” + Guid.NewGuid()` và lưu lại. Mỗi thiết bị có 1 device_id ổn định. |
+| 8 | API trả **202 Accepted** | API chấp nhận request và ghi vào DB bất đồng bộ. |
+| 9 | API **Insert VisitLog** | Ghi vào bảng `VisitLogs` để Admin/ShopOwner xem thống kê. Admin có thể xem theo thiết bị ẩn danh qua trang Devices. |
 
 ---
 
@@ -645,6 +686,7 @@ graph LR
         UC19[Kích hoạt Subscription\nkhông cần đăng nhập]
         UC20[Ghi nhận\nlượt visit]
         UC21[Tự động dịch\nnội dung POI]
+        UC27[Xem người dùng\nthiết bị ẩn danh]
     end
 
     Guest --> UC1
@@ -674,10 +716,12 @@ graph LR
     Admin --> UC23
     Admin --> UC25
     Admin --> UC26
+    Admin --> UC27
 
     UC4 --> UC20
     UC5 --> UC20
     UC14 --> UC21
+    UC27 --> UC20
 ```
 
 ---
@@ -1502,7 +1546,7 @@ flowchart TD
     Confirm --> Report[POST /subscription-payments/report]
     Report --> CheckEntitlement[GET /subscription-payments/entitlement]
     CheckEntitlement --> ActiveNow{status = active?}
-    ActiveNow -->|Có| Activate[ActivateFromServer(plan, expiresAtUtc)\nLưu vào SecureStorage]
+    ActiveNow -->|Có| Activate["ActivateFromServer - plan, expiresAtUtc\nLưu vào SecureStorage"]
     Activate --> LoadShell
     ActiveNow -->|Không| WaitAdmin[Giữ ở SubscriptionPage\nchờ Admin duyệt]
 ```
@@ -1639,7 +1683,7 @@ flowchart TD
     CheckBtn --> Poll[GET /subscription-payments/entitlement]
     Poll --> Entitled{status=active?}
     Entitled -->|Không| WaitApprove
-    Entitled -->|Có| Activate[ActivateFromServer(plan, expiresAtUtc)\nsub_plan + sub_expiry → SecureStorage]
+    Entitled -->|Có| Activate["ActivateFromServer - plan, expiresAtUtc\nsub_plan + sub_expiry -> SecureStorage"]
     Activate --> LoadApp[MainPage = AppShell\nvào app bình thường]
     LoadApp --> End([Kết thúc])
 ```
@@ -1686,7 +1730,7 @@ flowchart TD
     AppWait --> Poll[App poll GET entitlement?deviceKey=X]
     Poll --> PollResult{Kết quả?}
     PollResult -->|pending| AppWait
-    PollResult -->|active| Activate[SubscriptionService.ActivateFromServer\nLưu expiresAtUtc → SecureStorage]
+    PollResult -->|active| Activate["SubscriptionService.ActivateFromServer\nLưu expiresAtUtc -> SecureStorage"]
     Activate --> LoadApp[Vào app bình thường\nAppShell]
     LoadApp --> End([Kết thúc])
 
