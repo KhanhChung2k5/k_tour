@@ -132,6 +132,15 @@ public class AnalyticsController : ControllerBase
         var summary = await _analyticsService.GetDeviceSummaryAsync();
         return Ok(summary);
     }
+
+    [HttpGet("devices/{deviceId}/details")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetDeviceDetail(string deviceId)
+    {
+        var detail = await _analyticsService.GetDeviceDetailAsync(deviceId);
+        if (detail == null) return NotFound(new { Message = "Không tìm thấy thiết bị" });
+        return Ok(detail);
+    }
 }
 
 public class VisitLogRequest

@@ -12,4 +12,5 @@ public interface IAnalyticsService
     Task<(int TotalVisits, int Geofence, int MapClick, int QRCode)> GetVisitSummaryAsync(DateTime? startDate, DateTime? endDate);
     Task<object> GetDeviceStatsAsync(int page, int pageSize);
     Task<object> GetDeviceSummaryAsync();
+    Task<object?> GetDeviceDetailAsync(string deviceId);
 }

@@ -100,9 +100,11 @@
                             @(startIndex + i + 1)
                         </td>
                         <td>
-                            <code style="font-size:0.72rem;background:var(--dark4);padding:3px 8px;border-radius:5px;color:var(--amber);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@row.DeviceId">
-                                @row.DeviceId
-                            </code>
+                            <a href="@Url.Action("Detail", "Devices", new { id = row.DeviceId })" style="text-decoration:none;">
+                                <code style="font-size:0.72rem;background:var(--dark4);padding:3px 8px;border-radius:5px;color:var(--amber);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@row.DeviceId">
+                                    @row.DeviceId
+                                </code>
+                            </a>
                         </td>
                         <td style="text-align:center;">
                             <span style="font-weight:600;color:var(--cream);">@row.VisitCount</span>

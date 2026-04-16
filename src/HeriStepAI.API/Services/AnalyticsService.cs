@@ -159,4 +159,124 @@ public class AnalyticsService : IAnalyticsService
             ActiveThisMonth = activeMonth,
         };
     }
+
+    public async Task<object?> GetDeviceDetailAsync(string deviceId)
+    {
+        if (string.IsNullOrWhiteSpace(deviceId))
+            return null;
+
+        deviceId = deviceId.Trim();
+        var normalizedDeviceKey = NormalizePossibleDeviceKey(deviceId);
+
+        var logs = await _context.VisitLogs
+            .Where(v => v.UserId == deviceId)
+            .Select(v => new { v.POId, v.VisitTime })
+            .ToListAsync();
+
+        var payment = await _context.MobileSubscriptionPayments
+            .AsNoTracking()
+            .Where(p => p.DeviceKey == deviceId)
+            .OrderByDescending(p => p.ReportedAtUtc)
+            .Select(p => new
+            {
+                p.Id,
+                p.DeviceKey,
+                p.TransferRef,
+                p.PlanCode,
+                p.PlanLabel,
+                p.AmountVnd,
+                Status = p.Status.ToString(),
+                p.ReportedAtUtc,
+                p.SubscriptionExpiresAtUtc,
+                p.VerifiedAtUtc
+            })
+            .FirstOrDefaultAsync();
+
+        // Backward-compat: some visit IDs are stored as "dev_<DeviceKey>" while
+        // payments are stored as "<DeviceKey>" (e.g. dev_1EFEBB vs 1EFEBB).
+        if (payment == null && normalizedDeviceKey != null)
+        {
+            payment = await _context.MobileSubscriptionPayments
+                .AsNoTracking()
+                .Where(p => p.DeviceKey.ToUpper() == normalizedDeviceKey)
+                .OrderByDescending(p => p.ReportedAtUtc)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.DeviceKey,
+                    p.TransferRef,
+                    p.PlanCode,
+                    p.PlanLabel,
+                    p.AmountVnd,
+                    Status = p.Status.ToString(),
+                    p.ReportedAtUtc,
+                    p.SubscriptionExpiresAtUtc,
+                    p.VerifiedAtUtc
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        if (!logs.Any() && payment == null)
+            return null;
+
+        var poiNames = await _context.POIs
+            .AsNoTracking()
+            .Select(p => new { p.Id, p.Name })
+            .ToDictionaryAsync(x => x.Id, x => x.Name);
+
+        var poiVisits = logs
+            .GroupBy(v => v.POId)
+            .Select(g => new
+            {
+                POIId = g.Key,
+                POIName = poiNames.TryGetValue(g.Key, out var name) ? name : $"POI #{g.Key}",
+                VisitCount = g.Count(),
+                FirstVisit = g.Min(x => x.VisitTime),
+                LastVisit = g.Max(x => x.VisitTime)
+            })
+            .OrderByDescending(x => x.VisitCount)
+            .ThenByDescending(x => x.LastVisit)
+            .ToList();
+
+        var firstSeen = logs.Any()
+            ? logs.Min(v => v.VisitTime)
+            : payment!.ReportedAtUtc;
+
+        var lastSeen = logs.Any()
+            ? logs.Max(v => v.VisitTime)
+            : payment!.ReportedAtUtc;
+
+        return new
+        {
+            DeviceId = deviceId,
+            VisitCount = logs.Count,
+            UniquePOIs = poiVisits.Count,
+            FirstSeen = firstSeen,
+            LastSeen = lastSeen,
+            Payment = payment,
+            POIs = poiVisits
+        };
+    }
+
+    private static string? NormalizePossibleDeviceKey(string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            return null;
+
+        var raw = userId.Trim();
+        if (!raw.StartsWith("dev_", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var candidate = raw.Substring(4).Trim();
+        if (candidate.Length != 6)
+            return null;
+
+        foreach (var ch in candidate)
+        {
+            var isHex = (ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F');
+            if (!isHex) return null;
+        }
+
+        return candidate.ToUpperInvariant();
+    }
 }

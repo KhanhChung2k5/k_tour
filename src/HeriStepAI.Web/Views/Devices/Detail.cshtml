@@ -1,0 +1,128 @@
+@model HeriStepAI.Web.Models.DeviceDetailViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Chi tiết thiết bị";
+    var payment = Model.Payment;
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title-text">Chi tiết thiết bị</h1>
+        <p class="page-subtitle-text">Theo dõi lịch sử gói và các POI mà thiết bị đã ghé.</p>
+    </div>
+    <a href="@Url.Action("Index", "Devices")" class="btn btn-outline-light btn-sm">← Danh sách thiết bị</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="stat-card blue">
+            <div class="stat-top">
+                <div class="stat-icon"><i class="bi bi-phone-fill"></i></div>
+                <span class="stat-badge">Device</span>
+            </div>
+            <div class="stat-number" style="font-size:1.2rem;">
+                <code style="color:var(--amber);background:transparent;padding:0;">@Model.DeviceId</code>
+            </div>
+            <div class="stat-label">Mã thiết bị</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="stat-card green">
+            <div class="stat-number">@Model.VisitCount</div>
+            <div class="stat-label">Tổng lượt ghé</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="stat-card amber">
+            <div class="stat-number">@Model.UniquePOIs</div>
+            <div class="stat-label">POI đã ghé</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="stat-card red">
+            <div class="stat-number" style="font-size:1rem;">@Model.FirstSeen.ToLocalTime().ToString("dd/MM HH:mm")</div>
+            <div class="stat-label">Lần đầu</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-2">
+        <div class="stat-card red">
+            <div class="stat-number" style="font-size:1rem;">@Model.LastSeen.ToLocalTime().ToString("dd/MM HH:mm")</div>
+            <div class="stat-label">Lần cuối</div>
+        </div>
+    </div>
+</div>
+
+<div class="table-card mb-4">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-weight:600;">
+        Thông tin gói đăng ký
+    </div>
+    <div style="padding:14px 18px;">
+        @if (payment == null)
+        {
+            <div style="color:var(--cream-muted);">Chưa có dữ liệu thanh toán cho thiết bị này.</div>
+        }
+        else
+        {
+            <div class="row g-3">
+                <div class="col-12 col-md-4">
+                    <div style="color:var(--cream-muted);font-size:0.8rem;">Thời gian đăng ký gói</div>
+                    <div>@(payment.ReportedAtUtc?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "-")</div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div style="color:var(--cream-muted);font-size:0.8rem;">Thời gian hết hạn gói</div>
+                    <div>@(payment.SubscriptionExpiresAtUtc?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "-")</div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div style="color:var(--cream-muted);font-size:0.8rem;">Gói / trạng thái</div>
+                    <div>@(string.IsNullOrWhiteSpace(payment.PlanLabel) ? payment.PlanCode : payment.PlanLabel) - @payment.Status</div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="table-card">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-weight:600;">
+        Danh sách POI đã ghé
+    </div>
+    <div class="table-responsive">
+        <table class="table" style="table-layout:fixed;width:100%;">
+            <colgroup>
+                <col style="width:6%;" />
+                <col style="width:42%;" />
+                <col style="width:14%;" />
+                <col style="width:19%;" />
+                <col style="width:19%;" />
+            </colgroup>
+            <thead>
+                <tr>
+                    <th style="padding-left:20px;">#</th>
+                    <th>POI</th>
+                    <th style="text-align:center;">Số lượt ghé</th>
+                    <th>Lần đầu</th>
+                    <th>Lần cuối</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var (row, i) in Model.POIs.Select((r, idx) => (r, idx)))
+                {
+                    <tr>
+                        <td style="padding-left:20px;color:var(--cream-muted);font-size:0.78rem;">@(i + 1)</td>
+                        <td>@row.POIName</td>
+                        <td style="text-align:center;"><span class="badge-soft-info">@row.VisitCount</span></td>
+                        <td style="font-size:0.78rem;color:var(--cream-muted);">@row.FirstVisit.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td style="font-size:0.78rem;color:var(--cream);">@row.LastVisit.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                    </tr>
+                }
+                @if (!Model.POIs.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center py-4" style="color:var(--cream-muted);">
+                            Thiết bị chưa có dữ liệu ghé POI.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

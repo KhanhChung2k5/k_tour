@@ -75,7 +75,7 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | POI Index | `/POI` | Danh sách (sort theo **Priority** rồi thời gian); **GET /POI/Create** redirect về Index (Admin không tạo POI mới) |
 | POI Edit / Details | `/POI/...` | Admin sửa POI có sẵn (DbContext/API tùy flow); upload ảnh Supabase |
 | Analytics | `/Analytics` | Admin; top POI + breakdown (API) |
-| Devices | `/Devices` | Admin; danh sách thiết bị ẩn danh (`dev_<guid>`) từ `VisitLogs`; thống kê ActiveToday / 7 ngày / 30 ngày; phân trang 50 item |
+| Devices | `/Devices` | Admin; danh sách thiết bị ẩn danh (`dev_XXXXXX`) từ `VisitLogs`; thống kê ActiveToday / 7 ngày / 30 ngày; phân trang 50 item. `XXXXXX` = `SubscriptionService.DeviceKey` → khớp trực tiếp với cột DeviceKey trong `/SubscriptionPayments` |
 | POI Payments | `/POIPayments` | Admin; tổng hợp `Pending/Verified/Rejected`; xác nhận → POI.IsActive = true; từ chối → POI vẫn inactive |
 | Subscription Payments | `/SubscriptionPayments` | Admin; đối soát gói thanh toán Mobile; xác nhận → tính `SubscriptionExpiresAtUtc`; từ chối → không kích hoạt |
 | ShopOwner Dashboard / **Create** / Edit / Statistics | `/ShopOwner/...` | **Tạo POI** mới + DbContext; 403/NotFound nếu không sở hữu POI |
@@ -150,7 +150,7 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 |----|---------|
 | **FR-ANA-01** | Mọi metric dashboard/API **tính từ `VisitLogs`** (không dùng bảng entity `Analytics`). |
 | **FR-ANA-02** | Mobile/API: `POST .../analytics/visit` ghi `VisitLog` với `VisitType` (Geofence, MapClick, QRCode). Visit được kích hoạt từ 3 điểm: (1) Geofence trigger, (2) Click "Nghe thuyết minh" trên Map popup (JS bridge → `POISelectedCommand`), (3) Click "Nghe thuyết minh" trên `POIDetailPage`. |
-| **FR-ANA-03** | Người dùng ẩn danh (không đăng nhập) được nhận diện bằng **Device ID** (`dev_<guid>`) lưu trong `SecureStorage`. Device ID được tạo một lần và tái sử dụng cho mọi request. `UserId` trong `VisitLog` = Device ID khi ẩn danh, = account ID khi đã đăng nhập. |
+| **FR-ANA-03** | Người dùng ẩn danh (không đăng nhập) được nhận diện bằng **Device ID** có dạng `dev_XXXXXX` — trong đó `XXXXXX` là `SubscriptionService.DeviceKey` (6 ký tự hex uppercase, SHA-256 của thông tin thiết bị, lưu trong `SecureStorage["sub_device_key"]`). `UserId` trong `VisitLog` = `"dev_" + DeviceKey` khi ẩn danh, = account ID khi đã đăng nhập. Cách này liên kết trực tiếp visit log (`dev_XXXXXX`) với bản ghi thanh toán gói (`XXXXXX`) mà không cần bảng mapping. |
 | **FR-ANA-04** | Admin xem thống kê thiết bị qua `/Devices`: danh sách `DeviceId`, số lượt visit, số POI đã ghé, lần đầu/lần cuối truy cập; tóm tắt ActiveToday / 7 ngày / 30 ngày. |
 
 ### 6.5 Mobile — Tour (như đã code)
@@ -546,28 +546,28 @@ sequenceDiagram
 
     Note over App,API: Trigger 1 — User vào vùng POI (Geofence tự động)
     App->>App: GeofenceService.CheckGeofence(location)
-    App->>App: Lấy userId = CurrentUser.Id\nhoặc SecureStorage “dev_<guid>”
-    App->>API: POST api/analytics/visit\n{ poiId, userId, lat, lon, visitType=Geofence }
+    App->>App: Lấy userId = CurrentUser.Id\nhoặc “dev_” + SubscriptionService.DeviceKey
+    App->>API: POST api/analytics/visit\n{ poiId, userId:”dev_XXXXXX”, lat, lon, visitType=Geofence }
     API-->>App: 202 Accepted
     API->>DB: Insert VisitLog (background)
-    App->>App: NarrationService.PlayNarration (auto)
+    App->>App: NarrationService.PlayNarration (auto, queue)
 
     Note over App,API: Trigger 2 — Click POI trên bản đồ (Map popup)
     App->>App: JS selectPOI(id) → Android.selectPOI bridge
     App->>App: POISelectedCommand(poi)
-    App->>App: Lấy userId (CurrentUser.Id hoặc dev_<guid>)
-    App->>API: POST api/analytics/visit\n{ poiId, userId, lat?, lon?, visitType=MapClick }
+    App->>App: Lấy userId = CurrentUser.Id\nhoặc “dev_” + SubscriptionService.DeviceKey
+    App->>API: POST api/analytics/visit\n{ poiId, userId:”dev_XXXXXX”, lat?, lon?, visitType=MapClick }
     API-->>App: 202 Accepted
     API->>DB: Insert VisitLog (background)
-    App->>App: NarrationService.PlayNarration (force)
+    App->>App: NarrationService.PlayNarration (forcePlay=true)
 
     Note over App,API: Trigger 3 — Click “Nghe thuyết minh” tại POIDetailPage
     App->>App: POIDetailViewModel.PlayNarration
-    App->>App: Lấy userId (CurrentUser.Id hoặc dev_<guid>)
-    App->>API: POST api/analytics/visit\n{ poiId, userId, visitType=MapClick }
+    App->>App: Lấy userId = CurrentUser.Id\nhoặc “dev_” + SubscriptionService.DeviceKey
+    App->>API: POST api/analytics/visit\n{ poiId, userId:”dev_XXXXXX”, visitType=MapClick }
     API-->>App: 202 Accepted
     API->>DB: Insert VisitLog (background)
-    App->>App: NarrationService.PlayNarration (force)
+    App->>App: NarrationService.PlayNarration (forcePlay=true)
 ```
 
 ### Giải thích chi tiết – Sơ đồ 4
@@ -581,7 +581,7 @@ sequenceDiagram
 | 4 | **Trigger 1 — Geofence tự động** | GPS cập nhật 5s/lần; khi user vào bán kính POI, `GeofenceService` kích hoạt. App lấy userId (đã đăng nhập → User.Id; ẩn danh → `SecureStorage “dev_<guid>”`). Gọi `LogVisitAsync(visitType=Geofence)` bất đồng bộ, phát thuyết minh tự động. |
 | 5 | **Trigger 2 — Click POI trên bản đồ** | Tap marker → JS `selectPOI(id)` gọi `Android.selectPOI` bridge (JavascriptInterface) → `POISelectedCommand` → `LogVisitAsync(visitType=MapClick)`. Phát thuyết minh ngay (forcePlay). |
 | 6 | **Trigger 3 — Nút “Nghe thuyết minh” tại POIDetailPage** | `POIDetailViewModel.PlayNarration` → `LogVisitAsync(visitType=MapClick)` → phát thuyết minh (forcePlay). |
-| 7 | **userId ẩn danh** | Khi chưa đăng nhập, app dùng `SecureStorage.GetAsync(“device_id”)`; nếu chưa có → tạo `”dev_” + Guid.NewGuid()` và lưu lại. Mỗi thiết bị có 1 device_id ổn định. |
+| 7 | **userId ẩn danh** | Khi chưa đăng nhập, app dùng `”dev_” + SubscriptionService.DeviceKey`. `DeviceKey` = 6 ký tự hex uppercase (SHA-256 của `DeviceName\|Model\|Platform\|Guid`), lưu vĩnh viễn trong `SecureStorage[“sub_device_key”]`. Định dạng `dev_XXXXXX` trong `VisitLogs` khớp trực tiếp với `XXXXXX` trong bảng `MobileSubscriptionPayments` — Admin có thể đối chiếu 2 bảng mà không cần mapping table. |
 | 8 | API trả **202 Accepted** | API chấp nhận request và ghi vào DB bất đồng bộ. |
 | 9 | API **Insert VisitLog** | Ghi vào bảng `VisitLogs` để Admin/ShopOwner xem thống kê. Admin có thể xem theo thiết bị ẩn danh qua trang Devices. |
 
@@ -810,7 +810,7 @@ sequenceDiagram
     alt Subscription còn hạn
         Sub-->>App: true
         App->>UI: MainPage = AppShell
-        App->>App: Background: SyncPOIsFromServerAsync()
+        App->>App: Background: SyncPOIsFromServerAsync()\n(SemaphoreSlim(1,1) — bỏ qua nếu đang sync)
     else Hết hạn / chưa mua
         Sub-->>App: false
         App->>UI: MainPage = SubscriptionPage
@@ -982,7 +982,7 @@ sequenceDiagram
         Narr->>Narr: Lớp 2 NarrationService: queue.Any(p.Id==poi.Id)? → skip
         Narr->>Narr: Lớp 3 NarrationService: _lastPlayedAt cooldown 5min? → skip
         Narr->>Narr: Chọn nội dung: Contents[lang] → vi → Description
-        Narr->>TTS: SpeakAsync(text, locale, voice)
+        Narr->>TTS: MainThread.InvokeOnMainThreadAsync\n→ SpeakAsync(text, locale, voice)
         TTS-->>Narr: NarrationCompleted
         Narr->>Analytics: RecordNarration()
         Narr-->>Main: NarrationCompleted event
@@ -1008,10 +1008,13 @@ sequenceDiagram
     Page->>VM: PlayNarrationCommand()
     VM->>Narr: PlayNarrationAsync(poi, currentLang, forcePlay=true)
     Note over Narr: forcePlay=true → hủy queue hiện tại, phát ngay
-    Narr->>Narr: CancelAsync() (dừng đang phát)
+    Narr->>Narr: _cts.Cancel() (signal huỷ TTS đang chạy)
     Narr->>Narr: Clear queue
+    Narr->>Narr: Polling tối đa 1s (50ms/tick)\nchờ _isProcessing = false
+    Narr->>Narr: _isProcessing = false, Add poi vào queue
+    Narr->>Narr: EnsureProcessing() → ProcessLoopAsync
     Narr->>Narr: Lấy nội dung: Contents[lang] → vi → Description
-    Narr->>TTS: SpeakAsync(text, locale, Male/Female voice)
+    Narr->>TTS: MainThread.InvokeOnMainThreadAsync\n→ SpeakAsync(text, locale, Male/Female voice)
     TTS-->>Narr: done
     Narr-->>VM: NarrationCompleted
     VM->>Analytics: RecordPOIVisit(poi)

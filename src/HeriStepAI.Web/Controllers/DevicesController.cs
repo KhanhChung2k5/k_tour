@@ -55,6 +55,34 @@ public class DevicesController : Controller
         return View(pageResult.Items);
     }
 
+    public async Task<IActionResult> Detail(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+            return RedirectToAction(nameof(Index));
+
+        var client = CreateAuthenticatedClient();
+        var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+        var response = await client.GetAsync($"analytics/devices/{Uri.EscapeDataString(id)}/details");
+        if (!response.IsSuccessStatusCode)
+        {
+            TempData["Error"] = response.StatusCode == System.Net.HttpStatusCode.NotFound
+                ? "Không tìm thấy thiết bị."
+                : $"Không tải được chi tiết thiết bị ({(int)response.StatusCode}).";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var json = await response.Content.ReadAsStringAsync();
+        var detail = JsonSerializer.Deserialize<DeviceDetailViewModel>(json, opts);
+        if (detail == null)
+        {
+            TempData["Error"] = "Dữ liệu chi tiết thiết bị không hợp lệ.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View(detail);
+    }
+
     private HttpClient CreateAuthenticatedClient()
     {
         var client = _httpClientFactory.CreateClient("API");
