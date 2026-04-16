@@ -36,8 +36,18 @@ public class NarrationService : INarrationService
             // User click: hủy tất cả, phát ngay POI này
             _cts?.Cancel();
             lock (_queueLock) { _queue.Clear(); }
-            await Task.Delay(200); // Cho loop cũ kết thúc
-            lock (_queueLock) { _queue.Add(poi); }
+
+            // Chờ loop cũ thực sự kết thúc (tối đa 1s), không chờ cứng 200ms
+            var deadline = DateTime.UtcNow.AddSeconds(1);
+            while (_isProcessing && DateTime.UtcNow < deadline)
+                await Task.Delay(50);
+
+            // Reset trạng thái sau khi loop cũ đã dừng
+            lock (_queueLock)
+            {
+                _queue.Clear(); // Clear lại phòng case queue bị thêm trong lúc chờ
+                _queue.Add(poi);
+            }
             _isProcessing = false;
             EnsureProcessing();
             return;
@@ -133,6 +143,8 @@ public class NarrationService : INarrationService
 
     private async Task PlaySingleAsync(POI poi, string language, CancellationToken ct)
     {
+        AppLog.Info($"PlaySingleAsync: POI={poi.Name}, lang={language}, contents={poi.Contents?.Count ?? 0}, desc={poi.Description?.Length ?? 0} chars");
+
         var content = poi.Contents?.FirstOrDefault(c => c.Language == language)
                    ?? poi.Contents?.FirstOrDefault(c => c.Language == "vi")
                    ?? poi.Contents?.FirstOrDefault();
@@ -141,12 +153,20 @@ public class NarrationService : INarrationService
         string? audioUrl = content?.AudioUrl;
         var contentType = content?.ContentType ?? ContentType.TTS;
 
+        AppLog.Info($"PlaySingleAsync: content={content?.Language ?? "null"}, textLen={textToSpeak?.Length ?? 0}, contentType={contentType}");
+
         // Fallback: dùng Description nếu không có POIContent
         if (string.IsNullOrEmpty(textToSpeak) && !string.IsNullOrEmpty(poi.Description))
+        {
             textToSpeak = poi.Description;
+            AppLog.Info($"PlaySingleAsync: fallback to Description ({textToSpeak.Length} chars)");
+        }
 
         if (string.IsNullOrEmpty(textToSpeak) && string.IsNullOrEmpty(audioUrl))
-            return; // Không có gì để phát
+        {
+            AppLog.Error($"PlaySingleAsync: no text or audio to play for {poi.Name}!");
+            return;
+        }
 
         if (contentType == ContentType.AudioFile && !string.IsNullOrEmpty(audioUrl))
             await PlayAudioFileAsync(audioUrl, ct);
@@ -173,11 +193,17 @@ public class NarrationService : INarrationService
     {
         try
         {
+            AppLog.Info($"SpeakTextAsync: lang={language}, textLen={text.Length}, first50={text[..Math.Min(50, text.Length)]}");
+
+            ct.ThrowIfCancellationRequested();
+
             var locales = await TextToSpeech.Default.GetLocalesAsync();
             var langPrefix = GetTtsLanguagePrefix(language);
 
             var langLocales = locales.Where(l =>
                 l.Language.StartsWith(langPrefix, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            AppLog.Info($"TTS locales for '{langPrefix}': {langLocales.Count} found");
 
             Locale? locale = null;
 
@@ -198,28 +224,43 @@ public class NarrationService : INarrationService
 
             locale ??= langLocales.FirstOrDefault();
 
+            ct.ThrowIfCancellationRequested();
+
             if (locale != null)
             {
-                AppLog.Info($"TTS voice: {locale.Name} ({locale.Language})");
-                await TextToSpeech.Default.SpeakAsync(text,
-                    new Microsoft.Maui.Media.SpeechOptions
-                    {
-                        Locale = locale,
-                        Pitch = 1.0f,
-                        Volume = 1.0f
-                    }, ct);
+                AppLog.Info($"TTS speaking with locale: {locale.Name} ({locale.Language})");
+                var options = new Microsoft.Maui.Media.SpeechOptions
+                {
+                    Locale = locale,
+                    Pitch = 1.0f,
+                    Volume = 1.0f
+                };
+                // Gọi TTS trên main thread — một số thiết bị Android yêu cầu điều này
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                    TextToSpeech.Default.SpeakAsync(text, options, ct));
             }
             else
             {
-                await TextToSpeech.Default.SpeakAsync(text, cancelToken: ct);
+                AppLog.Info($"TTS no locale for '{langPrefix}', using system default");
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                    TextToSpeech.Default.SpeakAsync(text, cancelToken: ct));
             }
+
+            AppLog.Info($"TTS SpeakAsync completed for: {text[..Math.Min(30, text.Length)]}");
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"TTS error: {ex.Message}");
-            try { await TextToSpeech.Default.SpeakAsync(text, cancelToken: ct); }
-            catch { }
+            AppLog.Error($"TTS error: {ex.GetType().Name}: {ex.Message}");
+            try
+            {
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                    TextToSpeech.Default.SpeakAsync(text, cancelToken: ct));
+            }
+            catch (Exception ex2)
+            {
+                AppLog.Error($"TTS fallback also failed: {ex2.Message}");
+            }
         }
     }
 

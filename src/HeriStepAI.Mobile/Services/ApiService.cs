@@ -9,6 +9,7 @@ public class ApiService : IApiService
 {
     private readonly HttpClient _httpClient;
     private readonly IAuthService _authService;
+    private readonly ISubscriptionService _subscriptionService;
 
     private static string GetBaseUrl()
     {
@@ -30,9 +31,10 @@ public class ApiService : IApiService
 #endif
     }
 
-    public ApiService(IAuthService authService)
+    public ApiService(IAuthService authService, ISubscriptionService subscriptionService)
     {
         _authService = authService;
+        _subscriptionService = subscriptionService;
         var baseUrl = GetBaseUrl();
         try
         {
@@ -87,15 +89,12 @@ public class ApiService : IApiService
         return null;
     }
 
-    private static async Task<string> GetOrCreateDeviceIdAsync()
-    {
-        const string key = "device_id";
-        var stored = await SecureStorage.Default.GetAsync(key);
-        if (!string.IsNullOrEmpty(stored)) return stored;
-        var newId = "dev_" + Guid.NewGuid().ToString("N");
-        await SecureStorage.Default.SetAsync(key, newId);
-        return newId;
-    }
+    /// <summary>
+    /// Returns a stable anonymous device identifier derived from <see cref="ISubscriptionService.DeviceKey"/>.
+    /// Format: "dev_XXXXXX" — links visit logs to subscription payments without a mapping table.
+    /// </summary>
+    private Task<string> GetOrCreateDeviceIdAsync()
+        => Task.FromResult("dev_" + _subscriptionService.DeviceKey);
 
     public async Task LogVisitAsync(int poiId, double? latitude, double? longitude, VisitType visitType)
     {

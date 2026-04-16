@@ -8,6 +8,8 @@ public class POIService : IPOIService
     private readonly IApiService _apiService;
     private SQLiteAsyncConnection? _db;
     private readonly Task _initTask;
+    // Ngăn 2 thread sync đồng thời → UNIQUE constraint error
+    private readonly SemaphoreSlim _syncLock = new(1, 1);
 
     public POIService(IApiService apiService)
     {
@@ -118,6 +120,14 @@ public class POIService : IPOIService
     public async Task SyncPOIsFromServerAsync()
     {
         await EnsureDbReadyAsync();
+
+        // Chỉ cho 1 thread sync tại một thời điểm; nếu đang sync thì bỏ qua
+        if (!await _syncLock.WaitAsync(0))
+        {
+            AppLog.Info("POIService Sync skipped: already syncing");
+            return;
+        }
+
         try
         {
             var serverPOIs = await _apiService.GetAllPOIsAsync();
@@ -151,6 +161,10 @@ public class POIService : IPOIService
         catch (Exception ex)
         {
             AppLog.Error($"POIService Error: {ex.Message}");
+        }
+        finally
+        {
+            _syncLock.Release();
         }
     }
 }
