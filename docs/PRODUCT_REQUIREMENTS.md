@@ -803,6 +803,15 @@ sequenceDiagram
     participant Sec as SecureStorage
     participant UI as MainPage / SubscriptionPage
 
+    App->>Sub: InitializeAsync()
+    Sub->>Sec: Get("sub_device_key")
+    alt Chưa có DeviceKey
+        Sec-->>Sub: null
+        Sub->>Sub: SHA256(DeviceName|Model|Platform|Guid)[0..5].ToUpper()
+        Sub->>Sec: Set("sub_device_key", XXXXXX)
+    else Đã có
+        Sec-->>Sub: XXXXXX
+    end
     App->>Sub: IsActive?
     Sub->>Sec: Get("sub_expiry")
     Sec-->>Sub: ISO datetime / null
@@ -835,6 +844,10 @@ sequenceDiagram
 
     User->>SubPage: Chọn gói (Daily/Weekly/Monthly/Yearly)
     SubPage->>VM: SelectPlanCommand(plan)
+    VM->>Sub: DeviceKey
+    Sub->>Sec: Get("sub_device_key")
+    Sec-->>Sub: XXXXXX
+    Sub-->>VM: XXXXXX
     VM->>VM: SelectedPlan = plan, IsPaying = true
     VM->>VietQR: GET img.vietqr.io/image/ICB-104879400502-compact2.png\n?amount={amount}&addInfo=HSA{deviceKey}{planCode}
     VietQR-->>SubPage: QR image
