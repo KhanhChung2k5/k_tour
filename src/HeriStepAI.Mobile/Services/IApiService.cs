@@ -6,6 +6,7 @@ public interface IApiService
 {
     Task<List<POI>?> GetAllPOIsAsync();
     Task LogVisitAsync(int poiId, double? latitude, double? longitude, VisitType visitType);
+    Task HeartbeatAsync();
 
     /// <summary>Gửi báo thanh toán lên server để Admin đối soát CK.</summary>
     /// <returns>true nếu server trả 2xx.</returns>

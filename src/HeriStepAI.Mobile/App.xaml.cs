@@ -8,6 +8,7 @@ namespace HeriStepAI.Mobile;
 public partial class App : Application
 {
     private const string LogTag = "HeriStepAI";
+    private readonly HeartbeatService _heartbeat;
 
     public static IServiceProvider? Services { get; private set; }
 
@@ -19,11 +20,14 @@ public partial class App : Application
             InitializeComponent();
             ResponsiveHelper.Initialize();
 
+            _heartbeat = new HeartbeatService(serviceProvider.GetRequiredService<IApiService>());
+
             // Gate on subscription: show payment page if not active
             var subscription = serviceProvider.GetRequiredService<ISubscriptionService>();
             if (subscription.IsActive)
             {
                 MainPage = serviceProvider.GetRequiredService<AppShell>();
+                _heartbeat.Start();
             }
             else
             {
@@ -51,6 +55,18 @@ public partial class App : Application
             LogToDebug($"App constructor error: {ex.Message}");
             throw;
         }
+    }
+
+    protected override void OnSleep()
+    {
+        base.OnSleep();
+        _heartbeat.Stop();
+    }
+
+    protected override void OnResume()
+    {
+        base.OnResume();
+        _heartbeat.Start();
     }
 
     private static void LogToDebug(string message)

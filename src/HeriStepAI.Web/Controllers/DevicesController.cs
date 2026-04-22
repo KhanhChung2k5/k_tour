@@ -83,6 +83,20 @@ public class DevicesController : Controller
         return View(detail);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> OnlineNow()
+    {
+        var client = CreateAuthenticatedClient();
+        var response = await client.GetAsync("analytics/online-now");
+        if (!response.IsSuccessStatusCode)
+            return Json(new { onlineNow = 0 });
+        var json = await response.Content.ReadAsStringAsync();
+        var opts = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var data = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(json, opts);
+        var count = data.TryGetProperty("OnlineNow", out var v) ? v.GetInt32() : 0;
+        return Json(new { onlineNow = count });
+    }
+
     private HttpClient CreateAuthenticatedClient()
     {
         var client = _httpClientFactory.CreateClient("API");

@@ -258,6 +258,26 @@ public class AnalyticsService : IAnalyticsService
         };
     }
 
+    public async Task<List<double[]>> GetHeatmapDataAsync(DateTime? startDate, DateTime? endDate)
+    {
+        var query = _context.VisitLogs
+            .Where(v => v.Latitude.HasValue && v.Longitude.HasValue && v.VisitType == VisitType.Geofence)
+            .AsQueryable();
+
+        if (startDate.HasValue)
+            query = query.Where(v => v.VisitTime >= startDate.Value);
+        if (endDate.HasValue)
+            query = query.Where(v => v.VisitTime <= endDate.Value);
+
+        var points = await query
+            .Select(v => new { v.Latitude, v.Longitude })
+            .ToListAsync();
+
+        return points
+            .Select(p => new double[] { p.Latitude!.Value, p.Longitude!.Value })
+            .ToList();
+    }
+
     private static string? NormalizePossibleDeviceKey(string userId)
     {
         if (string.IsNullOrWhiteSpace(userId))

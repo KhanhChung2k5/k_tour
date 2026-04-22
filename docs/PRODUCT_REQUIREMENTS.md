@@ -3,7 +3,7 @@
 | Thuộc tính | Giá trị |
 |------------|---------|
 | **Phiên bản** | 1.0 |
-| **Ngày** | 2026-04-12 |
+| **Ngày** | 2026-04-22 |
 | **Trạng thái** | Hoàn thành|
 
 ---
@@ -39,6 +39,8 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | 6 | **Mobile** | AppShell, Map (Leaflet WebView), POI list/detail, **Tour gợi ý + TourDetail + Bắt đầu tour**, Settings, SQLite cache |
 | 7 | **Dữ liệu** | PostgreSQL: `Users`, `POIs`, `POIContents`, `VisitLogs` (nghiệp vụ); bảng `Analytics` entity **legacy, không dùng** |
 | 8 | **POI Payment (Web + API)** | ShopOwner tạo POI → báo thanh toán (Web `POST /ShopOwner/ReportPayment`, DbContext) → Admin đối soát (`/POIPayments`) → Xác nhận kích hoạt POI / Từ chối; trạng thái: `Pending / Verified / Rejected` |
+| 9 | **Heatmap vị trí (Web + API)** | Admin xem mật độ du khách theo vị trí GPS thực tế; chỉ tính `VisitType = Geofence`; lọc theo 7 ngày / 30 ngày / tất cả; POI markers hover tooltip |
+| 10 | **Heartbeat / Online Now (Mobile + API)** | Mobile gửi heartbeat mỗi 5 giây; API dùng `HeartbeatTracker` (ConcurrentDictionary, TTL 15s) để đếm thiết bị đang online; Admin xem qua `GET /analytics/online-now` |
 
 ### 2.2 Ngoài phạm vi (hiện không có trong repo — không mô tả như đã ship)
 
@@ -78,6 +80,7 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | Devices | `/Devices` | Admin; danh sách thiết bị ẩn danh (`dev_XXXXXX`) từ `VisitLogs`; thống kê ActiveToday / 7 ngày / 30 ngày; phân trang 50 item. `XXXXXX` = `SubscriptionService.DeviceKey` → khớp trực tiếp với cột DeviceKey trong `/SubscriptionPayments` |
 | POI Payments | `/POIPayments` | Admin; tổng hợp `Pending/Verified/Rejected`; xác nhận → POI.IsActive = true; từ chối → POI vẫn inactive |
 | Subscription Payments | `/SubscriptionPayments` | Admin; đối soát gói thanh toán Mobile; xác nhận → tính `SubscriptionExpiresAtUtc`; từ chối → không kích hoạt |
+| **Heatmap vị trí** | `/Heatmap` | Admin; bản đồ Leaflet + leaflet-heat; chỉ điểm `Geofence`; lọc 7d/30d/all; chấm POI hover tooltip |
 | ShopOwner Dashboard / **Create** / Edit / Statistics | `/ShopOwner/...` | **Tạo POI** mới + DbContext; 403/NotFound nếu không sở hữu POI |
 
 ### 4.2 Mobile (`HeriStepAI.Mobile`)
@@ -92,6 +95,8 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | `SettingsPage` | Ngôn ngữ, logout |
 
 **State chung:** loading / empty / error — theo từng ViewModel (sync POI, API fail vẫn có thể hiện SQLite).
+
+**HeartbeatService:** Khởi động cùng app (`App.xaml.cs`); gửi `POST /api/analytics/heartbeat` mỗi 5 giây; dừng khi app close. Không block UX nếu API fail.
 
 ---
 
@@ -152,6 +157,8 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | **FR-ANA-02** | Mobile/API: `POST .../analytics/visit` ghi `VisitLog` với `VisitType` (Geofence, MapClick, QRCode). Visit được kích hoạt từ 3 điểm: (1) Geofence trigger, (2) Click "Nghe thuyết minh" trên Map popup (JS bridge → `POISelectedCommand`), (3) Click "Nghe thuyết minh" trên `POIDetailPage`. |
 | **FR-ANA-03** | Người dùng ẩn danh (không đăng nhập) được nhận diện bằng **Device ID** có dạng `dev_XXXXXX` — trong đó `XXXXXX` là `SubscriptionService.DeviceKey` (6 ký tự hex uppercase, SHA-256 của thông tin thiết bị, lưu trong `SecureStorage["sub_device_key"]`). `UserId` trong `VisitLog` = `"dev_" + DeviceKey` khi ẩn danh, = account ID khi đã đăng nhập. Cách này liên kết trực tiếp visit log (`dev_XXXXXX`) với bản ghi thanh toán gói (`XXXXXX`) mà không cần bảng mapping. |
 | **FR-ANA-04** | Admin xem thống kê thiết bị qua `/Devices`: danh sách `DeviceId`, số lượt visit, số POI đã ghé, lần đầu/lần cuối truy cập; tóm tắt ActiveToday / 7 ngày / 30 ngày. |
+| **FR-ANA-05** | Admin xem **heatmap vị trí** tại `/Heatmap`: bản đồ Leaflet kết hợp `leaflet-heat`; chỉ lấy điểm có `VisitType = Geofence` và lat/lng không null; hỗ trợ lọc `startDate` (7d/30d/all); POI markers hiển thị tên khi hover. |
+| **FR-ANA-06** | **Heartbeat / Online Now**: Mobile gửi `POST /api/analytics/heartbeat` (AllowAnonymous) mỗi 5 giây kèm `UserId`; API lưu vào `HeartbeatTracker` (ConcurrentDictionary in-memory, TTL 15s); Admin gọi `GET /analytics/online-now` để lấy số thiết bị đang hoạt động. Dữ liệu không persist vào DB. |
 
 ### 6.5 Mobile — Tour (như đã code)
 
@@ -282,6 +289,10 @@ Base: `/api/...` — versioning do team quy ước.
 | GET | `/analytics/summary`, `/analytics/top-pois`, … | Dashboard (Admin JWT) |
 | GET | `/analytics/devices` | Danh sách thiết bị ẩn danh, phân trang (`?page=&pageSize=`) (Admin JWT) |
 | GET | `/analytics/devices/summary` | Tóm tắt: TotalDevices, ActiveToday, ActiveThisWeek, ActiveThisMonth (Admin JWT) |
+| GET | `/analytics/devices/{deviceId}/details` | Chi tiết thiết bị: danh sách POI đã ghé, số lượt, lần đầu/cuối, thông tin subscription (Admin JWT) |
+| GET | `/analytics/heatmap` | Danh sách `[lat, lng]` điểm Geofence; hỗ trợ `?startDate=&endDate=` (Admin JWT) |
+| POST | `/analytics/heartbeat` | Mobile ping heartbeat; `UserId` từ JWT claim hoặc body (AllowAnonymous) |
+| GET | `/analytics/online-now` | Số thiết bị active trong 15 giây gần nhất từ `HeartbeatTracker` (Admin JWT) |
 
 ---
 

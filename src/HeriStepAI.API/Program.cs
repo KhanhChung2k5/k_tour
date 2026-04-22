@@ -172,6 +172,9 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// In-memory cache cho heartbeat (real-time online users)
+builder.Services.AddMemoryCache();
+
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPOIService, POIService>();

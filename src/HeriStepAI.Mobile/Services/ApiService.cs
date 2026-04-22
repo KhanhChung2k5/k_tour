@@ -16,7 +16,7 @@ public class ApiService : IApiService
 #if DEBUG
         // Đổi NGROK_URL thành URL ngrok hiện tại khi test trên thiết bị thật
         // Để trống ("") để dùng localhost (emulator)
-        const string NgrokUrl = "https://52b0-2402-800-6314-5ab0-dcc-a6da-64bd-69b5.ngrok-free.app/api/";
+        const string NgrokUrl = "https://db32-2402-800-6314-5ab0-3482-29a8-2023-a25c.ngrok-free.app/api/";
 
         if (!string.IsNullOrEmpty(NgrokUrl)) return NgrokUrl;
 
@@ -27,7 +27,7 @@ public class ApiService : IApiService
         return "http://localhost:5000/api/";
 #else
         // TODO: Thay bằng URL production thực tế khi deploy
-        return "https://52b0-2402-800-6314-5ab0-dcc-a6da-64bd-69b5.ngrok-free.app/api/";
+        return "https://db32-2402-800-6314-5ab0-3482-29a8-2023-a25c.ngrok-free.app/api/";
 #endif
     }
 
@@ -186,6 +186,26 @@ public class ApiService : IApiService
         finally
         {
             _httpClient.DefaultRequestHeaders.Authorization = previousAuth;
+        }
+    }
+
+    public async Task HeartbeatAsync()
+    {
+        try
+        {
+            var userId = _authService.CurrentUser?.Id.ToString()
+                         ?? await GetOrCreateDeviceIdAsync();
+            if (_authService.GetToken() is { } token)
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var payload = JsonConvert.SerializeObject(new { userId },
+                new JsonSerializerSettings { ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver() });
+            var content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json");
+            await _httpClient.PostAsync("analytics/heartbeat", content);
+        }
+        catch
+        {
+            // fire-and-forget — bỏ qua lỗi mạng
         }
     }
 

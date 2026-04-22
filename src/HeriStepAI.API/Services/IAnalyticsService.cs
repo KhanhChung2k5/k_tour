@@ -13,4 +13,5 @@ public interface IAnalyticsService
     Task<object> GetDeviceStatsAsync(int page, int pageSize);
     Task<object> GetDeviceSummaryAsync();
     Task<object?> GetDeviceDetailAsync(string deviceId);
+    Task<List<double[]>> GetHeatmapDataAsync(DateTime? startDate, DateTime? endDate);
 }

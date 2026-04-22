@@ -1,0 +1,168 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Heatmap vị trí du khách";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title-text">Heatmap vị trí du khách</h1>
+        <p class="page-subtitle-text">Mật độ du khách theo vị trí thực tế — chỉ tính lượt thuyết minh tự động (geofence).</p>
+    </div>
+    <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-light btn-sm">← Dashboard</a>
+</div>
+
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+    <span style="font-size:0.85rem;color:var(--cream-muted);">Khoảng thời gian:</span>
+    <div class="d-flex gap-2">
+        <button class="btn btn-ghost btn-sm range-btn active" data-range="7d">7 ngày</button>
+        <button class="btn btn-ghost btn-sm range-btn" data-range="30d">30 ngày</button>
+        <button class="btn btn-ghost btn-sm range-btn" data-range="all">Tất cả</button>
+    </div>
+    <span id="point-count" style="font-size:0.8rem;color:var(--cream-muted);margin-left:8px;"></span>
+</div>
+
+<div class="table-card" style="padding:0;overflow:hidden;position:relative;">
+    <div id="heatmap" style="height:600px;width:100%;border-radius:12px;"></div>
+</div>
+
+<div style="margin-top:12px;display:flex;gap:24px;flex-wrap:wrap;align-items:center;">
+    <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--cream-muted);">
+        <div style="width:12px;height:12px;border-radius:50%;background:#4fc3f7;opacity:0.8;"></div>
+        <span>Mật độ thấp</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--cream-muted);">
+        <div style="width:12px;height:12px;border-radius:50%;background:#f5d78e;opacity:0.9;"></div>
+        <span>Mật độ trung bình</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--cream-muted);">
+        <div style="width:12px;height:12px;border-radius:50%;background:#ef5350;"></div>
+        <span>Mật độ cao</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--cream-muted);margin-left:8px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:var(--amber);border:2px solid rgba(255,255,255,0.4);"></div>
+        <span>Vị trí POI</span>
+    </div>
+</div>
+
+@section Scripts {
+<link rel="stylesheet" href="https://unpkg.com/leaflet@@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@@0.2.0/dist/leaflet-heat.js"></script>
+
+<style>
+    .range-btn.active {
+        background: var(--amber);
+        color: #000;
+        border-color: var(--amber);
+    }
+    .leaflet-tooltip.poi-tip {
+        background: rgba(15, 12, 8, 0.9);
+        color: #f5d78e;
+        border: 1px solid rgba(245, 215, 142, 0.3);
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+        white-space: nowrap;
+    }
+    .leaflet-tooltip.poi-tip::before {
+        border-top-color: rgba(245, 215, 142, 0.3);
+    }
+</style>
+
+<script>
+    const map = L.map('heatmap', { zoomControl: true }).setView([10.765401909682748, 106.67708949567992], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    let heatLayer = null;
+    let poiLayer  = L.layerGroup().addTo(map);
+
+    // Load POI markers — chấm nhỏ, tên hiện khi hover
+    async function loadPOIs() {
+        try {
+            const res = await fetch('/Heatmap/Pois');
+            const pois = await res.json();
+            poiLayer.clearLayers();
+            pois.forEach(poi => {
+                const lat  = poi.Latitude  ?? poi.latitude;
+                const lng  = poi.Longitude ?? poi.longitude;
+                const name = poi.Name      ?? poi.name ?? '';
+                if (!lat || !lng) return;
+
+                L.circleMarker([lat, lng], {
+                    radius: 5,
+                    fillColor: '#f5d78e',
+                    color: 'rgba(255,255,255,0.6)',
+                    weight: 1.5,
+                    fillOpacity: 1,
+                    interactive: true
+                })
+                .bindTooltip(name, {
+                    direction: 'top',
+                    offset: [0, -8],
+                    className: 'poi-tip'
+                })
+                .addTo(poiLayer);
+            });
+        } catch (e) { /* bỏ qua nếu lỗi */ }
+    }
+
+    // Load heatmap data
+    async function loadHeatmap(range) {
+        document.getElementById('point-count').textContent = 'Đang tải...';
+        try {
+            const res = await fetch(`/Heatmap/Data?range=${range}`);
+            const points = await res.json();
+
+            if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
+
+            if (!points || points.length === 0) {
+                document.getElementById('point-count').textContent = 'Chưa có dữ liệu geofence.';
+                return;
+            }
+
+            const heatData = points.map(p => [p[0], p[1], 1]);
+
+            heatLayer = L.heatLayer(heatData, {
+                radius: 30,
+                blur: 25,
+                maxZoom: 17,
+                gradient: {
+                    0.0: '#1a237e',
+                    0.3: '#4fc3f7',
+                    0.55: '#f5d78e',
+                    0.8: '#ef5350',
+                    1.0: '#b71c1c'
+                }
+            }).addTo(map);
+
+            // Fit bounds theo data, không đụng POI markers
+            const bounds = L.latLngBounds(points.map(p => [p[0], p[1]]));
+            map.fitBounds(bounds.pad(0.15));
+
+            document.getElementById('point-count').textContent =
+                `${points.length.toLocaleString()} lượt ghé (geofence)`;
+        } catch (e) {
+            document.getElementById('point-count').textContent = 'Lỗi tải dữ liệu.';
+        }
+    }
+
+    let currentRange = '7d';
+    loadPOIs();
+    loadHeatmap(currentRange);
+
+    document.querySelectorAll('.range-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentRange = btn.dataset.range;
+            loadHeatmap(currentRange);
+        });
+    });
+</script>
+}

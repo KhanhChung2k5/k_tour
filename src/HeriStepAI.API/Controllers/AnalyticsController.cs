@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json.Serialization;
 using HeriStepAI.API.Models;
 using HeriStepAI.API.Services;
@@ -6,6 +7,36 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace HeriStepAI.API.Controllers;
+
+// Singleton tracker — sống cùng vòng đời ứng dụng, không cần DB
+public static class HeartbeatTracker
+{
+    private static readonly TimeSpan Threshold = TimeSpan.FromSeconds(15);
+    private static readonly ConcurrentDictionary<string, DateTime> _sessions = new();
+
+    public static void Touch(string userId)
+    {
+        _sessions[userId] = DateTime.UtcNow;
+        Cleanup();
+    }
+
+    public static int Count
+    {
+        get
+        {
+            Cleanup();
+            return _sessions.Count;
+        }
+    }
+
+    private static void Cleanup()
+    {
+        var cutoff = DateTime.UtcNow - Threshold;
+        foreach (var key in _sessions.Keys)
+            if (_sessions.TryGetValue(key, out var t) && t < cutoff)
+                _sessions.TryRemove(key, out _);
+    }
+}
 
 [ApiController]
 [Route("api/[controller]")]
@@ -23,6 +54,26 @@ public class AnalyticsController : ControllerBase
         _poiService = poiService;
         _logger = logger;
     }
+
+    [HttpPost("heartbeat")]
+    [AllowAnonymous]
+    public IActionResult Heartbeat([FromBody] HeartbeatRequest request)
+    {
+        var userId = User.Identity?.IsAuthenticated == true
+            ? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            : request.UserId;
+
+        if (string.IsNullOrWhiteSpace(userId))
+            return BadRequest(new { Error = "UserId required" });
+
+        HeartbeatTracker.Touch(userId);
+        return Ok();
+    }
+
+    [HttpGet("online-now")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult GetOnlineNow() =>
+        Ok(new { OnlineNow = HeartbeatTracker.Count });
 
     [HttpPost("visit")]
     [AllowAnonymous]
@@ -133,6 +184,16 @@ public class AnalyticsController : ControllerBase
         return Ok(summary);
     }
 
+    [HttpGet("heatmap")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetHeatmap(
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null)
+    {
+        var points = await _analyticsService.GetHeatmapDataAsync(startDate, endDate);
+        return Ok(points);
+    }
+
     [HttpGet("devices/{deviceId}/details")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetDeviceDetail(string deviceId)
@@ -155,4 +216,10 @@ public class VisitLogRequest
     public double? Longitude { get; set; }
     [JsonPropertyName("visitType")]
     public VisitType VisitType { get; set; }
+}
+
+public class HeartbeatRequest
+{
+    [JsonPropertyName("userId")]
+    public string? UserId { get; set; }
 }
