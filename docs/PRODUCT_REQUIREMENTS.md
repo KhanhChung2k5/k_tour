@@ -1547,6 +1547,109 @@ sequenceDiagram
 
 ---
 
+### C.20 Admin xem Heatmap vị trí
+
+```mermaid
+sequenceDiagram
+    participant Admin
+    participant Web as HeriStepAI.Web
+    participant API as HeriStepAI.API
+    participant DB as PostgreSQL
+
+    Admin->>Web: GET /Heatmap (Cookie AuthToken)
+    Web->>Web: Đọc JWT từ Cookie "AuthToken"
+    Web->>API: GET api/analytics/heatmap?startDate=&endDate= (Bearer)
+    API->>DB: SELECT Latitude, Longitude FROM VisitLogs<br/>WHERE VisitType = Geofence<br/>AND Latitude IS NOT NULL AND Longitude IS NOT NULL<br/>AND VisitTime >= startDate (nếu có)
+    DB-->>API: [ { lat, lng } × N ]
+    API-->>Web: JSON array [ [lat, lng], ... ]
+    Web->>API: GET api/poi (Bearer)
+    API->>DB: SELECT Id, Name, Latitude, Longitude FROM POIs
+    DB-->>API: [ POI list ]
+    API-->>Web: pois JSON
+    Web-->>Admin: Heatmap/Index.cshtml<br/>(Leaflet map + leaflet-heat layer + POI markers tooltip)
+
+    Note over Admin: Admin chọn filter (7 ngày / 30 ngày / Tất cả)
+    Admin->>Web: GET /Heatmap?range=7d (Cookie)
+    Web->>API: GET api/analytics/heatmap?startDate={now-7d} (Bearer)
+    API->>DB: SELECT lat, lng WHERE VisitTime >= now-7d AND VisitType=Geofence
+    DB-->>API: filtered points
+    API-->>Web: JSON array
+    Web-->>Admin: Cập nhật heat layer trên bản đồ
+```
+
+| Bước | Hành động | Giải thích |
+|------|-----------|------------|
+| 1 | Admin mở `/Heatmap` | Trang chỉ dành cho Admin (Bearer JWT). |
+| 2 | Web gọi `GET api/analytics/heatmap` | Truyền `startDate`/`endDate` tùy filter đang chọn. |
+| 3 | API query VisitLogs | Chỉ lấy `VisitType = Geofence` (geofence tự động) và lat/lng không null. |
+| 4 | Web gọi thêm `GET api/poi` | Lấy danh sách POI để vẽ marker + tooltip tên POI trên bản đồ. |
+| 5 | Render Leaflet + leaflet-heat | Điểm lat/lng từ API → heat layer; POI markers hover hiển thị tên. |
+| 6 | Filter 7d/30d/all | Mỗi lần đổi filter → gọi lại API với `startDate` mới, cập nhật heat layer. |
+
+---
+
+### C.21 Heartbeat / Online Now
+
+```mermaid
+sequenceDiagram
+    participant App as HeriStepAI.Mobile
+    participant HB as HeartbeatService
+    participant API as HeriStepAI.API
+    participant Tracker as HeartbeatTracker (in-memory)
+    participant Admin
+    participant Web as HeriStepAI.Web
+
+    Note over App,HB: App khởi động (App.xaml.cs)
+    App->>HB: Start()
+    HB->>API: POST api/analytics/heartbeat { userId } (AllowAnonymous)
+    API->>Tracker: ConcurrentDictionary[userId] = DateTime.UtcNow
+    API-->>HB: 200 OK (fire & forget, lỗi bị bỏ qua)
+
+    loop Mỗi 5 giây
+        HB->>API: POST api/analytics/heartbeat { userId }
+        API->>Tracker: ConcurrentDictionary[userId] = DateTime.UtcNow
+        API-->>HB: 200 OK
+    end
+
+    Note over API,Tracker: TTL cleanup (passive — khi query)
+    Note over Tracker: Khi GET online-now được gọi:<br/>lọc entries có timestamp > now - 15s
+
+    Note over Admin,Web: Admin xem trang Devices
+    Admin->>Web: GET /Devices (Cookie AuthToken)
+    par Gọi song song
+        Web->>API: GET api/analytics/online-now (Bearer)
+        API->>Tracker: Đếm entries WHERE value > now - 15s
+        Tracker-->>API: count
+        API-->>Web: { count: N }
+    and
+        Web->>API: GET api/analytics/devices/summary (Bearer)
+        API->>API: Query VisitLogs GROUP BY UserId
+        API-->>Web: { TotalDevices, ActiveToday, ActiveThisWeek, ActiveThisMonth }
+    and
+        Web->>API: GET api/analytics/devices?page=1 (Bearer)
+        API->>API: Query VisitLogs GROUP BY UserId, paginate
+        API-->>Web: { Items: [DeviceRow], Total }
+    end
+    Web-->>Admin: Devices/Index.cshtml<br/>(stat cards: Live=count, Today, 7d, 30d + bảng thiết bị)
+
+    Note over App,HB: App đóng / background
+    App->>HB: Stop()
+    HB->>HB: _timer.Stop(), _timer = null
+    Note over Tracker: userId tự hết hạn sau 15s<br/>(không có cleanup chủ động)
+```
+
+| Bước | Hành động | Giải thích |
+|------|-----------|------------|
+| 1 | `HeartbeatService.Start()` | Gửi heartbeat ngay lập tức khi app mở, sau đó mỗi 5 giây. |
+| 2 | `POST /analytics/heartbeat` | AllowAnonymous; body `{ userId }` — userId = `CurrentUser.Id` hoặc `"dev_XXXXXX"`. |
+| 3 | `HeartbeatTracker` cập nhật | `ConcurrentDictionary<string, DateTime>` lưu timestamp cuối cùng của mỗi userId. **Không ghi DB.** |
+| 4 | TTL 15 giây | Khi Admin query `online-now`, API lọc entries có `timestamp > now - 15s`. Thiết bị ngừng gửi → tự "offline" sau 15s. |
+| 5 | `GET /analytics/online-now` | Trả `{ count: N }` — số thiết bị đang thực sự mở app. Khác với `ActiveToday` (từ VisitLogs). |
+| 6 | `Devices/Index` hiển thị | Card **"Đang dùng app"** = `online-now`; **"Hoạt động hôm nay"** = VisitLogs trong ngày — hai metric độc lập. |
+| 7 | `HeartbeatService.Stop()` | Khi app close; userId hết TTL 15s → không còn tính là online. |
+
+---
+
 ## Phụ lục D — Activity Diagrams
 
 > Sơ đồ hoạt động mô tả luồng xử lý nghiệp vụ của từng use case.
