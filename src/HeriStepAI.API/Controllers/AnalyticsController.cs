@@ -11,7 +11,7 @@ namespace HeriStepAI.API.Controllers;
 // Singleton tracker — sống cùng vòng đời ứng dụng, không cần DB
 public static class HeartbeatTracker
 {
-    private static readonly TimeSpan Threshold = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan Threshold = TimeSpan.FromSeconds(3);
     private static readonly ConcurrentDictionary<string, DateTime> _sessions = new();
 
     public static void Touch(string userId)

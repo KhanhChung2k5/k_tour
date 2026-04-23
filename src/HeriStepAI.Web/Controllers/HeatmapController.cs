@@ -35,6 +35,7 @@ public class HeatmapController : Controller
 
         DateTime? startDate = range switch
         {
+            "30s" => DateTime.UtcNow.AddSeconds(-30),
             "7d"  => DateTime.UtcNow.AddDays(-7),
             "30d" => DateTime.UtcNow.AddDays(-30),
             _     => null

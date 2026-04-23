@@ -14,9 +14,7 @@
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
     <span style="font-size:0.85rem;color:var(--cream-muted);">Khoảng thời gian:</span>
     <div class="d-flex gap-2">
-        <button class="btn btn-ghost btn-sm range-btn active" data-range="7d">7 ngày</button>
-        <button class="btn btn-ghost btn-sm range-btn" data-range="30d">30 ngày</button>
-        <button class="btn btn-ghost btn-sm range-btn" data-range="all">Tất cả</button>
+        <button class="btn btn-ghost btn-sm range-btn active" data-range="30s">⚡ 30 giây (Realtime)</button>
     </div>
     <span id="point-count" style="font-size:0.8rem;color:var(--cream-muted);margin-left:8px;"></span>
 </div>
@@ -152,17 +150,10 @@
         }
     }
 
-    let currentRange = '7d';
+    const currentRange = '30s';
+
     loadPOIs();
     loadHeatmap(currentRange);
-
-    document.querySelectorAll('.range-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentRange = btn.dataset.range;
-            loadHeatmap(currentRange);
-        });
-    });
+    setInterval(() => loadHeatmap(currentRange), 3000);
 </script>
 }

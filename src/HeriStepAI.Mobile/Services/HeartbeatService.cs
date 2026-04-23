@@ -34,8 +34,8 @@ public sealed class HeartbeatService : IDisposable
         _ = _apiService.HeartbeatAsync();
 
         _timer = Application.Current!.Dispatcher.CreateTimer();
-        // Gửi heartbeat mỗi 5 giây
-        _timer.Interval = TimeSpan.FromSeconds(5);
+        // Gửi heartbeat mỗi 2 giây (TTL server = 3s)
+        _timer.Interval = TimeSpan.FromSeconds(2);
         _timer.Tick += async (_, _) => await _apiService.HeartbeatAsync();
         // Bắt đầu gửi heartbeat
         _timer.Start();
