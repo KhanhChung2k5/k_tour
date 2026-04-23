@@ -46,13 +46,15 @@ public class AnalyticsController : ControllerBase
     private readonly IAnalyticsService _analyticsService;
     private readonly IPOIService _poiService;
     private readonly ILogger<AnalyticsController> _logger;
+    private readonly VisitLogQueue _visitQueue;
 
     public AnalyticsController(IAnalyticsService analyticsService, IPOIService poiService,
-        ILogger<AnalyticsController> logger)
+        ILogger<AnalyticsController> logger, VisitLogQueue visitQueue)
     {
         _analyticsService = analyticsService;
         _poiService = poiService;
         _logger = logger;
+        _visitQueue = visitQueue;
     }
 
     [HttpPost("heartbeat")]
@@ -96,27 +98,8 @@ public class AnalyticsController : ControllerBase
             return BadRequest(new { Error = "Invalid POId" });
         }
 
-        // Fire-and-forget: respond immediately so mobile never times out.
-        // DB write happens in background; use a scoped service factory to avoid DbContext threading issues.
-        var poiId = request.POId;
-        var lat = request.Latitude;
-        var lon = request.Longitude;
-        var visitType = request.VisitType;
-        var services = HttpContext.RequestServices;
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                using var scope = services.CreateScope();
-                var svc = scope.ServiceProvider.GetRequiredService<IAnalyticsService>();
-                await svc.LogVisitAsync(poiId, userId, lat, lon, visitType);
-                _logger.LogInformation("[LogVisit] DB write OK: POId={POId}, UserId={UserId}", poiId, userId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "[LogVisit] DB write FAILED: POId={POId}, UserId={UserId}", poiId, userId);
-            }
-        });
+        _visitQueue.Enqueue(new VisitLogItem(request.POId, userId, request.Latitude, request.Longitude, request.VisitType));
+        _logger.LogInformation("[LogVisit] Enqueued: POId={POId}, UserId={UserId}", request.POId, userId);
 
         return Accepted(new { Message = "Visit queued" });
     }

@@ -1,0 +1,180 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Giả lập thiết bị";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title-text">Giả lập thiết bị</h1>
+        <p class="page-subtitle-text">Gửi hàng loạt request visit để kiểm tra khả năng xử lý hàng đợi API.</p>
+    </div>
+    <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-light btn-sm">← Dashboard</a>
+</div>
+
+<div style="display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start;">
+
+    {{!-- Panel cấu hình --}}
+    <div class="table-card" style="padding:24px;">
+        <h6 style="color:var(--amber);margin-bottom:20px;font-weight:600;">⚙️ Cấu hình</h6>
+
+        <div style="margin-bottom:16px;">
+            <label style="font-size:0.8rem;color:var(--cream-muted);margin-bottom:6px;display:block;">Số lượng thiết bị</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+                <button class="btn btn-ghost btn-sm preset-btn active" data-val="10">10</button>
+                <button class="btn btn-ghost btn-sm preset-btn" data-val="20">20</button>
+                <button class="btn btn-ghost btn-sm preset-btn" data-val="30">30</button>
+                <button class="btn btn-ghost btn-sm preset-btn" data-val="50">50</button>
+                <button class="btn btn-ghost btn-sm preset-btn" data-val="100">100</button>
+            </div>
+            <input type="number" id="deviceCount" value="10" min="1" max="200"
+                   style="width:100%;background:var(--dark3);border:1px solid var(--border);color:var(--cream);border-radius:8px;padding:8px 12px;font-size:0.9rem;">
+        </div>
+
+        <div style="margin-bottom:20px;">
+            <label style="font-size:0.8rem;color:var(--cream-muted);margin-bottom:6px;display:block;">POI ID mục tiêu</label>
+            <input type="number" id="poiId" value="1" min="1"
+                   style="width:100%;background:var(--dark3);border:1px solid var(--border);color:var(--cream);border-radius:8px;padding:8px 12px;font-size:0.9rem;">
+        </div>
+
+        <button id="runBtn" class="btn btn-sm" onclick="runTest()"
+                style="width:100%;background:var(--amber);color:#000;font-weight:600;border:none;padding:10px;border-radius:8px;">
+            ▶ Bắt đầu giả lập
+        </button>
+
+        <div id="summary" style="display:none;margin-top:20px;padding:16px;background:var(--dark3);border-radius:10px;border:1px solid var(--border);">
+            <div style="font-size:0.75rem;color:var(--cream-muted);margin-bottom:10px;">KẾT QUẢ</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="stat-mini"><span id="s-total">—</span><small>Tổng</small></div>
+                <div class="stat-mini success"><span id="s-success">—</span><small>Thành công</small></div>
+                <div class="stat-mini error"><span id="s-failed">—</span><small>Thất bại</small></div>
+                <div class="stat-mini"><span id="s-avg">—</span><small>Avg ms</small></div>
+                <div class="stat-mini"><span id="s-min">—</span><small>Min ms</small></div>
+                <div class="stat-mini"><span id="s-max">—</span><small>Max ms</small></div>
+            </div>
+        </div>
+    </div>
+
+    {{!-- Bảng kết quả --}}
+    <div class="table-card" style="padding:0;overflow:hidden;">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-weight:600;font-size:0.9rem;">Chi tiết từng thiết bị</span>
+            <span id="progress-label" style="font-size:0.8rem;color:var(--cream-muted);"></span>
+        </div>
+        <div style="overflow-x:auto;max-height:560px;overflow-y:auto;">
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="background:var(--dark3);">
+                        <th style="padding:10px 16px;font-size:0.75rem;color:var(--cream-muted);font-weight:600;text-align:left;">#</th>
+                        <th style="padding:10px 16px;font-size:0.75rem;color:var(--cream-muted);font-weight:600;text-align:left;">Device ID</th>
+                        <th style="padding:10px 16px;font-size:0.75rem;color:var(--cream-muted);font-weight:600;text-align:left;">Trạng thái</th>
+                        <th style="padding:10px 16px;font-size:0.75rem;color:var(--cream-muted);font-weight:600;text-align:right;">HTTP</th>
+                        <th style="padding:10px 16px;font-size:0.75rem;color:var(--cream-muted);font-weight:600;text-align:right;">Thời gian (ms)</th>
+                    </tr>
+                </thead>
+                <tbody id="result-body">
+                    <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--cream-muted);font-size:0.85rem;">Chưa có kết quả. Bấm "Bắt đầu giả lập" để chạy.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<style>
+    .preset-btn.active { background: var(--amber); color: #000; border-color: var(--amber); }
+    .stat-mini {
+        background: var(--dark4);
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+        border: 1px solid var(--border);
+    }
+    .stat-mini span { display: block; font-size: 1.2rem; font-weight: 700; color: var(--cream); }
+    .stat-mini small { font-size: 0.7rem; color: var(--cream-muted); }
+    .stat-mini.success span { color: var(--green); }
+    .stat-mini.error span { color: var(--red); }
+    #runBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .row-success td { border-left: 3px solid var(--green); }
+    .row-fail    td { border-left: 3px solid var(--red); }
+</style>
+
+<script>
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('deviceCount').value = btn.dataset.val;
+        });
+    });
+
+    async function runTest() {
+        const deviceCount = parseInt(document.getElementById('deviceCount').value);
+        const poiId       = parseInt(document.getElementById('poiId').value);
+
+        if (!deviceCount || deviceCount < 1) return alert('Nhập số lượng thiết bị hợp lệ.');
+        if (!poiId || poiId < 1)            return alert('Nhập POI ID hợp lệ.');
+
+        const btn = document.getElementById('runBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Đang chạy...';
+        document.getElementById('progress-label').textContent = `Đang gửi ${deviceCount} request...`;
+        document.getElementById('summary').style.display = 'none';
+        document.getElementById('result-body').innerHTML =
+            `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--cream-muted);">⏳ Đang gửi ${deviceCount} request song song...</td></tr>`;
+
+        try {
+            const resp = await fetch('/LoadTest/Run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ deviceCount, poiId })
+            });
+
+            const data = await resp.json();
+
+            // Summary
+            document.getElementById('s-total').textContent   = data.total;
+            document.getElementById('s-success').textContent = data.success;
+            document.getElementById('s-failed').textContent  = data.failed;
+            document.getElementById('s-avg').textContent     = data.avgMs;
+            document.getElementById('s-min').textContent     = data.minMs;
+            document.getElementById('s-max').textContent     = data.maxMs;
+            document.getElementById('summary').style.display = 'block';
+            document.getElementById('progress-label').textContent =
+                `✅ ${data.success}/${data.total} thành công — avg ${data.avgMs}ms`;
+
+            // Rows
+            const tbody = document.getElementById('result-body');
+            tbody.innerHTML = '';
+            data.items.forEach((item, i) => {
+                const tr = document.createElement('tr');
+                tr.className = item.success ? 'row-success' : 'row-fail';
+                tr.innerHTML = `
+                    <td style="padding:8px 16px;font-size:0.8rem;color:var(--cream-muted);">${i + 1}</td>
+                    <td style="padding:8px 16px;font-size:0.82rem;font-family:monospace;">${item.deviceId}</td>
+                    <td style="padding:8px 16px;">
+                        <span style="font-size:0.75rem;padding:2px 8px;border-radius:20px;
+                            background:${item.success ? 'var(--green-dim)' : 'var(--red-dim)'};
+                            color:${item.success ? 'var(--green)' : 'var(--red)'};">
+                            ${item.success ? '✓ OK' : '✗ FAIL'}
+                        </span>
+                        ${item.error ? `<span style="font-size:0.72rem;color:var(--red);margin-left:6px;">${item.error}</span>` : ''}
+                    </td>
+                    <td style="padding:8px 16px;text-align:right;font-size:0.8rem;color:var(--cream-muted);">${item.statusCode || '—'}</td>
+                    <td style="padding:8px 16px;text-align:right;font-size:0.82rem;
+                        color:${item.elapsedMs > 1000 ? 'var(--red)' : item.elapsedMs > 300 ? 'var(--amber)' : 'var(--green)'};">
+                        ${item.elapsedMs}ms
+                    </td>`;
+                tbody.appendChild(tr);
+            });
+
+        } catch (e) {
+            document.getElementById('progress-label').textContent = '❌ Lỗi kết nối';
+            document.getElementById('result-body').innerHTML =
+                `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--red);">Lỗi: ${e.message}</td></tr>`;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '▶ Bắt đầu giả lập';
+        }
+    }
+</script>
+}

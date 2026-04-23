@@ -175,6 +175,10 @@ builder.Services.AddAuthorization();
 // In-memory cache cho heartbeat (real-time online users)
 builder.Services.AddMemoryCache();
 
+// Visit log queue (Channel-based, singleton buffer + background worker batch INSERT)
+builder.Services.AddSingleton<VisitLogQueue>();
+builder.Services.AddHostedService<VisitLogWorker>();
+
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPOIService, POIService>();

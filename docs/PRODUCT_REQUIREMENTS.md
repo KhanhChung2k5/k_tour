@@ -39,8 +39,10 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | 6 | **Mobile** | AppShell, Map (Leaflet WebView), POI list/detail, **Tour gợi ý + TourDetail + Bắt đầu tour**, Settings, SQLite cache |
 | 7 | **Dữ liệu** | PostgreSQL: `Users`, `POIs`, `POIContents`, `VisitLogs` (nghiệp vụ); bảng `Analytics` entity **legacy, không dùng** |
 | 8 | **POI Payment (Web + API)** | ShopOwner tạo POI → báo thanh toán (Web `POST /ShopOwner/ReportPayment`, DbContext) → Admin đối soát (`/POIPayments`) → Xác nhận kích hoạt POI / Từ chối; trạng thái: `Pending / Verified / Rejected` |
-| 9 | **Heatmap vị trí (Web + API)** | Admin xem mật độ du khách theo vị trí GPS thực tế; chỉ tính `VisitType = Geofence`; lọc theo 7 ngày / 30 ngày / tất cả; POI markers hover tooltip |
-| 10 | **Heartbeat / Online Now (Mobile + API)** | Mobile gửi heartbeat mỗi 5 giây; API dùng `HeartbeatTracker` (ConcurrentDictionary, TTL 15s) để đếm thiết bị đang online; Admin xem qua `GET /analytics/online-now` |
+| 9 | **Heatmap vị trí (Web + API)** | Admin xem mật độ du khách theo vị trí GPS thực tế; chỉ tính `VisitType = Geofence`; hiển thị **30 giây gần nhất (realtime)**, auto-refresh 3s; POI markers hover tooltip |
+| 10 | **Heartbeat / Online Now (Mobile + API)** | Mobile gửi heartbeat mỗi **2 giây**; API dùng `HeartbeatTracker` (ConcurrentDictionary, TTL **3s**) để đếm thiết bị đang online; Admin xem qua `GET /analytics/online-now` |
+| 11 | **Visit Log Queue (API)** | `POST /analytics/visit` enqueue vào `Channel<VisitLogItem>` (buffer 1000); `VisitLogWorker` (BackgroundService) gom batch 10 items / 500ms rồi INSERT một lần duy nhất — giữ 1 DB connection cho toàn bộ traffic |
+| 12 | **Giả lập thiết bị / Load Test (Web)** | Admin gửi N request visit song song (10/20/30/50/100) đến API để kiểm tra khả năng xử lý hàng đợi; hiển thị kết quả chi tiết từng device (HTTP status, elapsed ms) và tổng hợp (avg/min/max) |
 
 ### 2.2 Ngoài phạm vi (hiện không có trong repo — không mô tả như đã ship)
 
@@ -80,7 +82,8 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | Devices | `/Devices` | Admin; danh sách thiết bị ẩn danh (`dev_XXXXXX`) từ `VisitLogs`; thống kê ActiveToday / 7 ngày / 30 ngày; phân trang 50 item. `XXXXXX` = `SubscriptionService.DeviceKey` → khớp trực tiếp với cột DeviceKey trong `/SubscriptionPayments` |
 | POI Payments | `/POIPayments` | Admin; tổng hợp `Pending/Verified/Rejected`; xác nhận → POI.IsActive = true; từ chối → POI vẫn inactive |
 | Subscription Payments | `/SubscriptionPayments` | Admin; đối soát gói thanh toán Mobile; xác nhận → tính `SubscriptionExpiresAtUtc`; từ chối → không kích hoạt |
-| **Heatmap vị trí** | `/Heatmap` | Admin; bản đồ Leaflet + leaflet-heat; chỉ điểm `Geofence`; lọc 7d/30d/all; chấm POI hover tooltip |
+| **Heatmap vị trí** | `/Heatmap` | Admin; bản đồ Leaflet + leaflet-heat; chỉ điểm `Geofence`; hiển thị **30 giây gần nhất (realtime)**, auto-refresh 3s; chấm POI hover tooltip |
+| **Giả lập thiết bị** | `/LoadTest` | Admin; chọn số lượng device (10–200) + POI ID; gửi song song N request visit đến API; kết quả: bảng chi tiết từng device + stat cards avg/min/max ms |
 | ShopOwner Dashboard / **Create** / Edit / Statistics | `/ShopOwner/...` | **Tạo POI** mới + DbContext; 403/NotFound nếu không sở hữu POI |
 
 ### 4.2 Mobile (`HeriStepAI.Mobile`)
@@ -157,8 +160,10 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | **FR-ANA-02** | Mobile/API: `POST .../analytics/visit` ghi `VisitLog` với `VisitType` (Geofence, MapClick, QRCode). Visit được kích hoạt từ 3 điểm: (1) Geofence trigger, (2) Click "Nghe thuyết minh" trên Map popup (JS bridge → `POISelectedCommand`), (3) Click "Nghe thuyết minh" trên `POIDetailPage`. |
 | **FR-ANA-03** | Người dùng ẩn danh (không đăng nhập) được nhận diện bằng **Device ID** có dạng `dev_XXXXXX` — trong đó `XXXXXX` là `SubscriptionService.DeviceKey` (6 ký tự hex uppercase, SHA-256 của thông tin thiết bị, lưu trong `SecureStorage["sub_device_key"]`). `UserId` trong `VisitLog` = `"dev_" + DeviceKey` khi ẩn danh, = account ID khi đã đăng nhập. Cách này liên kết trực tiếp visit log (`dev_XXXXXX`) với bản ghi thanh toán gói (`XXXXXX`) mà không cần bảng mapping. |
 | **FR-ANA-04** | Admin xem thống kê thiết bị qua `/Devices`: danh sách `DeviceId`, số lượt visit, số POI đã ghé, lần đầu/lần cuối truy cập; tóm tắt ActiveToday / 7 ngày / 30 ngày. |
-| **FR-ANA-05** | Admin xem **heatmap vị trí** tại `/Heatmap`: bản đồ Leaflet kết hợp `leaflet-heat`; chỉ lấy điểm có `VisitType = Geofence` và lat/lng không null; hỗ trợ lọc `startDate` (7d/30d/all); POI markers hiển thị tên khi hover. |
-| **FR-ANA-06** | **Heartbeat / Online Now**: Mobile gửi `POST /api/analytics/heartbeat` (AllowAnonymous) mỗi 5 giây kèm `UserId`; API lưu vào `HeartbeatTracker` (ConcurrentDictionary in-memory, TTL 15s); Admin gọi `GET /analytics/online-now` để lấy số thiết bị đang hoạt động. Dữ liệu không persist vào DB. |
+| **FR-ANA-05** | Admin xem **heatmap vị trí** tại `/Heatmap`: bản đồ Leaflet kết hợp `leaflet-heat`; chỉ lấy điểm có `VisitType = Geofence` và lat/lng không null; hiển thị **30 giây gần nhất (realtime)**, auto-refresh 3s; POI markers hiển thị tên khi hover. |
+| **FR-ANA-06** | **Heartbeat / Online Now**: Mobile gửi `POST /api/analytics/heartbeat` (AllowAnonymous) mỗi **2 giây** kèm `UserId`; API lưu vào `HeartbeatTracker` (ConcurrentDictionary in-memory, TTL **3s**); Admin gọi `GET /analytics/online-now` để lấy số thiết bị đang hoạt động. Dữ liệu không persist vào DB. |
+| **FR-ANA-07** | **Visit Log Queue**: `POST /analytics/visit` enqueue item vào `Channel<VisitLogItem>` (singleton, buffer 1000, DropOldest); `VisitLogWorker` (BackgroundService, single reader) gom tối đa 10 items trong 500ms rồi thực hiện batch `SaveChangesAsync` một lần — đảm bảo chỉ 1 DB connection bất kể N request đồng thời. |
+| **FR-ANA-08** | **Giả lập thiết bị** tại `/LoadTest` (Admin): nhập số lượng device (1–200) và POI ID mục tiêu; Web gửi N request `POST /api/analytics/visit` song song (`Task.WhenAll`); trả về summary (total/success/failed/avg/min/max ms) và chi tiết từng device (DeviceId, HTTP status, elapsed ms). |
 
 ### 6.5 Mobile — Tour (như đã code)
 
@@ -292,7 +297,7 @@ Base: `/api/...` — versioning do team quy ước.
 | GET | `/analytics/devices/{deviceId}/details` | Chi tiết thiết bị: danh sách POI đã ghé, số lượt, lần đầu/cuối, thông tin subscription (Admin JWT) |
 | GET | `/analytics/heatmap` | Danh sách `[lat, lng]` điểm Geofence; hỗ trợ `?startDate=&endDate=` (Admin JWT) |
 | POST | `/analytics/heartbeat` | Mobile ping heartbeat; `UserId` từ JWT claim hoặc body (AllowAnonymous) |
-| GET | `/analytics/online-now` | Số thiết bị active trong 15 giây gần nhất từ `HeartbeatTracker` (Admin JWT) |
+| GET | `/analytics/online-now` | Số thiết bị active trong **3 giây** gần nhất từ `HeartbeatTracker` (Admin JWT) |
 
 ---
 
@@ -1547,44 +1552,55 @@ sequenceDiagram
 
 ---
 
-### C.20 Admin xem Heatmap vị trí
+### C.20 Admin xem Heatmap vị trí (Realtime 30s)
 
 ```mermaid
 sequenceDiagram
     participant Admin
+    participant Browser as Browser (JS)
     participant Web as HeriStepAI.Web
     participant API as HeriStepAI.API
     participant DB as PostgreSQL
 
     Admin->>Web: GET /Heatmap (Cookie AuthToken)
-    Web->>Web: Đọc JWT từ Cookie "AuthToken"
-    Web->>API: GET api/analytics/heatmap?startDate=&endDate= (Bearer)
-    API->>DB: SELECT Latitude, Longitude FROM VisitLogs<br/>WHERE VisitType = Geofence<br/>AND Latitude IS NOT NULL AND Longitude IS NOT NULL<br/>AND VisitTime >= startDate (nếu có)
-    DB-->>API: [ { lat, lng } × N ]
-    API-->>Web: JSON array [ [lat, lng], ... ]
-    Web->>API: GET api/poi (Bearer)
-    API->>DB: SELECT Id, Name, Latitude, Longitude FROM POIs
-    DB-->>API: [ POI list ]
-    API-->>Web: pois JSON
-    Web-->>Admin: Heatmap/Index.cshtml<br/>(Leaflet map + leaflet-heat layer + POI markers tooltip)
+    Web-->>Admin: Heatmap/Index.cshtml<br/>(Leaflet map, chỉ có nút "⚡ 30 giây (Realtime)")
 
-    Note over Admin: Admin chọn filter (7 ngày / 30 ngày / Tất cả)
-    Admin->>Web: GET /Heatmap?range=7d (Cookie)
-    Web->>API: GET api/analytics/heatmap?startDate={now-7d} (Bearer)
-    API->>DB: SELECT lat, lng WHERE VisitTime >= now-7d AND VisitType=Geofence
-    DB-->>API: filtered points
-    API-->>Web: JSON array
-    Web-->>Admin: Cập nhật heat layer trên bản đồ
+    Note over Browser: Trang load xong → JS chạy ngay
+
+    par Lần đầu load
+        Browser->>Web: GET /Heatmap/Pois
+        Web->>DB: SELECT Id, Name, Latitude, Longitude FROM POIs (DbContext)
+        DB-->>Web: POI list
+        Web-->>Browser: JSON POI array
+        Browser->>Browser: Vẽ POI markers + tooltip tên
+    and
+        Browser->>Web: GET /Heatmap/Data?range=30s
+        Web->>API: GET api/analytics/heatmap?startDate={now-30s} (Bearer)
+        API->>DB: SELECT Latitude, Longitude FROM VisitLogs<br/>WHERE VisitType = Geofence<br/>AND Latitude IS NOT NULL<br/>AND VisitTime >= now - 30s
+        DB-->>API: [ { lat, lng } × N ]
+        API-->>Web: JSON array
+        Web-->>Browser: [ [lat, lng], ... ]
+        Browser->>Browser: Render leaflet-heat layer<br/>fitBounds theo data
+    end
+
+    loop Mỗi 3 giây (setInterval)
+        Browser->>Web: GET /Heatmap/Data?range=30s
+        Web->>API: GET api/analytics/heatmap?startDate={now-30s} (Bearer)
+        API->>DB: SELECT lat, lng WHERE VisitTime >= now-30s AND VisitType=Geofence
+        DB-->>API: latest points
+        API-->>Web: JSON array
+        Web-->>Browser: updated points
+        Browser->>Browser: removeLayer(heatLayer) → add new heatLayer
+    end
 ```
 
 | Bước | Hành động | Giải thích |
 |------|-----------|------------|
-| 1 | Admin mở `/Heatmap` | Trang chỉ dành cho Admin (Bearer JWT). |
-| 2 | Web gọi `GET api/analytics/heatmap` | Truyền `startDate`/`endDate` tùy filter đang chọn. |
-| 3 | API query VisitLogs | Chỉ lấy `VisitType = Geofence` (geofence tự động) và lat/lng không null. |
-| 4 | Web gọi thêm `GET api/poi` | Lấy danh sách POI để vẽ marker + tooltip tên POI trên bản đồ. |
-| 5 | Render Leaflet + leaflet-heat | Điểm lat/lng từ API → heat layer; POI markers hover hiển thị tên. |
-| 6 | Filter 7d/30d/all | Mỗi lần đổi filter → gọi lại API với `startDate` mới, cập nhật heat layer. |
+| 1 | Admin mở `/Heatmap` | Server trả HTML, JS khởi tạo Leaflet map. |
+| 2 | JS gọi `/Heatmap/Pois` | Web controller query POI qua DbContext, trả JSON để vẽ marker + tooltip. |
+| 3 | JS gọi `/Heatmap/Data?range=30s` | Web gọi API với `startDate = now - 30s`; chỉ lấy `VisitType = Geofence` và lat/lng không null. |
+| 4 | Render leaflet-heat | Điểm lat/lng → heat layer gradient (xanh → vàng → đỏ); `fitBounds` theo data. |
+| 5 | Auto-refresh 3s | `setInterval` 3000ms gọi lại `/Heatmap/Data?range=30s`, xóa layer cũ, vẽ lại — hiển thị mật độ realtime. |
 
 ---
 
@@ -1605,14 +1621,14 @@ sequenceDiagram
     API->>Tracker: ConcurrentDictionary[userId] = DateTime.UtcNow
     API-->>HB: 200 OK (fire & forget, lỗi bị bỏ qua)
 
-    loop Mỗi 5 giây
+    loop Mỗi 2 giây
         HB->>API: POST api/analytics/heartbeat { userId }
         API->>Tracker: ConcurrentDictionary[userId] = DateTime.UtcNow
         API-->>HB: 200 OK
     end
 
     Note over API,Tracker: TTL cleanup (passive — khi query)
-    Note over Tracker: Khi GET online-now được gọi:<br/>lọc entries có timestamp > now - 15s
+    Note over Tracker: Khi GET online-now được gọi:<br/>lọc entries có timestamp > now - 3s
 
     Note over Admin,Web: Admin xem trang Devices
     Admin->>Web: GET /Devices (Cookie AuthToken)
@@ -1640,13 +1656,114 @@ sequenceDiagram
 
 | Bước | Hành động | Giải thích |
 |------|-----------|------------|
-| 1 | `HeartbeatService.Start()` | Gửi heartbeat ngay lập tức khi app mở, sau đó mỗi 5 giây. |
+| 1 | `HeartbeatService.Start()` | Gửi heartbeat ngay lập tức khi app mở, sau đó mỗi **2 giây**. |
 | 2 | `POST /analytics/heartbeat` | AllowAnonymous; body `{ userId }` — userId = `CurrentUser.Id` hoặc `"dev_XXXXXX"`. |
 | 3 | `HeartbeatTracker` cập nhật | `ConcurrentDictionary<string, DateTime>` lưu timestamp cuối cùng của mỗi userId. **Không ghi DB.** |
-| 4 | TTL 15 giây | Khi Admin query `online-now`, API lọc entries có `timestamp > now - 15s`. Thiết bị ngừng gửi → tự "offline" sau 15s. |
+| 4 | TTL **3 giây** | Khi Admin query `online-now`, API lọc entries có `timestamp > now - 3s`. Thiết bị ngừng gửi → tự "offline" sau 3s. Interval 2s < TTL 3s đảm bảo không bị nhấp nháy. |
 | 5 | `GET /analytics/online-now` | Trả `{ count: N }` — số thiết bị đang thực sự mở app. Khác với `ActiveToday` (từ VisitLogs). |
 | 6 | `Devices/Index` hiển thị | Card **"Đang dùng app"** = `online-now`; **"Hoạt động hôm nay"** = VisitLogs trong ngày — hai metric độc lập. |
-| 7 | `HeartbeatService.Stop()` | Khi app close; userId hết TTL 15s → không còn tính là online. |
+| 7 | `HeartbeatService.Stop()` | Khi app close; userId hết TTL 3s → không còn tính là online. |
+
+---
+
+### C.22 Visit Log Queue — Channel + Background Worker
+
+```mermaid
+sequenceDiagram
+    participant Mobile as Mobile / LoadTest
+    participant API as AnalyticsController
+    participant Queue as VisitLogQueue (Channel)
+    participant Worker as VisitLogWorker (BackgroundService)
+    participant DB as PostgreSQL
+
+    Note over Mobile,Queue: N request đến đồng thời (ví dụ: 100 device)
+
+    par 100 request song song
+        Mobile->>API: POST api/analytics/visit { poiId, userId, ... }
+        API->>Queue: Channel.Writer.TryWrite(VisitLogItem)
+        Note over Queue: Buffer 1000 slots<br/>DropOldest nếu đầy
+        Queue-->>API: true
+        API-->>Mobile: 202 Accepted (< 1ms)
+    end
+
+    Note over Worker: BackgroundService chạy ngầm liên tục
+
+    loop Single reader loop
+        Worker->>Queue: Channel.Reader.ReadAsync() [blocking]
+        Queue-->>Worker: item đầu tiên
+        Note over Worker: Bật timer 500ms, gom thêm
+        Worker->>Queue: ReadAsync(cts 500ms)
+        alt Đủ 10 items trước 500ms
+            Queue-->>Worker: item × 9 nữa
+            Note over Worker: Flush ngay, không đợi hết 500ms
+        else Timeout 500ms (ít traffic)
+            Queue-->>Worker: item × < 9
+            Note over Worker: Flush bao nhiêu có bấy nhiêu
+        end
+        Worker->>DB: db.VisitLogs.AddRange(batch)<br/>await SaveChangesAsync()
+        Note over DB: 1 INSERT cho cả batch
+        DB-->>Worker: OK
+    end
+```
+
+| Bước | Hành động | Giải thích |
+|------|-----------|------------|
+| 1 | `TryWrite(item)` | Controller enqueue item vào Channel trong < 1ms; không đụng DB. |
+| 2 | `202 Accepted` ngay | Mobile/client không chờ DB — giảm latency từ ~100ms xuống < 1ms. |
+| 3 | Worker đọc item đầu | `ReadAsync()` blocking — worker ngủ khi không có traffic, không burn CPU. |
+| 4 | Gom batch 500ms | Cố gom tối đa 10 items; nếu đủ trước 500ms thì flush sớm. |
+| 5 | Batch INSERT | Một `SaveChangesAsync()` cho cả batch — giảm 90% số lần roundtrip DB. |
+| 6 | 1 DB connection | Single reader → chỉ 1 connection dù 100 request đến cùng lúc. |
+| 7 | Buffer 1000 DropOldest | Nếu DB chậm và buffer đầy → item cũ nhất bị drop; API vẫn nhận request bình thường. |
+
+---
+
+### C.23 Giả lập thiết bị (Load Test)
+
+```mermaid
+sequenceDiagram
+    participant Admin
+    participant Web as HeriStepAI.Web (LoadTestController)
+    participant API as HeriStepAI.API
+    participant Queue as VisitLogQueue (Channel)
+    participant Worker as VisitLogWorker
+    participant DB as PostgreSQL
+
+    Admin->>Web: GET /LoadTest (Cookie AuthToken, Role=Admin)
+    Web-->>Admin: LoadTest/Index.cshtml<br/>(preset 10/20/30/50/100 + POI ID input)
+
+    Admin->>Web: POST /LoadTest/Run { deviceCount: N, poiId: X }
+    Web->>Web: Validate (1 ≤ N ≤ 200, poiId > 0)
+
+    Note over Web: Task.WhenAll — N request song song
+    par N device song song
+        Web->>API: POST api/analytics/visit<br/>{ poiId: X, userId: "dev_SIM001", visitType: Geofence }
+        API->>Queue: TryWrite(item)
+        API-->>Web: 202 Accepted (elapsed: T1 ms)
+    and
+        Web->>API: POST api/analytics/visit<br/>{ poiId: X, userId: "dev_SIM002", ... }
+        API->>Queue: TryWrite(item)
+        API-->>Web: 202 Accepted (elapsed: T2 ms)
+    end
+
+    Web->>Web: Tổng hợp results:<br/>total, success, failed, avg/min/max ms
+    Web-->>Admin: JSON { total, success, failed, avgMs, minMs, maxMs, items[] }
+    Admin->>Admin: Xem bảng kết quả:<br/>DeviceID | ✓/✗ | HTTP | elapsed ms
+
+    Note over Queue,DB: Background — Worker xử lý sau
+    Worker->>DB: Batch INSERT N items (10 items/lần)
+    DB-->>Worker: OK
+```
+
+| Bước | Hành động | Giải thích |
+|------|-----------|------------|
+| 1 | Admin mở `/LoadTest` | Trang chỉ dành cho Admin; chọn preset hoặc nhập số lượng device. |
+| 2 | `POST /LoadTest/Run` | Web controller nhận config, tạo N task `FireVisit` song song. |
+| 3 | `Task.WhenAll` | Tất cả N HTTP request đến API cùng lúc — giả lập thundering herd. |
+| 4 | API enqueue | Mỗi request → `TryWrite` vào Channel (< 1ms) → trả 202. |
+| 5 | Tổng hợp kết quả | Web tính avg/min/max elapsed ms từ N DeviceResult. |
+| 6 | Bảng chi tiết | Mỗi device hiển thị: DeviceID, ✓ OK / ✗ FAIL, HTTP code, elapsed ms (màu xanh/vàng/đỏ theo ngưỡng). |
+| 7 | Worker xử lý ngầm | Sau khi Web trả kết quả, Worker vẫn đang gom batch và INSERT vào DB. |
 
 ---
 
