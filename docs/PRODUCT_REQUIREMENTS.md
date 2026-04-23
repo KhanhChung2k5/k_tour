@@ -2195,37 +2195,37 @@ classDiagram
         +POST /api/auth/register (Admin)
         +POST /api/auth/register-shop-owner (AllowAnonymous)
         +GET /api/auth/pending-shop-owners (Admin)
-        +POST /api/auth/approve-shop-owner/{id} (Admin)
-        +POST /api/auth/reject-shop-owner/{id} (Admin)
+        +POST /api/auth/approve-shop-owner/:id (Admin)
+        +POST /api/auth/reject-shop-owner/:id (Admin)
         +POST /api/auth/register-tourist
         +GET /api/auth/me
     }
 
     class POIEndpoints {
         +GET /api/poi (sort Priority desc)
-        +GET /api/poi/{id}
+        +GET /api/poi/:id
         +POST /api/poi (ShopOwner)
-        +PUT /api/poi/{id}
-        +DELETE /api/poi/{id}
+        +PUT /api/poi/:id
+        +DELETE /api/poi/:id
         +GET /api/poi/my-pois
-        +GET /api/poi/{id}/content/{language}
+        +GET /api/poi/:id/content/:language
     }
 
     class AnalyticsEndpoints {
         +POST /api/analytics/visit
         +GET /api/analytics/summary
         +GET /api/analytics/top-pois
-        +GET /api/analytics/poi/{id}/statistics
-        +GET /api/analytics/poi/{id}/logs
+        +GET /api/analytics/poi/:id/statistics
+        +GET /api/analytics/poi/:id/logs
     }
 
     class POIPaymentEndpoints {
         +POST /api/poi-payments/report (ShopOwner)
-        +GET /api/poi-payments/by-poi/{poiId} (ShopOwner+Admin)
+        +GET /api/poi-payments/by-poi/:poiId (ShopOwner+Admin)
         +GET /api/poi-payments (Admin)
         +GET /api/poi-payments/summary (Admin)
-        +POST /api/poi-payments/{id}/verify (Admin)
-        +POST /api/poi-payments/{id}/reject (Admin)
+        +POST /api/poi-payments/:id/verify (Admin)
+        +POST /api/poi-payments/:id/reject (Admin)
     }
 
     class SubscriptionPaymentEndpoints {
@@ -2233,8 +2233,8 @@ classDiagram
         +GET /api/subscription-payments/entitlement (AllowAnonymous)
         +GET /api/subscription-payments (Admin)
         +GET /api/subscription-payments/summary (Admin)
-        +POST /api/subscription-payments/{id}/verify (Admin)
-        +POST /api/subscription-payments/{id}/reject (Admin)
+        +POST /api/subscription-payments/:id/verify (Admin)
+        +POST /api/subscription-payments/:id/reject (Admin)
     }
 
     Admin --> AuthEndpoints : seed/login/register/pending/approve/reject/me
