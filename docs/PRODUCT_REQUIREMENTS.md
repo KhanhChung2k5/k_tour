@@ -1670,38 +1670,36 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Mobile as Mobile / LoadTest
+    participant Mobile as Mobile/LoadTest
     participant API as AnalyticsController
-    participant Queue as VisitLogQueue (Channel)
-    participant Worker as VisitLogWorker (BackgroundService)
+    participant Queue as VisitLogQueue
+    participant Worker as VisitLogWorker
     participant DB as PostgreSQL
 
-    Note over Mobile,Queue: N request đến đồng thời (ví dụ: 100 device)
+    Note over Mobile,Queue: N request den dong thoi (100 device)
 
     par 100 request song song
-        Mobile->>API: POST api/analytics/visit { poiId, userId, ... }
-        API->>Queue: Channel.Writer.TryWrite(VisitLogItem)
-        Note over Queue: Buffer 1000 slots<br/>DropOldest nếu đầy
-        Queue-->>API: true
+        Mobile->>API: POST api/analytics/visit
+        API->>Queue: Channel.Writer.TryWrite(item)
+        Queue-->>API: true (buffer 1000, DropOldest)
         API-->>Mobile: 202 Accepted (< 1ms)
     end
 
-    Note over Worker: BackgroundService chạy ngầm liên tục
+    Note over Worker: BackgroundService chay ngam lien tuc
 
     loop Single reader loop
-        Worker->>Queue: Channel.Reader.ReadAsync() [blocking]
-        Queue-->>Worker: item đầu tiên
-        Note over Worker: Bật timer 500ms, gom thêm
-        Worker->>Queue: ReadAsync(cts 500ms)
-        alt Đủ 10 items trước 500ms
-            Queue-->>Worker: item × 9 nữa
-            Note over Worker: Flush ngay, không đợi hết 500ms
-        else Timeout 500ms (ít traffic)
-            Queue-->>Worker: item × < 9
-            Note over Worker: Flush bao nhiêu có bấy nhiêu
+        Worker->>Queue: ReadAsync() blocking wait
+        Queue-->>Worker: item dau tien
+        Note over Worker: Bat timer 500ms, gom them toi da 10 items
+        alt Du 10 items truoc 500ms
+            Queue-->>Worker: 9 items tiep theo
+            Note over Worker: Flush ngay
+        else Timeout 500ms
+            Queue-->>Worker: so items hien co
+            Note over Worker: Flush tat ca hien co
         end
-        Worker->>DB: db.VisitLogs.AddRange(batch)<br/>await SaveChangesAsync()
-        Note over DB: 1 INSERT cho cả batch
+        Worker->>DB: AddRange + SaveChangesAsync
+        Note over DB: 1 INSERT cho ca batch
         DB-->>Worker: OK
     end
 ```
