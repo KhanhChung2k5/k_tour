@@ -70,6 +70,9 @@ public partial class POIDetailViewModel : ObservableObject
     public string LblListenNarration => $"🔊 {_localizationService.GetString("ListenNarration")}";
     public string LblGetDirections => $"🗺️ {_localizationService.GetString("GetDirections")}";
 
+    /// <summary>
+    /// Constructor.
+    /// </summary>
     public POIDetailViewModel(
         INarrationService narrationService,
         ILocalizationService localizationService,
@@ -84,6 +87,9 @@ public partial class POIDetailViewModel : ObservableObject
         _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
     }
 
+    /// <summary>
+    /// Cập nhật các thuộc tính khi POI thay đổi.
+    /// </summary>
     partial void OnSelectedPoiChanged(POI value)
     {
         OnPropertyChanged(nameof(LocalizedDescription));
@@ -93,6 +99,9 @@ public partial class POIDetailViewModel : ObservableObject
         OnPropertyChanged(nameof(PoiEstimatedTimeDisplay));
     }
 
+    /// <summary>
+    /// Cập nhật các thuộc tính khi ngôn ngữ thay đổi.
+    /// </summary>
     private void RefreshTranslations()
     {
         MainThread.BeginInvokeOnMainThread(() =>
@@ -123,6 +132,10 @@ public partial class POIDetailViewModel : ObservableObject
     }
 
     [RelayCommand]
+
+    /// <summary>
+    /// Phát thuyết minh cho POI.
+    /// </summary>
     private async Task PlayNarration()
     {
         AppLog.Info($"🔵 POIDetail PlayNarration: {SelectedPoi.Name} (id={SelectedPoi.Id})");
@@ -133,6 +146,10 @@ public partial class POIDetailViewModel : ObservableObject
     }
 
     [RelayCommand]
+
+    /// <summary>
+    /// Di chuyển đến POI.
+    /// </summary>
     private async Task Navigate()
     {
         try

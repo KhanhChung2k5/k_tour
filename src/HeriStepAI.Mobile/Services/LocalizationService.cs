@@ -10,6 +10,9 @@ public class LocalizationService : ILocalizationService
 
     public event EventHandler? LanguageChanged;
 
+    /// <summary>
+    /// Danh sách ngôn ngữ được hỗ trợ.
+    /// </summary>
     private static readonly HashSet<string> SupportedLanguages = new()
         { "vi", "en", "ko", "zh", "ja", "th", "fr" };
 
@@ -24,6 +27,9 @@ public class LocalizationService : ILocalizationService
         catch { }
     }
 
+    /// <summary>
+    /// Thiết lập ngôn ngữ hiện tại.
+    /// </summary>
     public void SetLanguage(string languageCode)
     {
         var lang = SupportedLanguages.Contains(languageCode) ? languageCode : "vi";
@@ -33,6 +39,9 @@ public class LocalizationService : ILocalizationService
         LanguageChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <summary>
+    /// Lấy văn bản theo ngôn ngữ hiện tại.
+    /// </summary>
     public string GetString(string key)
     {
         if (Translations.TryGetValue(key, out var dict) && dict.TryGetValue(_currentLanguage, out var value))
@@ -43,7 +52,9 @@ public class LocalizationService : ILocalizationService
         return key;
     }
 
-    // ── Translations: key → { langCode → text } ──
+    /// <summary>
+    /// Danh sách các văn bản theo ngôn ngữ.
+    /// </summary>
     private static readonly Dictionary<string, Dictionary<string, string>> Translations = new()
     {
         // ── App ──
@@ -287,7 +298,9 @@ public class LocalizationService : ILocalizationService
         ["SubNotApprovedMsg"]  = new() { ["vi"]="Chưa thấy xác nhận từ Admin hoặc đang chờ đối soát. Thử lại sau khi đã chuyển khoản đúng nội dung.", ["en"]="No admin confirmation yet or pending reconciliation. Try again after a correct transfer.", ["ko"]="관리자 확인이 없거나 대기 중입니다. 올바른 이체 후 다시 시도하세요.", ["zh"]="尚无管理员确认或正在对账。请正确转账后再试。", ["ja"]="管理者の確認がないか照合待ちです。正しい振込後に再試行してください。", ["th"]="ยังไม่มีการยืนยันหรือรอตรวจสอบ ลองอีกครั้งหลังโอนถูกต้อง", ["fr"]="Pas encore confirmé ou en attente de réconciliation." },
     };
 
-    // Helper: same text for all languages
+    /// <summary>
+    /// Helper: same text for all languages
+    /// </summary>
     private static Dictionary<string, string> L(string text) =>
         new() { ["vi"]=text, ["en"]=text, ["ko"]=text, ["zh"]=text, ["ja"]=text, ["th"]=text, ["fr"]=text };
 }

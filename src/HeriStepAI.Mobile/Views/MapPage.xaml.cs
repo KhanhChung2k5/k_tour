@@ -203,7 +203,10 @@ public partial class MapPage : ContentPage
         }
     }
 #endif
-
+    /// <summary>
+    /// Khi trang MapPage xuất hiện, kiểm tra xem có tour được chọn không, nếu có thì load map và POI cho tour đó.
+    /// Nếu không có tour được chọn, thì không load map và POI.
+    /// </summary>
     protected override void OnAppearing()
     {
         base.OnAppearing();

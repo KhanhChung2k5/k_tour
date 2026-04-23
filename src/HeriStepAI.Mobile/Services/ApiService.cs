@@ -53,6 +53,9 @@ public class ApiService : IApiService
         }
     }
 
+    /// <summary>
+    /// Gets all POIs from the server.
+    /// </summary>
     public async Task<List<POI>?> GetAllPOIsAsync()
     {
         const int maxRetries = 3;

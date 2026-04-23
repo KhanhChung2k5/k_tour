@@ -35,6 +35,9 @@ public class LocalAnalyticsService : IAnalyticsService
         }
     }
 
+    /// <summary>
+    /// Danh sách TOP 10 POI được ghé nhiều nhất.
+    /// </summary>
     public List<POIVisitRecord> TopPOIs
     {
         get
@@ -52,31 +55,43 @@ public class LocalAnalyticsService : IAnalyticsService
         }
     }
 
+    /// <summary>
+    /// Ghi lại lượt ghé thăm của một POI.
+    /// </summary>
     public void RecordPOIVisit(POI poi)
     {
-        // Total count
+        // Tổng số lượt ghé thăm
         Preferences.Default.Set(KeyShops, ShopsVisited + 1);
 
-        // Weekly day count
+        // Số lượt ghé thăm trong tuần
         EnsureWeekReset();
         int dayIndex = GetTodayIndex();
         string dayKey = KeyDayPrefix + dayIndex;
         Preferences.Default.Set(dayKey, Preferences.Default.Get(dayKey, 0) + 1);
 
-        // Top POIs
+        // Cập nhật danh sách TOP 10 POI được ghé nhiều nhất
         UpdateTopPOIs(poi);
     }
 
+    /// <summary>
+    /// Ghi lại lần nghe thuyết minh.
+    /// </summary>
     public void RecordNarration()
     {
         Preferences.Default.Set(KeyNarrations, NarrationCount + 1);
     }
 
+    /// <summary>
+    /// Ghi lại lần hoàn thành tour.
+    /// </summary>
     public void RecordTourCompleted()
     {
         Preferences.Default.Set(KeyTours, ToursCompleted + 1);
     }
 
+    /// <summary>
+    /// Ghi lại quãng đường đã đi.
+    /// </summary>
     public void AddDistance(double meters)
     {
         if (meters <= 0 || meters > 500) return; // ignore teleports / noise
@@ -85,6 +100,9 @@ public class LocalAnalyticsService : IAnalyticsService
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Đảm bảo rằng tuần được reset mỗi thứ 2.
+    /// </summary>
     private void EnsureWeekReset()
     {
         var thisMonday = GetThisMonday().ToString("yyyy-MM-dd");
@@ -104,12 +122,18 @@ public class LocalAnalyticsService : IAnalyticsService
         return today.AddDays(-diff);
     }
 
+    /// <summary>
+    /// Lấy chỉ số ngày trong tuần (Monday = 0, Sunday = 6).
+    /// </summary>
     private static int GetTodayIndex()
     {
         // Monday = 0, Sunday = 6
         return ((int)DateTime.Now.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
     }
 
+    /// <summary>
+    /// Cập nhật danh sách TOP 10 POI được ghé nhiều nhất.
+    /// </summary>
     private void UpdateTopPOIs(POI poi)
     {
         var json = Preferences.Default.Get(KeyTopPois, "[]");

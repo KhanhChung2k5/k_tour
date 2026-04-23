@@ -40,6 +40,9 @@ public class SupabaseStorageService : ISupabaseStorageService
         }
     }
 
+    /// <summary>
+    /// Upload image to Supabase Storage.
+    /// </summary>
     public async Task<string?> UploadImageAsync(Stream fileStream, string fileName, string contentType)
     {
         if (!_isConfigured || string.IsNullOrEmpty(_supabaseUrl))
@@ -50,6 +53,7 @@ public class SupabaseStorageService : ISupabaseStorageService
 
         try
         {
+            // Tạo đường dẫn file duy nhất
             // Generate unique file path: poi-images/{timestamp}_{filename}
             var ext = Path.GetExtension(fileName).ToLowerInvariant();
             var safeName = $"poi-images/{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}_{Guid.NewGuid():N}{ext}";
@@ -64,12 +68,13 @@ public class SupabaseStorageService : ISupabaseStorageService
 
             if (response.IsSuccessStatusCode)
             {
-                // Return public URL
+                // Trả về URL public
                 var publicUrl = $"{_supabaseUrl}/storage/v1/object/public/{_bucket}/{safeName}";
                 Console.WriteLine($"[SupabaseStorage] Upload success → {publicUrl}");
                 return publicUrl;
             }
 
+            // Đọc nội dung lỗi
             var error = await response.Content.ReadAsStringAsync();
             Console.WriteLine($"[SupabaseStorage] Upload FAILED ({(int)response.StatusCode} {response.StatusCode}): {error}");
             return null;
@@ -81,6 +86,9 @@ public class SupabaseStorageService : ISupabaseStorageService
         }
     }
 
+    /// <summary>
+    /// Delete image from Supabase Storage.
+    /// </summary>
     public async Task<bool> DeleteImageAsync(string filePath)
     {
         if (!_isConfigured || string.IsNullOrEmpty(_supabaseUrl))

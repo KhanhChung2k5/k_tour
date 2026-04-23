@@ -304,6 +304,10 @@ public partial class MainPageViewModel : ObservableObject
     }
 
     [RelayCommand]
+
+    /// <summary>
+    /// Hiển thị thông báo tính năng tạo tour mới sẽ sớm có mặt.
+    /// </summary>
     private async Task CreateTour()
     {
         await Shell.Current.DisplayAlert(

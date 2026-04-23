@@ -122,6 +122,9 @@ public partial class SettingsPageViewModel : ObservableObject
             : Color.FromArgb("#2C2416"); // Primary
     }
 
+    /// <summary>
+    /// Constructor.
+    /// </summary>
     public SettingsPageViewModel(
         IPOIService poiService,
         ILocationService locationService,
@@ -145,6 +148,9 @@ public partial class SettingsPageViewModel : ObservableObject
         UpdateGpsStatus();
     }
 
+    /// <summary>
+    /// Cập nhật các thuộc tính của Analytics.
+    /// </summary>
     public void RefreshAnalytics()
     {
         OnPropertyChanged(nameof(ShopsVisited));
@@ -161,6 +167,9 @@ public partial class SettingsPageViewModel : ObservableObject
         RefreshTopPOIs();
     }
 
+    /// <summary>
+    /// Cập nhật danh sách TOP 10 POI được ghé nhiều nhất.
+    /// </summary>
     private void RefreshTopPOIs()
     {
         var fmt = _localizationService.GetString("VisitCountFmt");
@@ -173,6 +182,9 @@ public partial class SettingsPageViewModel : ObservableObject
                 item.Rating));
     }
 
+    /// <summary>
+    /// Cập nhật các thuộc tính khi ngôn ngữ thay đổi.
+    /// </summary>
     private void RefreshTranslations()
     {
         MainThread.BeginInvokeOnMainThread(() =>
@@ -227,11 +239,17 @@ public partial class SettingsPageViewModel : ObservableObject
         });
     }
 
+    /// <summary>
+    /// Cập nhật ngôn ngữ hiện tại.
+    /// </summary>
     partial void OnSelectedLanguageChanged(string value)
     {
         _localizationService.SetLanguage(GetLanguageCode());
     }
 
+    /// <summary>
+    /// Cập nhật giọng đọc hiện tại.
+    /// </summary>
     partial void OnSelectedVoiceGenderChanged(string value)
     {
         var maleText = _localizationService.GetString("Male");
@@ -239,6 +257,9 @@ public partial class SettingsPageViewModel : ObservableObject
         _voicePreference.SaveVoiceGender(gender);
     }
 
+    /// <summary>
+    /// Cập nhật trạng thái GPS hiện tại.
+    /// </summary>
     private void UpdateGpsStatus()
     {
         IsLocationEnabled = _locationService.IsLocationEnabled;
@@ -247,16 +268,26 @@ public partial class SettingsPageViewModel : ObservableObject
             : _localizationService.GetString("LocationOff");
     }
 
+    /// <summary>
+    /// Danh sách ngôn ngữ có sẵn.
+    /// </summary>
     public List<string> AvailableLanguages { get; } = new()
     {
         "Tiếng Việt", "English", "한국어", "中文", "日本語", "ภาษาไทย", "Français"
     };
+
+    /// <summary>
+    /// Danh sách giọng đọc có sẵn.
+    /// </summary>
     public List<string> AvailableVoiceGenders => new()
     {
         _localizationService.GetString("Male"),
         _localizationService.GetString("Female")
     };
 
+    /// <summary>
+    /// Chuyển đổi từ ngôn ngữ hiện tại sang mã ngôn ngữ.
+    /// </summary>
     private static readonly Dictionary<string, string> DisplayToCode = new()
     {
         ["Tiếng Việt"] = "vi",
@@ -282,6 +313,10 @@ public partial class SettingsPageViewModel : ObservableObject
     };
 
     [RelayCommand]
+
+    /// <summary>
+    /// Đồng bộ dữ liệu từ server.
+    /// </summary>
     private async Task SyncData()
     {
         if (IsSyncing) return;

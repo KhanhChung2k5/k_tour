@@ -218,6 +218,9 @@ public partial class MapPageViewModel : ObservableObject
     /// <summary>Re-reads SelectedTour and refreshes POIs. Called by MapPage when tour changes.</summary>
     public async Task ReloadPOIsAsync() => await LoadPOIsAsync();
 
+/// <summary>
+/// Loads all POIs from the database and filters them based on the selected tour.
+/// </summary>
     private async Task LoadPOIsAsync()
     {
         try
