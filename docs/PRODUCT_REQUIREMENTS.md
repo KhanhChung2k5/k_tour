@@ -1348,17 +1348,17 @@ sequenceDiagram
     SO->>Web: POST /ShopOwner/ReportPayment (poiId=X)
     Web->>DB: SELECT POI WHERE Id=X AND OwnerId=userId
     DB-->>Web: poi (Priority = N)
-    Web->>DB: SELECT POIPayments WHERE POIId=X\nAND Status IN (Pending, Verified)
+    Web->>DB: SELECT POIPayments WHERE POIId=X<br/>AND Status IN (Pending, Verified)
     DB-->>Web: existing? (null = không có)
     alt Đã có bản ghi Pending/Verified
         Web-->>SO: TempData PaymentReported + redirect PaymentPending
     else Chưa có
-        Web->>Web: amount = POIPricing.GetPrice(Priority)\ntransferRef = "POIPAY-X-XXXXXX"
-        Web->>DB: INSERT POIPayment\n(Status=Pending, ReportedAtUtc=now)
+        Web->>Web: amount = POIPricing.GetPrice(Priority)<br/>transferRef = "POIPAY-X-XXXXXX"
+        Web->>DB: INSERT POIPayment<br/>(Status=Pending, ReportedAtUtc=now)
         DB-->>Web: payment.Id = Y
         Web-->>SO: TempData PaymentReported + redirect PaymentPending
     end
-    Note over SO: ShopOwner chuyển khoản ngân hàng\nvới nội dung = transferRef
+    Note over SO: ShopOwner chuyển khoản ngân hàng<br/>với nội dung = transferRef
 ```
 
 ---
@@ -1374,33 +1374,33 @@ sequenceDiagram
 
     Admin->>Web: GET /POIPayments (Cookie AuthToken)
     Web->>API: GET api/poi-payments (Bearer)
-    API->>DB: SELECT POIPayments JOIN POIs JOIN Users\nORDER BY ReportedAtUtc DESC
-    DB-->>API: [ { id, poiId, poiName, ownerName, priority, amount,\ntransferRef, status, reportedAt } ]
+    API->>DB: SELECT POIPayments JOIN POIs JOIN Users<br/>ORDER BY ReportedAtUtc DESC
+    DB-->>API: [ { id, poiId, poiName, ownerName, priority, amount,<br/>transferRef, status, reportedAt } ]
     API-->>Web: list JSON
     Web->>API: GET api/poi-payments/summary (Bearer)
     API->>DB: COUNT(*) GROUP BY Status
     DB-->>API: { pending, verified, rejected, totalAmountVndVerified }
     API-->>Web: summary JSON
-    Web-->>Admin: /POIPayments/Index.cshtml\n(stat cards + bảng danh sách)
+    Web-->>Admin: /POIPayments/Index.cshtml<br/>(stat cards + bảng danh sách)
 
     alt Admin xác nhận (Verify)
         Admin->>Web: POST /POIPayments/Verify (id=Y, AntiForgeryToken)
-        Web->>API: POST api/poi-payments/Y/verify (Bearer)\n{ note: null }
-        API->>DB: SELECT POIPayments.AsTracking()\nINCLUDE POI WHERE Id=Y
+        Web->>API: POST api/poi-payments/Y/verify (Bearer)<br/>{ note: null }
+        API->>DB: SELECT POIPayments.AsTracking()<br/>INCLUDE POI WHERE Id=Y
         DB-->>API: row (tracked)
-        API->>API: row.Status = Verified\nrow.VerifiedAtUtc = now\nrow.VerifiedByUserId = adminId
-        API->>API: row.POI.IsActive = true\nrow.POI.UpdatedAt = now
-        API->>DB: SaveChangesAsync() → UPDATE POIPayments + POIs
+        API->>API: row.Status = Verified<br/>row.VerifiedAtUtc = now<br/>row.VerifiedByUserId = adminId
+        API->>API: row.POI.IsActive = true<br/>row.POI.UpdatedAt = now
+        API->>DB: SaveChangesAsync()<br/>UPDATE POIPayments + POIs
         DB-->>API: OK
         API-->>Web: 200 { Message: "Đã xác nhận. POI đã được kích hoạt." }
         Web-->>Admin: TempData.Success → Redirect /POIPayments
     else Admin từ chối (Reject)
         Admin->>Web: POST /POIPayments/Reject (id=Y, AntiForgeryToken)
-        Web->>API: POST api/poi-payments/Y/reject (Bearer)\n{ note: "Lý do" }
+        Web->>API: POST api/poi-payments/Y/reject (Bearer)<br/>{ note: "Lý do" }
         API->>DB: SELECT POIPayments.AsTracking() WHERE Id=Y
         DB-->>API: row (tracked)
-        API->>API: row.Status = Rejected\nrow.VerifiedAtUtc = now\nrow.AdminNote = note
-        API->>DB: SaveChangesAsync() → UPDATE POIPayments
+        API->>API: row.Status = Rejected<br/>row.VerifiedAtUtc = now<br/>row.AdminNote = note
+        API->>DB: SaveChangesAsync()<br/>UPDATE POIPayments
         DB-->>API: OK
         API-->>Web: 200 { Message: "Đã từ chối." }
         Web-->>Admin: TempData.Success → Redirect /POIPayments
@@ -1420,13 +1420,13 @@ sequenceDiagram
     participant Web as HeriStepAI.Web
 
     Note over App,DB: Sau khi user tap "Tôi đã thanh toán"
-    App->>API: POST api/subscription-payments/report (AllowAnonymous)\n{ deviceKey, transferRef, planCode, amountVnd, platform }
-    API->>DB: SELECT MobileSubscriptionPayments\nWHERE DeviceKey=X AND TransferRef=Y AND ReportedAt >= now-48h
+    App->>API: POST api/subscription-payments/report (AllowAnonymous)<br/>{ deviceKey, transferRef, planCode, amountVnd, platform }
+    API->>DB: SELECT MobileSubscriptionPayments<br/>WHERE DeviceKey=X AND TransferRef=Y AND ReportedAt >= now-48h
     DB-->>API: existing?
     alt Đã báo trong 48h
         API-->>App: 200 { duplicate: true }
     else Chưa có
-        API->>DB: INSERT MobileSubscriptionPayment\n(Status=Pending, SubscriptionExpiresAtUtc=null)
+        API->>DB: INSERT MobileSubscriptionPayment<br/>(Status=Pending, SubscriptionExpiresAtUtc=null)
         DB-->>API: row.Id
         API-->>App: 200 { id, duplicate: false }
     end
@@ -1448,17 +1448,17 @@ sequenceDiagram
 
     alt Admin xác nhận
         Admin->>Web: POST /SubscriptionPayments/Verify (id, note)
-        Web->>API: POST api/subscription-payments/id/verify\n{ note }
+        Web->>API: POST api/subscription-payments/id/verify<br/>{ note }
         API->>DB: SELECT AsTracking WHERE Id=id
         DB-->>API: row (tracked)
-        API->>API: row.Status = Verified\nrow.VerifiedAtUtc = now\nrow.SubscriptionExpiresAtUtc = now + planDays
+        API->>API: row.Status = Verified<br/>row.VerifiedAtUtc = now<br/>row.SubscriptionExpiresAtUtc = now + planDays
         API->>DB: SaveChangesAsync()
         DB-->>API: OK
         API-->>Web: 200 "Đã xác nhận đối soát"
         Web-->>Admin: TempData.Success → Redirect
     else Admin từ chối
         Admin->>Web: POST /SubscriptionPayments/Reject (id, note)
-        Web->>API: POST api/subscription-payments/id/reject\n{ note }
+        Web->>API: POST api/subscription-payments/id/reject<br/>{ note }
         API->>DB: SELECT AsTracking WHERE Id=id
         API->>API: row.Status = Rejected
         API->>DB: SaveChangesAsync()
@@ -1471,7 +1471,7 @@ sequenceDiagram
     API->>DB: SELECT Verified WHERE DeviceKey=X AND ExpiresAt > now
     DB-->>API: active row
     API-->>App: { status: "active", planCode: "M", expiresAtUtc }
-    App->>App: SubscriptionService.ActivateFromServer(plan, expiresAtUtc)\n→ SecureStorage
+    App->>App: SubscriptionService.ActivateFromServer(plan, expiresAtUtc)<br/>-> SecureStorage
 ```
 
 ---
@@ -1480,7 +1480,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant SO as ShopOwner (chưa có tài khoản)
+    participant SO as "ShopOwner (chưa có tài khoản)"
     participant Web as HeriStepAI.Web
     participant API as HeriStepAI.API
     participant DB as PostgreSQL
@@ -1492,7 +1492,7 @@ sequenceDiagram
     alt Thiếu / sai field
         Web-->>SO: Trả lại form + lỗi validation
     else Hợp lệ
-        Web->>API: POST api/auth/register-shop-owner (AllowAnonymous)\n{ username, email, password, fullName, phone }
+        Web->>API: POST api/auth/register-shop-owner (AllowAnonymous)<br/>{ username, email, password, fullName, phone }
         API->>DB: SELECT Users WHERE Email = email
         alt Email đã tồn tại
             DB-->>API: User exists
@@ -1500,10 +1500,10 @@ sequenceDiagram
             Web-->>SO: ModelState lỗi
         else Chưa có
             API->>API: HashPassword(password)
-            API->>DB: INSERT User\n(Role=ShopOwner, ApprovalStatus=Pending, IsActive=false)
+            API->>DB: INSERT User<br/>(Role=ShopOwner, ApprovalStatus=Pending, IsActive=false)
             DB-->>API: userId
             API-->>Web: 200 OK
-            Web-->>SO: TempData["LoginInfo"] → Redirect /Auth/Login\n"Đăng ký thành công. Vui lòng chờ Admin duyệt."
+            Web-->>SO: TempData["LoginInfo"] -> Redirect /Auth/Login<br/>"Đăng ký thành công. Vui lòng chờ Admin duyệt."
         end
     end
 ```
@@ -1521,7 +1521,7 @@ sequenceDiagram
 
     Admin->>Web: GET /Approvals (Cookie AuthToken, Role=Admin)
     Web->>API: GET api/auth/pending-shop-owners (Bearer)
-    API->>DB: SELECT Users WHERE Role=ShopOwner\nAND ApprovalStatus=Pending
+    API->>DB: SELECT Users WHERE Role=ShopOwner<br/>AND ApprovalStatus=Pending
     DB-->>API: [ { id, username, email, fullName, phone, createdAt } ]
     API-->>Web: list JSON
     Web-->>Admin: Approvals/Index.cshtml (danh sách chờ duyệt)
@@ -1529,7 +1529,7 @@ sequenceDiagram
     alt Admin duyệt
         Admin->>Web: POST /Approvals/Approve (id, AntiForgeryToken)
         Web->>API: POST api/auth/approve-shop-owner/{id} (Bearer)
-        API->>DB: UPDATE Users SET ApprovalStatus=Approved, IsActive=true\nWHERE Id=id AND Role=ShopOwner
+        API->>DB: UPDATE Users SET ApprovalStatus=Approved, IsActive=true<br/>WHERE Id=id AND Role=ShopOwner
         DB-->>API: OK
         API-->>Web: 200 OK
         Web-->>Admin: TempData.Success "Đã duyệt tài khoản chủ quán." → Redirect /Approvals
@@ -1537,7 +1537,7 @@ sequenceDiagram
     else Admin từ chối
         Admin->>Web: POST /Approvals/Reject (id, AntiForgeryToken)
         Web->>API: POST api/auth/reject-shop-owner/{id} (Bearer)
-        API->>DB: UPDATE Users SET ApprovalStatus=Rejected\nWHERE Id=id AND Role=ShopOwner
+        API->>DB: UPDATE Users SET ApprovalStatus=Rejected<br/>WHERE Id=id AND Role=ShopOwner
         DB-->>API: OK
         API-->>Web: 200 OK
         Web-->>Admin: TempData.Success "Đã từ chối đăng ký." → Redirect /Approvals
@@ -1564,18 +1564,18 @@ flowchart TD
     SyncBG --> InitMain[MainPageViewModel.InitializeAsync]
     InitMain --> ReqPerm[Xin quyền GPS]
     ReqPerm --> PermOK{Cấp quyền?}
-    PermOK -->|Có| StartGPS[LocationService.StartLocationUpdates\nGPS poll 5 giây]
-    PermOK -->|Không| ShowWarn[Hiển thị cảnh báo\nkhông có vị trí]
-    StartGPS --> LoadPOI[Load POI từ SQLite cache\nSync từ API]
+    PermOK -->|Có| StartGPS[LocationService.StartLocationUpdates<br/>GPS poll 5 giây]
+    PermOK -->|Không| ShowWarn[Hiển thị cảnh báo<br/>không có vị trí]
+    StartGPS --> LoadPOI[Load POI từ SQLite cache<br/>Sync từ API]
     SubActive -->|Không| ShowSubPage[Hiển thị SubscriptionPage]
     ShowSubPage --> UserPay[User chọn gói & quét QR]
     UserPay --> Confirm[Tap Tôi đã thanh toán]
     Confirm --> Report[POST /subscription-payments/report]
     Report --> CheckEntitlement[GET /subscription-payments/entitlement]
     CheckEntitlement --> ActiveNow{status = active?}
-    ActiveNow -->|Có| Activate["ActivateFromServer - plan, expiresAtUtc\nLưu vào SecureStorage"]
+    ActiveNow -->|Có| Activate["ActivateFromServer - plan, expiresAtUtc<br/>Lưu vào SecureStorage"]
     Activate --> LoadShell
-    ActiveNow -->|Không| WaitAdmin[Giữ ở SubscriptionPage\nchờ Admin duyệt]
+    ActiveNow -->|Không| WaitAdmin[Giữ ở SubscriptionPage<br/>chờ Admin duyệt]
 ```
 
 ---
