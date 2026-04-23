@@ -1584,27 +1584,27 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([GPS cap nhat 5s]) --> GetLoc[Lay vi tri GPS that<br/>hoac gia lap Test Mode]
-    GetLoc --> AddDist[AddDistance nếu ≤ 500m]
-    AddDist --> FindPOI[Loc POI trong ban kinh<br/>-> OrderByDescending Priority<br/>-> chon gan GPS nhat neu cung Priority]
-    FindPOI --> InRadius{Trong ban kinh<br/>POI nao?}
-    InRadius -->|Không| ResetCurrent[currentPOI = null]
-    ResetCurrent --> Wait[Chờ 5s]
+    Start([GPS update 5s]) --> GetLoc[Get location]
+    GetLoc --> AddDist[Add distance if <= 500m]
+    AddDist --> FindPOI[Find POI by radius priority distance]
+    FindPOI --> InRadius{Any POI in radius}
+    InRadius -->|No| ResetCurrent[Set currentPOI null]
+    ResetCurrent --> Wait[Wait 5s]
     Wait --> Start
-    InRadius -->|Co POI X| Layer1{Lop 1 GeofenceService:<br/>currentPOI == X?}
-    Layer1 -->|Đang ở đây rồi| Wait
-    Layer1 -->|POI moi| Layer2{Lop 2 GeofenceService:<br/>cooldown 5 phut con?}
-    Layer2 -->|Còn cooldown| Wait
-    Layer2 -->|Het cooldown| FireEvent[POIEntered event<br/>ghi cooldown timestamp]
-    FireEvent --> RecordVisit[RecordPOIVisit<br/>RecordDistance]
-    RecordVisit --> LogAPI[POST api/analytics/visit<br/>fire and forget]
-    LogAPI --> Layer3{Lop NarrationService:<br/>queue / cooldown?}
-    Layer3 -->|Trùng queue hoặc cooldown| Wait
-    Layer3 -->|OK| GetContent[Lay noi dung:<br/>Contents<br/>lang -> vi -> Description]
-    GetContent --> HasAudio{Có AudioUrl?}
-    HasAudio -->|Có| PlayAudio[Phát file audio]
-    HasAudio -->|Khong| TTS[TTS SpeakAsync<br/>giong Nam Nu]
-    PlayAudio --> RecordNarr[RecordNarration<br/>analytics]
+    InRadius -->|Yes| Layer1{Same current POI}
+    Layer1 -->|Yes| Wait
+    Layer1 -->|No| Layer2{Cooldown 5m active}
+    Layer2 -->|Yes| Wait
+    Layer2 -->|No| FireEvent[Emit POIEntered]
+    FireEvent --> RecordVisit[Record visit and distance]
+    RecordVisit --> LogAPI[Post analytics visit async]
+    LogAPI --> Layer3{Narration queue cooldown}
+    Layer3 -->|Blocked| Wait
+    Layer3 -->|OK| GetContent[Resolve content by language]
+    GetContent --> HasAudio{Has audio url}
+    HasAudio -->|Yes| PlayAudio[Play audio]
+    HasAudio -->|No| TTS[Speak by TTS]
+    PlayAudio --> RecordNarr[Record narration]
     TTS --> RecordNarr
     RecordNarr --> Wait
 ```
@@ -1615,25 +1615,25 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([ShopOwner da Approved<br/>mo /ShopOwner/Create]) --> FillForm[Dien thong tin POI<br/>Priority, toa do, mo ta vi, gia...]
-    FillForm --> HasImg{Upload ảnh?}
-    HasImg -->|Có| UploadImg[Upload lên Supabase Storage]
-    UploadImg --> ImgOK{Thành công?}
-    ImgOK -->|Lỗi| ShowImgErr[Hiển thị lỗi]
+    Start([ShopOwner approved open create page]) --> FillForm[Fill POI form]
+    FillForm --> HasImg{Has image file}
+    HasImg -->|Yes| UploadImg[Upload to storage]
+    UploadImg --> ImgOK{Upload success}
+    ImgOK -->|No| ShowImgErr[Show image error]
     ShowImgErr --> FillForm
-    ImgOK -->|OK| SetUrl[Gán ImageUrl]
+    ImgOK -->|Yes| SetUrl[Set image url]
     SetUrl --> Submit
-    HasImg -->|Không| Submit[POST /ShopOwner/Create]
-    Submit --> ValidSrv{Validate<br/>server-side}
-    ValidSrv -->|Thiếu field| ShowErr[Hiển thị lỗi form]
+    HasImg -->|No| Submit[Post create request]
+    Submit --> ValidSrv{Server validation}
+    ValidSrv -->|Invalid| ShowErr[Show validation errors]
     ShowErr --> FillForm
-    ValidSrv -->|Hop le| SaveDB[DbContext: INSERT POI<br/>OwnerId = userId]
-    SaveDB --> SaveContent[INSERT POIContent<br/>cac dong da nhap]
-    SaveContent --> HasVi{Có mô tả vi?}
-    HasVi -->|Co| SyncTrans[SyncFromVietnameseAsync<br/>dien dich cac ngon ngu con trong]
-    HasVi -->|Không| RedirectOK
-    SyncTrans --> RedirectOK[TempData.Success<br/>Redirect /ShopOwner/Dashboard]
-    RedirectOK --> End([Kết thúc])
+    ValidSrv -->|Valid| SaveDB[Insert POI with owner id]
+    SaveDB --> SaveContent[Insert POI content rows]
+    SaveContent --> HasVi{Has Vietnamese text}
+    HasVi -->|Yes| SyncTrans[Sync translations]
+    HasVi -->|No| RedirectOK
+    SyncTrans --> RedirectOK[Redirect dashboard success]
+    RedirectOK --> End([Done])
 ```
 
 ---
@@ -1642,24 +1642,26 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Mo MainPage]) --> LoadTours[TourGeneratorService<br/>tao smart tours tu POI cache]
-    LoadTours --> HasTours{Có tour?}
-    HasTours -->|Không| ShowEmpty[Hiển thị trống]
-    ShowEmpty --> End([Kết thúc])
-    HasTours -->|Có| ShowCards[Hiển thị tour cards]
-    ShowCards --> SelectTour[Chọn 1 tour]
-    SelectTour --> OpenDetail[TourDetailPage<br/>Danh sach POI, tong gia]
-    OpenDetail --> Decision{Quyết định?}
-    Decision -->|Quay lại| ShowCards
-    Decision -->|Bat dau Tour| SetSelection[TourSelectionService<br/>SelectedTour = tour]
-    SetSelection --> NavMap[GoToAsync //MapPage]
-    NavMap --> OnAppearing[MapPage.OnAppearing<br/>currentTourId != lastLoadedTourId?]
-    OnAppearing -->|Tour moi| ReloadPOI[ReloadPOIsAsync<br/>POIs = tour.POIs]
-    OnAppearing -->|Cùng tour| KeepMap[Giữ nguyên map]
-    ReloadPOI --> InitGeo[GeofenceService.Initialize<br/>POI cua tour]
-    InitGeo --> RenderMap[Render Leaflet<br/>chi POI tour]
-    RenderMap --> StartTrack[LocationService tracking<br/>Geofence theo POI tour]
-    StartTrack --> End2([Đang tour])
+    Start([Open main page]) --> LoadTours[Generate tours from POI cache]
+    LoadTours --> HasTours{Has tours}
+    HasTours -->|No| ShowEmpty[Show empty state]
+    ShowEmpty --> End([Done])
+    HasTours -->|Yes| ShowCards[Show tour cards]
+    ShowCards --> SelectTour[Select one tour]
+    SelectTour --> OpenDetail[Open tour detail page]
+    OpenDetail --> Decision{Start tour}
+    Decision -->|Back| ShowCards
+    Decision -->|Start| SetSelection[Set SelectedTour]
+    SetSelection --> NavMap[Navigate to MapPage]
+    NavMap --> OnAppearing[Map page appearing]
+    OnAppearing --> CheckTour{Tour changed}
+    CheckTour -->|No| KeepMap[Keep current map]
+    CheckTour -->|Yes| ReloadPOI[Reload tour POIs]
+    ReloadPOI --> InitGeo[Init geofence with tour POIs]
+    InitGeo --> RenderMap[Render map with filtered POIs]
+    RenderMap --> StartTrack[Start location tracking]
+    KeepMap --> End2([Tour mode active])
+    StartTrack --> End2([Tour mode active])
 ```
 
 ---
@@ -1671,7 +1673,7 @@ flowchart TD
     Start([Truy cập /]) --> Redirect[302 → /Auth/Login]
     Redirect --> EnterCreds[Nhập email & mật khẩu]
     EnterCreds --> Submit[POST /Auth/Login]
-    Submit --> Validate{Validate<br/>client-side}
+    Submit --> Validate{Validate client side}
     Validate -->|Thiếu field| ShowValErr[Hiển thị lỗi]
     ShowValErr --> EnterCreds
     Validate -->|Hợp lệ| CallAPI[POST api/auth/login]
@@ -1696,23 +1698,23 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Mo app - het han]) --> ShowPlans[Hien thi 4 goi:<br/>Daily 29k / Weekly 99k<br/>Monthly 199k / Yearly 999k]
-    ShowPlans --> SwitchLang{Muon doi<br/>ngon ngu?}
-    SwitchLang -->|Co| CycleLang[SwitchLanguageCommand<br/>vi->en->ko->zh->ja->th->fr]
+    Start([Open app with expired plan]) --> ShowPlans[Show 4 plans]
+    ShowPlans --> SwitchLang{Change language}
+    SwitchLang -->|Yes| CycleLang[Cycle app language]
     CycleLang --> ShowPlans
-    SwitchLang -->|Không| SelectPlan[Chọn gói]
-    SelectPlan --> ShowQR[Hien thi QR VietQR<br/>ICB-104879400502<br/>amount + noi dung: HSA+DeviceKey+PlanCode]
-    ShowQR --> UserTransfer[User chuyen khoan<br/>ngan hang]
-    UserTransfer --> TapConfirm[Tap Tôi đã thanh toán]
-    TapConfirm --> Report[POST /subscription-payments/report]
-    Report --> WaitApprove[Hien thi cho doi soat<br/>khong vao app ngay]
-    WaitApprove --> CheckBtn[Tap Kiem tra da duyet<br/>hoac OnAppearing]
-    CheckBtn --> Poll[GET /subscription-payments/entitlement]
-    Poll --> Entitled{status=active?}
-    Entitled -->|Không| WaitApprove
-    Entitled -->|Co| Activate["ActivateFromServer - plan, expiresAtUtc<br/>sub_plan + sub_expiry -> SecureStorage"]
-    Activate --> LoadApp[MainPage = AppShell<br/>vao app binh thuong]
-    LoadApp --> End([Kết thúc])
+    SwitchLang -->|No| SelectPlan[Select plan]
+    SelectPlan --> ShowQR[Show VietQR]
+    ShowQR --> UserTransfer[User bank transfer]
+    UserTransfer --> TapConfirm[Tap confirm payment]
+    TapConfirm --> Report[Post report payment]
+    Report --> WaitApprove[Show waiting state]
+    WaitApprove --> CheckBtn[Tap check status]
+    CheckBtn --> Poll[Get entitlement]
+    Poll --> Entitled{Status active}
+    Entitled -->|No| WaitApprove
+    Entitled -->|Yes| Activate[Activate from server and save]
+    Activate --> LoadApp[Open app shell]
+    LoadApp --> End([Done])
 ```
 
 ---
@@ -1721,24 +1723,24 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([ShopOwner tạo POI thành công]) --> POIInactive[POI được tạo<br/>IsActive = false]
-    POIInactive --> CallReport[POST /ShopOwner/ReportPayment<br/>poiId = X]
-    CallReport --> HasExisting{Đã có bản ghi<br/>Pending/Verified?}
-    HasExisting -->|Có| ReturnExisting[Giữ bản ghi hiện có<br/>redirect PaymentPending]
-    ReturnExisting --> ShowRef[ShopOwner thấy transferRef<br/>đã có từ trước]
-    HasExisting -->|Không| CalcPrice[Tính giá theo Priority<br/>1->50k / 2->150k / 3->350k VND]
-    CalcPrice --> GenRef[Tạo TransferRef<br/>POIPAY-X-XXXXXX]
-    GenRef --> SavePending[DbContext INSERT POIPayment<br/>Status = Pending]
-    SavePending --> ShowQR[Redirect PaymentPending<br/>ShopOwner thấy TransferRef để chuyển khoản]
+    Start([ShopOwner creates POI]) --> POIInactive[POI created inactive]
+    POIInactive --> CallReport[Report payment for POI]
+    CallReport --> HasExisting{Has pending verified record}
+    HasExisting -->|Yes| ReturnExisting[Reuse existing payment record]
+    ReturnExisting --> ShowRef[Show existing transfer ref]
+    HasExisting -->|No| CalcPrice[Calculate amount by priority]
+    CalcPrice --> GenRef[Generate transfer reference]
+    GenRef --> SavePending[Insert pending POI payment]
+    SavePending --> ShowQR[Show payment pending page]
     ShowRef --> ShowQR
-    ShowQR --> AdminCheck[Admin mở /POIPayments<br/>xem danh sách Pending]
-    AdminCheck --> Decision{Admin quyết định?}
-    Decision -->|Xác nhận - đã nhận tiền| Verify[POST api/poi-payments/id/verify<br/>row.AsTracking -> Status=Verified<br/>POI.IsActive=true]
-    Decision -->|Từ chối - sai / gian lận| Reject[POST api/poi-payments/id/reject<br/>row.AsTracking -> Status=Rejected<br/>POI vẫn IsActive=false]
-    Verify --> POIActive[POI hiển thị<br/>trên Mobile App]
-    Reject --> NotifyReject[ShopOwner xem trạng thái<br/>Từ chối + AdminNote]
-    POIActive --> End([Kết thúc])
-    NotifyReject --> End2([ShopOwner có thể báo lại<br/>nếu thanh toán lại])
+    ShowQR --> AdminCheck[Admin reviews pending POI payments]
+    AdminCheck --> Decision{Admin verifies payment}
+    Decision -->|Yes| Verify[Set payment verified and activate POI]
+    Decision -->|No| Reject[Set payment rejected keep POI inactive]
+    Verify --> POIActive[POI becomes visible on mobile]
+    Reject --> NotifyReject[ShopOwner sees rejected status]
+    POIActive --> End([Done])
+    NotifyReject --> End2([Done])
 ```
 
 ---
@@ -1747,27 +1749,27 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User tap Tôi đã thanh toán<br/>trên SubscriptionPage]) --> Report[POST api/subscription-payments/report<br/>deviceKey + transferRef + planCode + amount]
-    Report --> Dup{Đã báo trong 48h<br/>với cùng transferRef?}
-    Dup -->|Có| UseDup[Dùng bản ghi cũ<br/>duplicate = true]
-    Dup -->|Không| SavePending[INSERT MobileSubscriptionPayment<br/>Status = Pending<br/>SubscriptionExpiresAtUtc = null]
-    SavePending --> AppWait[App lưu id<br/>hiển thị Đang chờ xác nhận]
+    Start([User confirms payment on mobile]) --> Report[Post subscription payment report]
+    Report --> Dup{Duplicate in 48h}
+    Dup -->|Yes| UseDup[Reuse existing report]
+    Dup -->|No| SavePending[Insert pending payment]
+    SavePending --> AppWait[App waiting for review]
     UseDup --> AppWait
 
-    AppWait --> Poll[App poll GET entitlement?deviceKey=X]
-    Poll --> PollResult{Kết quả?}
+    AppWait --> Poll[App polls entitlement]
+    Poll --> PollResult{Result}
     PollResult -->|pending| AppWait
-    PollResult -->|active| Activate["SubscriptionService.ActivateFromServer<br/>Lưu expiresAtUtc -> SecureStorage"]
-    Activate --> LoadApp[Vào app bình thường<br/>AppShell]
-    LoadApp --> End([Kết thúc])
+    PollResult -->|active| Activate[Activate subscription local]
+    Activate --> LoadApp[Open app shell]
+    LoadApp --> End([Done])
 
-    AppWait --> AdminSide[Admin mở /SubscriptionPayments<br/>xem danh sách Pending]
-    AdminSide --> AdminDecide{Admin đối chiếu<br/>sao kê ngân hàng?}
-    AdminDecide -->|Đúng - xác nhận| Verify[POST api/subscription-payments/id/verify<br/>Status=Verified<br/>SubscriptionExpiresAtUtc = now + planDays]
-    AdminDecide -->|Sai / gian lận - từ chối| Reject[POST api/subscription-payments/id/reject<br/>Status=Rejected]
+    AppWait --> AdminSide[Admin reviews subscription payments]
+    AdminSide --> AdminDecide{Bank statement matched}
+    AdminDecide -->|Yes| Verify[Verify payment and set expiry]
+    AdminDecide -->|No| Reject[Reject payment]
     Verify --> PollResult
-    Reject --> NotifyReject[App poll -> status=none<br/>Hiển thị lỗi / thử lại]
-    NotifyReject --> End2([Kết thúc])
+    Reject --> NotifyReject[App shows rejected state]
+    NotifyReject --> End2([Done])
 ```
 
 ---
@@ -1776,24 +1778,24 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([ShopOwner truy cập<br/>/Auth/RegisterShopOwner]) --> FillForm[Điền Username, Email<br/>Password, FullName, Phone]
-    FillForm --> Validate{Validate<br/>client/server?}
-    Validate -->|Thiếu field| ShowErr[Hiển thị lỗi form]
+    Start([ShopOwner opens register page]) --> FillForm[Fill registration form]
+    FillForm --> Validate{Client and server valid}
+    Validate -->|No| ShowErr[Show form errors]
     ShowErr --> FillForm
-    Validate -->|Hợp lệ| CallAPI[POST api/auth/register-shop-owner]
-    CallAPI --> EmailExist{Email đã tồn tại?}
-    EmailExist -->|Có| ErrDup[Lỗi: Email đã tồn tại]
+    Validate -->|Yes| CallAPI[Post register shopowner]
+    CallAPI --> EmailExist{Email exists}
+    EmailExist -->|Yes| ErrDup[Show duplicate email error]
     ErrDup --> FillForm
-    EmailExist -->|Không| SavePending[INSERT User<br/>ApprovalStatus = Pending<br/>IsActive = false]
-    SavePending --> ShowWait[Redirect /Auth/Login<br/>Thông báo chờ Admin duyệt]
-    ShowWait --> AdminReview[Admin mở /Approvals<br/>xem danh sách Pending]
-    AdminReview --> Decision{Admin quyết định?}
-    Decision -->|Duyệt| Approve[POST api/auth/approve-shop-owner/id<br/>ApprovalStatus = Approved<br/>IsActive = true]
-    Decision -->|Từ chối| Reject[POST api/auth/reject-shop-owner/id<br/>ApprovalStatus = Rejected]
-    Approve --> CanLogin[ShopOwner đăng nhập<br/>-> Redirect /ShopOwner/Dashboard]
-    Reject --> Blocked[ShopOwner đăng nhập<br/>-> API 403: Tài khoản bị từ chối]
-    CanLogin --> End([Kết thúc])
-    Blocked --> End2([Kết thúc])
+    EmailExist -->|No| SavePending[Create pending account]
+    SavePending --> ShowWait[Redirect login and wait approval]
+    ShowWait --> AdminReview[Admin opens approvals page]
+    AdminReview --> Decision{Approve account}
+    Decision -->|Yes| Approve[Approve shopowner account]
+    Decision -->|No| Reject[Reject shopowner account]
+    Approve --> CanLogin[Shopowner can login dashboard]
+    Reject --> Blocked[Shopowner login gets forbidden]
+    CanLogin --> End([Done])
+    Blocked --> End2([Done])
 ```
 
 ---
@@ -1802,23 +1804,23 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Admin mở /POI/Edit/id]) --> LoadPOI[GET POI từ DB hoặc API<br/>cùng POIContents hiện tại]
-    LoadPOI --> ShowForm[Hiển thị form edit<br/>pre-filled]
-    ShowForm --> Submit[PUT api/poi/id<br/>BearerJWT]
-    Submit --> POISvcLoad[POIService: SELECT POI + Contents WHERE Id=id]
-    POISvcLoad --> CompareVi{oldViText.Trim()<br/>== newViText.Trim()?}
-    CompareVi -->|Không đổi| UpdateBasic[UPDATE basic fields only<br/>Name, Price, Image, IsActive…<br/>Giữ nguyên tất cả POIContents]
-    UpdateBasic --> Return200[200 OK — không gọi MyMemory<br/>tiết kiệm quota dịch]
-    CompareVi -->|Đã đổi| DeleteContents[DELETE POIContents WHERE POIId=id]
-    DeleteContents --> InsertVi[INSERT POIContent vi mới]
-    InsertVi --> Translate[TranslateToAllLanguagesAsync<br/>6 requests song song -> MyMemory]
-    Translate --> TransOK{Dịch thành công?}
-    TransOK -->|Có| InsertAll[INSERT POIContent × 6<br/>en / ko / zh / ja / th / fr]
-    TransOK -->|Lỗi 1 ngôn ngữ| Partial[INSERT các ngôn ngữ thành công<br/>bỏ qua ngôn ngữ lỗi]
+    Start([Admin edits POI]) --> LoadPOI[Load POI and contents]
+    LoadPOI --> ShowForm[Show edit form]
+    ShowForm --> Submit[Submit update]
+    Submit --> POISvcLoad[POI service loads current data]
+    POISvcLoad --> CompareVi{Vietnamese text changed}
+    CompareVi -->|No| UpdateBasic[Update base fields only]
+    UpdateBasic --> Return200[Return success no translation]
+    CompareVi -->|Yes| DeleteContents[Delete old contents]
+    DeleteContents --> InsertVi[Insert new Vietnamese content]
+    InsertVi --> Translate[Translate to all languages]
+    Translate --> TransOK{Translation success}
+    TransOK -->|Yes| InsertAll[Insert translated contents]
+    TransOK -->|Partial| Partial[Insert available translations]
     InsertAll --> Return200
     Partial --> Return200
-    Return200 --> Redirect[Admin: Redirect /POI<br/>TempData.Success]
-    Redirect --> End([Kết thúc])
+    Return200 --> Redirect[Redirect POI list success]
+    Redirect --> End([Done])
 ```
 
 ---
@@ -1827,26 +1829,26 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User mở POIDetailPage<br/>chọn 1 POI]) --> LoadPOI[POIDetailViewModel<br/>SelectedPoi = poi]
-    LoadPOI --> RecordVisit[LocalAnalyticsService<br/>RecordPOIVisit]
-    RecordVisit --> ShowDetail[Hiển thị tên, mô tả, ảnh<br/>theo ngôn ngữ hiện tại]
-    ShowDetail --> TapPlay[User tap Nghe thuyết minh]
-    TapPlay --> PlayCmd[PlayNarrationCommand<br/>forcePlay = true]
-    PlayCmd --> Cancel[NarrationService.CancelAsync<br/>dừng TTS đang phát nếu có]
-    Cancel --> ClearQueue[Xóa queue hiện tại]
-    ClearQueue --> GetContent[Lấy nội dung:<br/>Contents lang -> vi -> Description]
-    GetContent --> HasContent{Có nội dung?}
-    HasContent -->|Không| ShowEmpty[Hiển thị thông báo<br/>Không có nội dung thuyết minh]
-    ShowEmpty --> End2([Kết thúc])
-    HasContent -->|Có| HasAudio{Có AudioUrl?}
-    HasAudio -->|Có| PlayAudio[Phát file audio]
-    HasAudio -->|Không| GetVoice[VoicePreferenceService<br/>GetVoiceGender -> Male/Female]
-    GetVoice --> FindVoice[TTS.GetVoicesAsync<br/>Filter: locale + gender]
-    FindVoice --> SpeakTTS[SpeakAsync text<br/>SpeechOptions Voice/Pitch/Volume]
-    PlayAudio --> RecordNarr[LocalAnalyticsService<br/>RecordNarration]
+    Start([User opens POI detail page]) --> LoadPOI[Bind selected POI]
+    LoadPOI --> RecordVisit[Record local POI visit]
+    RecordVisit --> ShowDetail[Show POI details]
+    ShowDetail --> TapPlay[Tap play narration]
+    TapPlay --> PlayCmd[Run play narration command]
+    PlayCmd --> Cancel[Cancel current narration if any]
+    Cancel --> ClearQueue[Clear narration queue]
+    ClearQueue --> GetContent[Resolve narration content]
+    GetContent --> HasContent{Has content}
+    HasContent -->|No| ShowEmpty[Show no content message]
+    ShowEmpty --> End2([Done])
+    HasContent -->|Yes| HasAudio{Has audio url}
+    HasAudio -->|Yes| PlayAudio[Play audio file]
+    HasAudio -->|No| GetVoice[Read voice preference]
+    GetVoice --> FindVoice[Select matching TTS voice]
+    FindVoice --> SpeakTTS[Speak text with TTS]
+    PlayAudio --> RecordNarr[Record local narration]
     SpeakTTS --> RecordNarr
-    RecordNarr --> Done[NarrationCompleted event<br/>VM cập nhật IsPlaying = false]
-    Done --> End([Kết thúc])
+    RecordNarr --> Done[Set playback finished state]
+    Done --> End([Done])
 ```
 
 ---
@@ -1858,117 +1860,24 @@ flowchart TD
 ### G.1 Domain & Data Model (Core Entities)
 
 ```mermaid
-classDiagram
-    class User {
-        +int Id
-        +string Username
-        +string Email
-        +string PasswordHash
-        +UserRole Role
-        +AccountApprovalStatus ApprovalStatus
-        +string? FullName
-        +string? Phone
-        +DateTime CreatedAt
-        +bool IsActive
-    }
+flowchart LR
+    User[User]
+    POI[POI]
+    POIContent[POIContent]
+    VisitLog[VisitLog]
+    Tour[Tour]
+    POIPayment[POIPayment]
+    MobileSubPayment[MobileSubscriptionPayment]
+    Status[PaymentStatus Pending Verified Rejected]
 
-    class POI {
-        +int Id
-        +string Name
-        +string Description
-        +double Latitude
-        +double Longitude
-        +string Address
-        +double Radius
-        +int Priority
-        +int? OwnerId
-        +string ImageUrl
-        +string MapLink
-        +bool IsActive
-        +double? Rating
-        +int ReviewCount
-        +int Category
-        +int? TourId
-        +int EstimatedMinutes
-        +int FoodType
-        +long PriceMin
-        +long PriceMax
-    }
-
-    class POIContent {
-        +int Id
-        +int POId
-        +string Language
-        +string TextContent
-        +string? AudioUrl
-    }
-
-    class VisitLog {
-        +int Id
-        +int POId
-        +string? UserId
-        +DateTime VisitTime
-        +double? Latitude
-        +double? Longitude
-        +VisitType VisitType
-        +int? DurationSeconds
-    }
-
-    class Tour {
-        +int Id
-        +string Name
-        +string Description
-        +int EstimatedMinutes
-        +int POICount
-        +long PriceMin
-        +long PriceMax
-    }
-
-    class POIPayment {
-        +int Id
-        +int POIId
-        +int OwnerId
-        +int Priority
-        +long AmountVnd
-        +string TransferRef
-        +PaymentReconciliationStatus Status
-        +DateTime ReportedAtUtc
-        +DateTime? VerifiedAtUtc
-        +int? VerifiedByUserId
-        +string? AdminNote
-    }
-
-    class MobileSubscriptionPayment {
-        +int Id
-        +string DeviceKey
-        +string TransferRef
-        +string PlanCode
-        +string? PlanLabel
-        +int AmountVnd
-        +DateTime? SubscriptionExpiresAtUtc
-        +string? Platform
-        +PaymentReconciliationStatus Status
-        +DateTime ReportedAtUtc
-        +DateTime? VerifiedAtUtc
-        +int? VerifiedByUserId
-        +string? AdminNote
-    }
-
-    class PaymentReconciliationStatus {
-        <<enumeration>>
-        Pending = 0
-        Verified = 1
-        Rejected = 2
-    }
-
-    User "1" --> "0..*" POI : owns
-    POI "1" --> "0..*" POIContent : has localized content
-    POI "1" --> "0..*" VisitLog : records visits
-    POI "1" --> "0..*" POIPayment : payment records
-    User "1" --> "0..*" POIPayment : reports (OwnerId)
-    POIPayment --> PaymentReconciliationStatus : status
-    MobileSubscriptionPayment --> PaymentReconciliationStatus : status
-    Tour "1" o-- "0..*" POI : runtime grouping (mobile)
+    User -->|owns| POI
+    POI -->|has| POIContent
+    POI -->|records| VisitLog
+    POI -->|has payment records| POIPayment
+    User -->|reports| POIPayment
+    POIPayment -->|status| Status
+    MobileSubPayment -->|status| Status
+    Tour -->|groups POI for mobile runtime| POI
 ```
 
 ### G.2 API Layer (Controllers, Services, Repositories)
@@ -2089,89 +1998,31 @@ classDiagram
 ### G.3 Mobile Layer (ViewModels & Services)
 
 ```mermaid
-classDiagram
-    class MainPageViewModel {
-        +LoadPOIsAsync()
-        +LoadToursAsync()
-        +StartTrackingAsync()
-    }
+flowchart LR
+    MainVM[MainPageViewModel]
+    MapVM[MapPageViewModel]
+    SubVM[SubscriptionViewModel]
 
-    class MapPageViewModel {
-        +LoadPOIsAsync()
-        +CenterToUserAsync()
-    }
+    SubSvc[SubscriptionService]
+    POISvc[POIService]
+    TourGen[TourGeneratorService]
+    TourSel[TourSelectionService]
+    Geo[GeofenceService]
+    Loc[LocationService]
+    Sim[LocationSimulatorService]
+    Narr[NarrationService]
+    I18n[LocalizationService]
 
-    class SubscriptionViewModel {
-        +SelectedPlan
-        +ConfirmPaymentCommand
-        +CheckEntitlementCommand
-        +OnAppearingAsync()
-    }
-
-    class ISubscriptionService {
-        <<interface>>
-        +IsActive(): bool
-        +CurrentPlan: SubscriptionPlan?
-        +ExpiryDate: DateTime?
-        +Activate(plan): void
-        +ActivateFromServer(plan, expiresAtUtc): void
-        +Clear(): void
-    }
-
-    class SubscriptionService
-
-    class LocalizationService {
-        +SetLanguage(code)
-        +GetString(key): string
-    }
-
-    class GeofenceService {
-        +CheckGeofence(location, pois): POI?
-    }
-
-    class LocationService {
-        +GetCurrentLocationAsync()
-        +RequestLocationPermissionAsync()
-        +StartLocationUpdates()
-        +StopLocationUpdates()
-    }
-
-    class LocationSimulatorService {
-        +StartSimulation(route)
-        +StopSimulation()
-        +AdvanceToNext()
-    }
-
-    class NarrationService {
-        +PlayAudio(url)
-        +SpeakText(text)
-    }
-
-    class TourGeneratorService {
-        +GenerateTours(pois): IEnumerable~Tour~
-    }
-
-    class TourSelectionService {
-        +SelectedTour
-    }
-
-    class POIService {
-        +GetAllPOIsAsync(): Task~List~POI~~
-        +GetPOIByIdAsync(id): Task~POI?~
-        +SyncPOIsFromServerAsync(): Task
-    }
-
-    SubscriptionService ..|> ISubscriptionService
-    SubscriptionViewModel --> ISubscriptionService : uses
-    MainPageViewModel --> POIService : sync data
-    MainPageViewModel --> TourGeneratorService : create tours
-    MainPageViewModel --> TourSelectionService : set active tour
-    MainPageViewModel --> GeofenceService : detect POI entry
-    MainPageViewModel --> LocationService : gps tracking
-    MainPageViewModel --> NarrationService : audio/TTS
-    MainPageViewModel --> LocalizationService : i18n
-    MapPageViewModel --> TourSelectionService : read selected tour
-    LocationService --> LocationSimulatorService : uses simulated location
+    SubVM --> SubSvc
+    MainVM --> POISvc
+    MainVM --> TourGen
+    MainVM --> TourSel
+    MainVM --> Geo
+    MainVM --> Loc
+    MainVM --> Narr
+    MainVM --> I18n
+    MapVM --> TourSel
+    Loc --> Sim
 ```
 
 ### G.4 API Authorization Matrix (Role-based)
@@ -2182,25 +2033,25 @@ flowchart LR
     ShopOwner[ShopOwner]
     GuestMobile[GuestMobile]
 
-    Auth[Auth Endpoints<br/>/api/auth/login<br/>/api/auth/register<br/>/api/auth/register-shop-owner<br/>/api/auth/pending-shop-owners<br/>/api/auth/approve-shop-owner/:id<br/>/api/auth/reject-shop-owner/:id<br/>/api/auth/register-tourist<br/>/api/auth/me]
-    POI[POI Endpoints<br/>/api/poi<br/>/api/poi/:id<br/>/api/poi/:id/content/:language<br/>/api/poi/my-pois<br/>POST PUT DELETE /api/poi/:id]
-    Analytics[Analytics Endpoints<br/>/api/analytics/visit<br/>/api/analytics/summary<br/>/api/analytics/top-pois<br/>/api/analytics/poi/:id/statistics<br/>/api/analytics/poi/:id/logs]
-    PoiPay[POI Payment Endpoints<br/>/api/poi-payments/report<br/>/api/poi-payments/by-poi/:poiId<br/>/api/poi-payments<br/>/api/poi-payments/summary<br/>/api/poi-payments/:id/verify<br/>/api/poi-payments/:id/reject]
-    SubPay[Subscription Payment Endpoints<br/>/api/subscription-payments/report<br/>/api/subscription-payments/entitlement<br/>/api/subscription-payments<br/>/api/subscription-payments/summary<br/>/api/subscription-payments/:id/verify<br/>/api/subscription-payments/:id/reject]
+    Auth[Auth Endpoints]
+    POI[POI Endpoints]
+    Analytics[Analytics Endpoints]
+    PoiPay[POI Payment Endpoints]
+    SubPay[Subscription Payment Endpoints]
 
-    Admin -->|full admin access| Auth
+    Admin -->|admin access| Auth
     Admin -->|read update delete| POI
     Admin -->|read and reconcile| Analytics
     Admin -->|verify reject| PoiPay
     Admin -->|verify reject| SubPay
 
     ShopOwner -->|login and self register| Auth
-    ShopOwner -->|create own POI and my-pois| POI
+    ShopOwner -->|create own POI| POI
     ShopOwner -->|owner scoped analytics| Analytics
-    ShopOwner -->|report payment by own POI| PoiPay
+    ShopOwner -->|report own POI payment| PoiPay
 
     GuestMobile -->|optional tourist register| Auth
     GuestMobile -->|read only| POI
-    GuestMobile -->|write visit allow anonymous| Analytics
-    GuestMobile -->|report and entitlement allow anonymous| SubPay
+    GuestMobile -->|write visit anonymous| Analytics
+    GuestMobile -->|report entitlement anonymous| SubPay
 ```
