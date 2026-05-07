@@ -36,6 +36,7 @@ public class ShopOwnersController : Controller
             TempData["Error"] = $"Không tải được danh sách ({(int)resp.StatusCode}).";
         }
 
+        // Gán thống kê cho ViewBag
         ViewBag.FilterStatus = status ?? "";
         ViewBag.Total    = list.Count;
         ViewBag.Pending  = list.Count(r => r.ApprovalStatus == "Pending");
@@ -46,9 +47,14 @@ public class ShopOwnersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+
+    /// <summary>
+    /// Duyệt tài khoản chủ quán.
+    /// </summary>
     public async Task<IActionResult> Approve(int id, [FromQuery] string? returnStatus)
     {
         var client = CreateAuthenticatedClient();
+        // Gửi request duyệt tài khoản chủ quán
         var resp = await client.PostAsync($"auth/approve-shop-owner/{id}",
             new StringContent("{}", Encoding.UTF8, "application/json"));
         if (resp.IsSuccessStatusCode)
@@ -60,8 +66,13 @@ public class ShopOwnersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+
+    /// <summary>
+    /// Từ chối tài khoản chủ quán.
+    /// </summary>
     public async Task<IActionResult> Reject(int id, [FromQuery] string? returnStatus)
     {
+        // Gửi request từ chối tài khoản chủ quán
         var client = CreateAuthenticatedClient();
         var resp = await client.PostAsync($"auth/reject-shop-owner/{id}",
             new StringContent("{}", Encoding.UTF8, "application/json"));
@@ -74,9 +85,14 @@ public class ShopOwnersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+
+    /// <summary>
+    /// Kích hoạt/vô hiệu hóa tài khoản chủ quán.
+    /// </summary>
     public async Task<IActionResult> ToggleActive(int id, [FromQuery] string? returnStatus)
     {
         var client = CreateAuthenticatedClient();
+        // Gửi request kích hoạt/vô hiệu hóa tài khoản chủ quán
         var resp = await client.PostAsync($"auth/toggle-active/{id}",
             new StringContent("{}", Encoding.UTF8, "application/json"));
         if (resp.IsSuccessStatusCode)
@@ -93,6 +109,9 @@ public class ShopOwnersController : Controller
         return RedirectToAction(nameof(Index), new { status = returnStatus });
     }
 
+    /// <summary>
+    /// Đọc lỗi từ response.
+    /// </summary>
     private static async Task<string> ReadErrorAsync(HttpResponseMessage resp)
     {
         var body = await resp.Content.ReadAsStringAsync();
@@ -105,10 +124,14 @@ public class ShopOwnersController : Controller
         return $"Lỗi API ({(int)resp.StatusCode}).";
     }
 
+    /// <summary>
+    /// Tạo client đã xác thực.
+    /// </summary>
     private HttpClient CreateAuthenticatedClient()
     {
         var client = _httpClientFactory.CreateClient("API");
         var token = Request.Cookies["AuthToken"];
+        // Thêm token vào header Authorization
         if (!string.IsNullOrEmpty(token))
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;

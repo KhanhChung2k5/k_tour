@@ -13,6 +13,10 @@ public class AnalyticsService : IAnalyticsService
         _context = context;
     }
 
+    // Loại bỏ visit log từ giả lập thiết bị (dev_SIMxxx) khỏi analytics thật
+    private static IQueryable<VisitLog> ExcludeSimulated(IQueryable<VisitLog> q) =>
+        q.Where(v => v.UserId == null || !v.UserId.StartsWith("dev_SIM"));
+
     public async Task LogVisitAsync(int poiId, string? userId, double? latitude, double? longitude, VisitType visitType)
     {
         var log = new VisitLog
@@ -29,6 +33,10 @@ public class AnalyticsService : IAnalyticsService
         await _context.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Lấy danh sách lượt ghé thăm.
+    /// </summary>
+
     public async Task<List<VisitLog>> GetVisitLogsAsync(int? poiId, DateTime? startDate, DateTime? endDate)
     {
         var query = _context.VisitLogs.Include(v => v.POI).AsQueryable();
@@ -44,10 +52,13 @@ public class AnalyticsService : IAnalyticsService
 
         return await query.OrderByDescending(v => v.VisitTime).ToListAsync();
     }
-
+    
+    /// <summary>
+    /// Lấy danh sách TOP 10 POI được ghé nhiều nhất.
+    /// </summary>
     public async Task<Dictionary<int, int>> GetTopPOIsAsync(int count, DateTime? startDate, DateTime? endDate)
     {
-        var query = _context.VisitLogs.AsQueryable();
+        var query = ExcludeSimulated(_context.VisitLogs.AsQueryable());
 
         if (startDate.HasValue)
             query = query.Where(v => v.VisitTime >= startDate.Value);
@@ -58,6 +69,7 @@ public class AnalyticsService : IAnalyticsService
         var topPOIs = await query
             .GroupBy(v => v.POId)
             .Select(g => new { POId = g.Key, Count = g.Count() })
+            // Sắp xếp theo số lượt ghé thăm giảm dần
             .OrderByDescending(x => x.Count)
             .Take(count)
             .ToListAsync();
@@ -65,9 +77,13 @@ public class AnalyticsService : IAnalyticsService
         return topPOIs.ToDictionary(x => x.POId, x => x.Count);
     }
 
+    /// <summary>
+    /// Lấy thống kê lượt ghé thăm của một POI.
+    /// </summary>
+
     public async Task<object> GetPOIStatisticsAsync(int poiId, DateTime? startDate, DateTime? endDate)
     {
-        var query = _context.VisitLogs.Where(v => v.POId == poiId);
+        var query = ExcludeSimulated(_context.VisitLogs).Where(v => v.POId == poiId);
 
         if (startDate.HasValue)
             query = query.Where(v => v.VisitTime >= startDate.Value);
@@ -93,24 +109,31 @@ public class AnalyticsService : IAnalyticsService
         };
     }
 
+    /// <summary>
+    /// Lấy tổng lượt ghé thăm và phân loại.
+    /// </summary>
     public async Task<(int TotalVisits, int Geofence, int MapClick, int QRCode)> GetVisitSummaryAsync(DateTime? startDate, DateTime? endDate)
     {
-        var query = _context.VisitLogs.AsQueryable();
+        var query = ExcludeSimulated(_context.VisitLogs.AsQueryable());
         if (startDate.HasValue) query = query.Where(v => v.VisitTime >= startDate.Value);
         if (endDate.HasValue) query = query.Where(v => v.VisitTime <= endDate.Value);
 
         var total = await query.CountAsync();
+        // Lấy tổng lượt ghé thăm theo loại
         var geofence = await query.CountAsync(v => v.VisitType == VisitType.Geofence);
         var mapClick = await query.CountAsync(v => v.VisitType == VisitType.MapClick);
         var qrCode = await query.CountAsync(v => v.VisitType == VisitType.QRCode);
         return (total, geofence, mapClick, qrCode);
     }
 
+    /// <summary>
+    /// Lấy danh sách thiết bị.
+    /// </summary>
     public async Task<object> GetDeviceStatsAsync(int page, int pageSize)
     {
         var skip = (page - 1) * pageSize;
 
-        var logs = await _context.VisitLogs
+        var logs = await ExcludeSimulated(_context.VisitLogs)
             .Where(v => v.UserId != null)
             .Select(v => new { v.UserId, v.VisitTime, v.POId })
             .ToListAsync();
@@ -134,6 +157,9 @@ public class AnalyticsService : IAnalyticsService
         return new { Total = total, Page = page, PageSize = pageSize, Items = items };
     }
 
+    /// <summary>
+    /// Lấy thống kê thiết bị.
+    /// </summary>
     public async Task<object> GetDeviceSummaryAsync()
     {
         var now = DateTime.UtcNow;
@@ -141,7 +167,7 @@ public class AnalyticsService : IAnalyticsService
         var week7    = now.AddDays(-7);
         var month30  = now.AddDays(-30);
 
-        var logs = await _context.VisitLogs
+        var logs = await ExcludeSimulated(_context.VisitLogs)
             .Where(v => v.UserId != null)
             .Select(v => new { v.UserId, v.VisitTime })
             .ToListAsync();
@@ -258,6 +284,9 @@ public class AnalyticsService : IAnalyticsService
         };
     }
 
+    /// <summary>
+    /// Lấy danh sách điểm Geofence.
+    /// </summary>
     public async Task<List<double[]>> GetHeatmapDataAsync(DateTime? startDate, DateTime? endDate)
     {
         var query = _context.VisitLogs
@@ -278,6 +307,9 @@ public class AnalyticsService : IAnalyticsService
             .ToList();
     }
 
+    /// <summary>
+    /// Chuẩn hóa khóa thiết bị.
+    /// </summary>
     private static string? NormalizePossibleDeviceKey(string userId)
     {
         if (string.IsNullOrWhiteSpace(userId))

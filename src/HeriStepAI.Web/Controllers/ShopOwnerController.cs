@@ -30,10 +30,12 @@ public class ShopOwnerController : Controller
     // GET: /ShopOwner/Dashboard
     public async Task<IActionResult> Dashboard()
     {
+        // Lấy thông tin người dùng hiện tại
         var userId = GetCurrentUserId();
         if (userId == null)
             return Unauthorized();
 
+        // Lấy danh sách POI của người dùng hiện tại
         var myPOIs = await _context.POIs
             .Include(p => p.Contents)
             .Where(p => p.OwnerId == userId)
@@ -45,11 +47,12 @@ public class ShopOwnerController : Controller
         var visitLogs = await _context.VisitLogs
             .Where(v => poiIds.Contains(v.POId))
             .ToListAsync();
-
+        // Lấy thống kê lượt ghé thăm theo POI
         var visitStats = visitLogs
             .GroupBy(v => v.POId)
             .Select(g => new
             {
+                // Lấy thống kê lượt ghé thăm theo POI
                 POId = g.Key,
                 TotalVisits = g.Count(),
                 UniqueVisitors = g.Select(v => new { v.Latitude, v.Longitude }).Distinct().Count(),
@@ -69,6 +72,7 @@ public class ShopOwnerController : Controller
             ManualVisits = visitStats.ContainsKey(poi.Id) ? visitStats[poi.Id].ManualVisits : 0
         }).ToList();
 
+        // Gán thống kê cho ViewBag
         ViewBag.TotalPOIs = myPOIs.Count;
         ViewBag.TotalVisits = dashboardData.Sum(d => d.TotalVisits);
         ViewBag.ActivePOIs = myPOIs.Count(p => p.IsActive);

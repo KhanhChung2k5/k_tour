@@ -28,7 +28,7 @@ public class SubscriptionService : ISubscriptionService
     {
         get
         {
-            var raw = SecureStorage.Default.GetAsync(KeyPlan).GetAwaiter().GetResult();
+            var raw = SafeGet(KeyPlan);
             if (Enum.TryParse<SubscriptionPlan>(raw, out var plan)) return plan;
             return null;
         }
@@ -38,7 +38,7 @@ public class SubscriptionService : ISubscriptionService
     {
         get
         {
-            var raw = SecureStorage.Default.GetAsync(KeyExpiry).GetAwaiter().GetResult();
+            var raw = SafeGet(KeyExpiry);
             if (DateTime.TryParse(raw, null,
                     System.Globalization.DateTimeStyles.RoundtripKind, out var dt))
                 return dt;
@@ -54,7 +54,7 @@ public class SubscriptionService : ISubscriptionService
     {
         get
         {
-            var stored = SecureStorage.Default.GetAsync(KeyDevice).GetAwaiter().GetResult();
+            var stored = SafeGet(KeyDevice);
             if (!string.IsNullOrEmpty(stored)) return stored;
 
             // Generate a new key from device info + random guid
@@ -63,6 +63,23 @@ public class SubscriptionService : ISubscriptionService
             var key  = Convert.ToHexString(hash).Substring(0, 6).ToUpper();
             SecureStorage.Default.SetAsync(KeyDevice, key).GetAwaiter().GetResult();
             return key;
+        }
+    }
+
+    // Bọc SecureStorage.GetAsync để xử lý AEADBadTagException khi data bị corrupt
+    // (thường xảy ra khi cài lại app hoặc đổi signing key)
+    private static string? SafeGet(string key)
+    {
+        try
+        {
+            return SecureStorage.Default.GetAsync(key).GetAwaiter().GetResult();
+        }
+        catch (Exception)
+        {
+            // Data bị corrupt (crypto key không khớp) → xóa toàn bộ SecureStorage
+            // App sẽ vào SubscriptionPage như lần đầu cài
+            try { SecureStorage.Default.RemoveAll(); } catch { /* ignore */ }
+            return null;
         }
     }
 

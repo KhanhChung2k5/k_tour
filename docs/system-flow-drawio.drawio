@@ -1,0 +1,95 @@
+<mxfile host="app.diagrams.net" modified="2026-01-01T00:00:00.000Z" agent="HeriStepAI" version="22.0.0" etag="system-flow" type="device">
+  <diagram name="HeriStepAI-System-Flow" id="heristepai-flow">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Actors -->
+        <mxCell id="actor-admin" value="Người dùng Web&#xa;(Admin)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="80" y="80" width="50" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="actor-shop" value="Người dùng Web&#xa;(ShopOwner)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="220" y="80" width="50" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="actor-app" value="Người dùng App&#xa;(Khách du lịch)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="360" y="80" width="50" height="90" as="geometry"/>
+        </mxCell>
+
+        <!-- Web Server -->
+        <mxCell id="web" value="HeriStepAI.Web&#xa;(MVC, port 5001)&#xa;Cookie + JWT cookie" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="120" y="260" width="260" height="80" as="geometry"/>
+        </mxCell>
+
+        <!-- API -->
+        <mxCell id="api" value="HeriStepAI.API&#xa;(REST, port 5000)&#xa;JWT Bearer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="140" y="420" width="220" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- PostgreSQL -->
+        <mxCell id="db" value="PostgreSQL&#xa;(Supabase / local)&#xa;Users, POIs, POIContents, VisitLogs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="140" y="560" width="180" height="90" as="geometry"/>
+        </mxCell>
+
+        <!-- Supabase Storage -->
+        <mxCell id="storage" value="Supabase Storage&#xa;(Ảnh POI)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="420" y="430" width="140" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- App direct to API -->
+        <mxCell id="app-api" value="App" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="520" y="260" width="100" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Edges: Admin -> Web -->
+        <mxCell id="e1" value="1. Mở /&#xa;2. POST /Auth/Login&#xa;3. Xem Dashboard, POI, Analytics" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor-admin" target="web">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ShopOwner -> Web -->
+        <mxCell id="e2" value="Đăng nhập&#xa;Dashboard, Edit POI, Thống kê" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor-shop" target="web">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- App -> API (direct) -->
+        <mxCell id="e3" value="Đăng nhập, GET poi&#xa;POST analytics/visit&#xa;(JWT SecureStorage)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor-app" target="app-api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3b" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;exitX=0.5;exitY=1;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="app-api" target="api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Web -> API (Admin flows) -->
+        <mxCell id="e4" value="Bearer JWT (từ cookie)&#xa;auth/login, poi, analytics/summary,&#xa;analytics/top-pois, poi/{id}/statistics" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.35;exitY=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="web" target="api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Web -> DB (ShopOwner) -->
+        <mxCell id="e5" value="DbContext&#xa;(ShopOwner: POIs, VisitLogs)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;exitX=0.65;exitY=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="web" target="db">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="289" y="400"/>
+              <mxPoint x="220" y="400"/>
+              <mxPoint x="220" y="560"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Web -> Storage -->
+        <mxCell id="e6" value="Upload ảnh POI" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="web" target="storage">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- API -> DB -->
+        <mxCell id="e7" value="EF Core&#xa;Auth, POI, VisitLogs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="api" target="db">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend" value="Chú thích:&#xa;· Admin: Cookie + JWT trong cookie; gọi API với Bearer.&#xa;· ShopOwner: Đọc/ghi DB qua DbContext (cùng DB với API).&#xa;· App: JWT trong SecureStorage; gọi API trực tiếp.&#xa;· Visit: App POST analytics/visit → API ghi VisitLogs." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=left;spacingLeft=10;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="80" y="720" width="540" height="80" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

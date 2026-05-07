@@ -91,9 +91,6 @@ artifacts/
 *.db-wal
 *.rar
 
-# n8n workflow exports (không đưa lên repo)
-n8n-*-workflow.json
-
 # Mockup / draft files & logs (không đưa lên repo)
 add_multilingual_narrations.sql
 heristepai-app-ui.html

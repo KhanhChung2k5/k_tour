@@ -14,7 +14,9 @@ public class AnalyticsController : Controller
     {
         _httpClientFactory = httpClientFactory;
     }
-
+    /// <summary>
+    /// Lấy thống kê lượt ghé thăm tất cả địa điểm.
+    /// </summary>
     public async Task<IActionResult> Index()
     {
         try
@@ -23,6 +25,7 @@ public class AnalyticsController : Controller
             var poisClient = CreateAuthenticatedClient();
 
             // Fetch all visited POIs (high count to get everything)
+            // Lấy danh sách TOP 1000 POI được ghé nhiều nhất
             var topPoisTask = client.GetAsync("analytics/top-pois?count=1000");
             var poisTask = poisClient.GetAsync("poi");
 
@@ -59,31 +62,38 @@ public class AnalyticsController : Controller
             ViewBag.POINames = poiNames;
 
             // Fetch visit type breakdown for POIs that have visits
+            // Lấy thống kê lượt ghé thăm theo POI
             int totalGeofence = 0, totalManual = 0;
             var poisWithVisits = allPOIs.Where(kvp => kvp.Value > 0).Select(kvp => kvp.Key).ToList();
 
             var breakdownTasks = poisWithVisits.Select(async poiId =>
             {
+                // Tạo client để lấy thống kê lượt ghé thăm theo POI
                 var c = CreateAuthenticatedClient();
                 var resp = await c.GetAsync($"analytics/poi/{poiId}/statistics");
                 if (!resp.IsSuccessStatusCode) return (poiId, 0, 0);
-
+                // Lấy thống kê lượt ghé thăm theo POI
                 var json = await resp.Content.ReadAsStringAsync();
                 using var statDoc = JsonDocument.Parse(json);
+                // Lấy thống kê lượt ghé thăm theo POI
                 var root = statDoc.RootElement;
                 int geo = 0, manual = 0;
                 if (root.TryGetProperty("VisitsByType", out var vbt))
                 {
+                    // Lấy thống kê lượt ghé thăm theo POI
                     if (vbt.TryGetProperty("Geofence", out var g)) geo = g.GetInt32();
                     if (vbt.TryGetProperty("MapClick", out var m)) manual = m.GetInt32();
                 }
                 return (poiId, geo, manual);
             }).ToList();
 
+            // Lấy thống kê lượt ghé thăm theo POI
+
             var results = await Task.WhenAll(breakdownTasks);
             var geoByPoi = new Dictionary<string, int>();
             var manualByPoi = new Dictionary<string, int>();
 
+            // Cộng tổng lượt ghé thăm theo POI
             foreach (var (poiId, geo, manual) in results)
             {
                 geoByPoi[poiId] = geo;
@@ -91,12 +101,15 @@ public class AnalyticsController : Controller
                 totalGeofence += geo;
                 totalManual += manual;
             }
+            // Gán thống kê cho ViewBag
 
             ViewBag.GeofenceByPOI = geoByPoi;
             ViewBag.ManualByPOI = manualByPoi;
+            // Gán tổng số lượt ghé thăm theo loại
             ViewBag.TotalGeofence = totalGeofence;
             ViewBag.TotalManual = totalManual;
             ViewBag.TotalVisits = totalGeofence + totalManual;
+            // Gán tổng số POI
             ViewBag.TotalPOIs = allPOIs.Count;
         }
         catch (Exception ex)
@@ -115,6 +128,9 @@ public class AnalyticsController : Controller
         return View();
     }
 
+    /// <summary>
+    /// Lấy thống kê lượt ghé thăm của một địa điểm.
+    /// </summary>
     public async Task<IActionResult> POIDetails(int id)
     {
         var statsClient = CreateAuthenticatedClient();
@@ -124,6 +140,7 @@ public class AnalyticsController : Controller
 
         if (statsResponse.IsSuccessStatusCode)
         {
+            // Lấy thống kê lượt ghé thăm của một địa điểm
             var statsContent = await statsResponse.Content.ReadAsStringAsync();
             ViewBag.Statistics = JsonSerializer.Deserialize<object>(statsContent,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });

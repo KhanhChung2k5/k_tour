@@ -1,0 +1,497 @@
+{
+  "name": "Free AI Short Video Generator (No Cost)",
+  "nodes": [
+    {
+      "id": "node-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [0, 300],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "node-config",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "position": [220, 300],
+      "notes": "FILL IN YOUR API KEYS HERE",
+      "notesInFlow": true,
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfg-1",
+              "name": "GroqKey",
+              "type": "string",
+              "value": ""
+            },
+            {
+              "id": "cfg-2",
+              "name": "ShotstackKey",
+              "type": "string",
+              "value": ""
+            },
+            {
+              "id": "cfg-3",
+              "name": "Topic",
+              "type": "string",
+              "value": "productivity tips for students"
+            }
+          ]
+        }
+      },
+      "typeVersion": 3.4
+    },
+    {
+      "id": "node-captions",
+      "name": "Generate Captions",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [440, 300],
+      "parameters": {
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Config').item.json.GroqKey }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\"model\":\"llama-3.3-70b-versatile\",\"messages\":[{\"role\":\"system\",\"content\":\"Generate exactly 5 short TikTok video captions (5-10 words each) for the given topic. Return ONLY 5 captions separated by newline \\\\n. No numbering, no extra text, no quotation marks.\"},{\"role\":\"user\",\"content\":\"{{ $('Config').item.json.Topic }}\"}]}",
+        "options": {}
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "node-parse",
+      "name": "Parse Captions",
+      "type": "n8n-nodes-base.code",
+      "position": [660, 300],
+      "parameters": {
+        "jsCode": "const text = $input.first().json.choices[0].message.content;\nconst lines = text.split('\\n').map(l => l.trim()).filter(l => l.length > 0).slice(0, 5);\nreturn lines.map(caption => ({ json: { caption } }));"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "node-img-prompts",
+      "name": "Generate Image Prompts",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [880, 300],
+      "parameters": {
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Config').item.json.GroqKey }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\"model\":\"llama-3.3-70b-versatile\",\"messages\":[{\"role\":\"system\",\"content\":\"Convert this TikTok caption into a Flux image generation prompt. Requirements: first-person POV, realistic photo style, vertical 9:16, under 80 words. No quotation marks, no emojis.\"},{\"role\":\"user\",\"content\":\"{{ $json.caption }}\"}]}",
+        "options": {}
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "node-img-urls",
+      "name": "Build Pollinations URLs",
+      "type": "n8n-nodes-base.code",
+      "position": [1100, 300],
+      "parameters": {
+        "jsCode": "const prompt = $input.first().json.choices[0].message.content;\nconst seed = Math.floor(Math.random() * 99999);\nconst encoded = encodeURIComponent(prompt);\nconst imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=540&height=960&model=flux&nologo=true&seed=${seed}`;\nreturn [{ json: { imageUrl, prompt } }];"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "node-aggregate",
+      "name": "Aggregate All Data",
+      "type": "n8n-nodes-base.code",
+      "position": [1320, 300],
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst imageUrls = items.map(i => i.json.imageUrl);\nconst captions = $('Parse Captions').all().map(i => i.json.caption);\nreturn [{ json: { imageUrls, captions } }];"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "node-script",
+      "name": "Generate Script",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1540, 300],
+      "parameters": {
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Config').item.json.GroqKey }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\"model\":\"llama-3.3-70b-versatile\",\"messages\":[{\"role\":\"system\",\"content\":\"Write a 15-20 second TikTok voiceover script. Energetic, fun, relatable. Plain text only. No emojis. No stage directions. Max 80 words.\"},{\"role\":\"user\",\"content\":\"{{ $json.captions.join(', ') }}\"}]}",
+        "options": {}
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "node-tts-prep",
+      "name": "Prepare TTS",
+      "type": "n8n-nodes-base.code",
+      "position": [1760, 300],
+      "parameters": {
+        "jsCode": "const script = $input.first().json.choices[0].message.content;\nconst cleanScript = script.replace(/[\\u0080-\\uFFFF]/g, '').substring(0, 500);\nconst encoded = encodeURIComponent(cleanScript);\nconst ttsUrl = `https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=${encoded}`;\nconst imageUrls = $('Aggregate All Data').first().json.imageUrls;\nconst captions = $('Aggregate All Data').first().json.captions;\nreturn [{ json: { ttsUrl, imageUrls, captions, script: cleanScript } }];"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "node-tts",
+      "name": "Get TTS Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1980, 300],
+      "parameters": {
+        "url": "={{ $json.ttsUrl }}",
+        "method": "GET",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "node-upload-audio",
+      "name": "Upload Audio to Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [2200, 300],
+      "parameters": {
+        "name": "=voiceover-{{ $now.toMillis() }}.mp3",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "options": {},
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root"
+        }
+      },
+      "typeVersion": 3
+    },
+    {
+      "id": "node-audio-perms",
+      "name": "Set Audio Public",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [2420, 300],
+      "parameters": {
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "operation": "share",
+        "options": {},
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "reader",
+            "type": "anyone"
+          }
+        }
+      },
+      "typeVersion": 3
+    },
+    {
+      "id": "node-shotstack-build",
+      "name": "Build Video Payload",
+      "type": "n8n-nodes-base.code",
+      "position": [2640, 300],
+      "parameters": {
+        "jsCode": "const audioUrl = $('Set Audio Public').first().json.webContentLink;\nconst data = $('Prepare TTS').first().json;\nconst effects = ['zoomIn', 'zoomOut', 'slideLeft', 'slideRight', 'zoomIn'];\n\nconst videoClips = data.imageUrls.map((url, i) => ({\n  asset: { type: 'image', src: url },\n  start: i * 5,\n  length: 5,\n  effect: effects[i % effects.length],\n  transition: { in: 'fade', out: 'fade' }\n}));\n\nconst textClips = data.captions.map((caption, i) => ({\n  asset: {\n    type: 'html',\n    html: `<p>${caption.replace(/[<>\"&]/g, ' ')}</p>`,\n    css: 'p { color: white; font-family: Arial Black; font-size: 24px; font-weight: 900; text-align: center; text-shadow: 2px 2px 6px rgba(0,0,0,0.95); padding: 8px; margin: 0; }',\n    width: 540,\n    height: 160\n  },\n  start: i * 5,\n  length: 5,\n  position: 'bottom',\n  offset: { y: -0.05 }\n}));\n\nreturn [{\n  json: {\n    timeline: {\n      soundtrack: {\n        src: audioUrl,\n        effect: 'fadeOut'\n      },\n      tracks: [\n        { clips: videoClips },\n        { clips: textClips }\n      ]\n    },\n    output: {\n      format: 'mp4',\n      resolution: 'mobile',\n      aspectRatio: '9:16',\n      fps: 25\n    }\n  }\n}];"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "node-render",
+      "name": "Render Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [2860, 300],
+      "executeOnce": true,
+      "parameters": {
+        "url": "https://api.shotstack.io/stage/render",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Config').item.json.ShotstackKey }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "node-wait-render",
+      "name": "Wait 3 min",
+      "type": "n8n-nodes-base.wait",
+      "position": [3080, 300],
+      "webhookId": "wait-render-001",
+      "parameters": {
+        "unit": "minutes",
+        "amount": 3
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "node-status",
+      "name": "Get Render Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [3300, 300],
+      "executeOnce": true,
+      "parameters": {
+        "url": "=https://api.shotstack.io/stage/render/{{ $('Render Video').item.json.response.id }}",
+        "method": "GET",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $('Config').item.json.ShotstackKey }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "node-check",
+      "name": "Check Done",
+      "type": "n8n-nodes-base.if",
+      "position": [3520, 300],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "caseSensitive": false,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cond-done",
+              "operator": {
+                "name": "filter.operator.equals",
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.response.data.attributes.status }}",
+              "rightValue": "done"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "typeVersion": 2.2
+    },
+    {
+      "id": "node-dl-video",
+      "name": "Download Final Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [3740, 220],
+      "parameters": {
+        "url": "={{ $json.response.data.attributes.url }}",
+        "method": "GET",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "node-upload-video",
+      "name": "Upload Video to Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [3960, 220],
+      "parameters": {
+        "name": "=free-video-{{ $now.toMillis() }}.mp4",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "options": {},
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root"
+        }
+      },
+      "typeVersion": 3
+    },
+    {
+      "id": "node-video-perms",
+      "name": "Set Video Public",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [4180, 220],
+      "parameters": {
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "operation": "share",
+        "options": {},
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "reader",
+            "type": "anyone"
+          }
+        }
+      },
+      "typeVersion": 3
+    },
+    {
+      "id": "node-discord",
+      "name": "Discord Notify",
+      "type": "n8n-nodes-base.discord",
+      "position": [4400, 220],
+      "webhookId": "discord-notify-001",
+      "parameters": {
+        "content": "=✅ Video xong! Link tải: {{ $('Set Video Public').item.json.webContentLink }}",
+        "options": {},
+        "authentication": "webhook"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "node-retry-wait",
+      "name": "Wait Retry 2min",
+      "type": "n8n-nodes-base.wait",
+      "position": [3740, 400],
+      "webhookId": "wait-retry-001",
+      "parameters": {
+        "unit": "minutes",
+        "amount": 2
+      },
+      "typeVersion": 1.1
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "Config", "type": "main", "index": 0}]]
+    },
+    "Config": {
+      "main": [[{"node": "Generate Captions", "type": "main", "index": 0}]]
+    },
+    "Generate Captions": {
+      "main": [[{"node": "Parse Captions", "type": "main", "index": 0}]]
+    },
+    "Parse Captions": {
+      "main": [[{"node": "Generate Image Prompts", "type": "main", "index": 0}]]
+    },
+    "Generate Image Prompts": {
+      "main": [[{"node": "Build Pollinations URLs", "type": "main", "index": 0}]]
+    },
+    "Build Pollinations URLs": {
+      "main": [[{"node": "Aggregate All Data", "type": "main", "index": 0}]]
+    },
+    "Aggregate All Data": {
+      "main": [[{"node": "Generate Script", "type": "main", "index": 0}]]
+    },
+    "Generate Script": {
+      "main": [[{"node": "Prepare TTS", "type": "main", "index": 0}]]
+    },
+    "Prepare TTS": {
+      "main": [[{"node": "Get TTS Audio", "type": "main", "index": 0}]]
+    },
+    "Get TTS Audio": {
+      "main": [[{"node": "Upload Audio to Drive", "type": "main", "index": 0}]]
+    },
+    "Upload Audio to Drive": {
+      "main": [[{"node": "Set Audio Public", "type": "main", "index": 0}]]
+    },
+    "Set Audio Public": {
+      "main": [[{"node": "Build Video Payload", "type": "main", "index": 0}]]
+    },
+    "Build Video Payload": {
+      "main": [[{"node": "Render Video", "type": "main", "index": 0}]]
+    },
+    "Render Video": {
+      "main": [[{"node": "Wait 3 min", "type": "main", "index": 0}]]
+    },
+    "Wait 3 min": {
+      "main": [[{"node": "Get Render Status", "type": "main", "index": 0}]]
+    },
+    "Get Render Status": {
+      "main": [[{"node": "Check Done", "type": "main", "index": 0}]]
+    },
+    "Check Done": {
+      "main": [
+        [{"node": "Download Final Video", "type": "main", "index": 0}],
+        [{"node": "Wait Retry 2min", "type": "main", "index": 0}]
+      ]
+    },
+    "Wait Retry 2min": {
+      "main": [[{"node": "Get Render Status", "type": "main", "index": 0}]]
+    },
+    "Download Final Video": {
+      "main": [[{"node": "Upload Video to Drive", "type": "main", "index": 0}]]
+    },
+    "Upload Video to Drive": {
+      "main": [[{"node": "Set Video Public", "type": "main", "index": 0}]]
+    },
+    "Set Video Public": {
+      "main": [[{"node": "Discord Notify", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

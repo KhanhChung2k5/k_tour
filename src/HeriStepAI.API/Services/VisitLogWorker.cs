@@ -62,16 +62,16 @@ public class VisitLogWorker : BackgroundService
         {
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
             var now = DateTime.UtcNow;
+
             var logs = batch.Select(i => new VisitLog
             {
-                POId       = i.PoiId,
-                UserId     = i.UserId,
-                Latitude   = i.Latitude,
-                Longitude  = i.Longitude,
-                VisitTime  = now,
-                VisitType  = i.VisitType
+                POId      = i.PoiId,
+                UserId    = i.UserId,
+                Latitude  = i.Latitude,
+                Longitude = i.Longitude,
+                VisitTime = now,
+                VisitType = i.VisitType
             }).ToList();
 
             db.VisitLogs.AddRange(logs);
@@ -79,9 +79,47 @@ public class VisitLogWorker : BackgroundService
 
             _logger.LogInformation("[VisitLogWorker] Batch INSERT {Count} logs OK", batch.Count);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "[VisitLogWorker] Batch INSERT FAILED ({Count} logs dropped)", batch.Count);
+            // Batch fail (có thể do FK violation) → fallback insert từng item, chỉ drop item lỗi
+            _logger.LogWarning("[VisitLogWorker] Batch failed, falling back to single inserts ({Count} items)", batch.Count);
+            await FallbackSingleInsert(batch, ct);
         }
+    }
+
+    private async Task FallbackSingleInsert(List<VisitLogItem> batch, CancellationToken ct)
+    {
+        var ok = 0;
+        var dropped = 0;
+        var now = DateTime.UtcNow;
+
+        foreach (var item in batch)
+        {
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                db.VisitLogs.Add(new VisitLog
+                {
+                    POId      = item.PoiId,
+                    UserId    = item.UserId,
+                    Latitude  = item.Latitude,
+                    Longitude = item.Longitude,
+                    VisitTime = now,
+                    VisitType = item.VisitType
+                });
+                await db.SaveChangesAsync(ct);
+                ok++;
+            }
+            catch (Exception ex)
+            {
+                dropped++;
+                _logger.LogWarning("[VisitLogWorker] Dropped invalid item: POId={PoiId}, reason={Msg}",
+                    item.PoiId, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
+        _logger.LogInformation("[VisitLogWorker] Fallback done: {Ok} inserted, {Dropped} dropped", ok, dropped);
     }
 }

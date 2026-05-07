@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HeriStepAI — UI Design Kit · Phố Ẩm Thực Hồ Thị Kỷ</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brown-deep: #2C2416;
+    --brown-mid: #6B5A3E;
+    --brown-light: #8B7355;
+    --cream-dark: #C4B99A;
+    --cream-mid: #D4C9B0;
+    --cream-light: #F0ECE4;
+    --cream-bg: #F5F0E8;
+    --cream-white: #FAFAF8;
+    --text-dark: #1A1712;
+    --text-mid: #5A4E38;
+    --text-muted: #7A7268;
+    --text-faint: #A8A09A;
+    --border: #E2DDD5;
+    --green: #2C7A3F;
+    --gold: #C4A24A;
+    --map-bg: #EDE8DF;
+    --street: #FBF8F3;
+    --block1: #E4DDD1;
+    --block2: #DDD6C8;
+    --block3: #D8D0C2;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #F2EDE4;
+    color: var(--text-dark);
+    min-height: 100vh;
+  }
+
+  /* ─── PAGE HEADER ─── */
+  .page-header {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--cream-white);
+    margin-bottom: 3rem;
+  }
+  .page-header-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--brown-light);
+    border: 0.5px solid var(--cream-dark);
+    border-radius: 4px;
+    padding: 3px 10px;
+    margin-bottom: 12px;
+  }
+  .page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .page-header p {
+    font-size: 14px;
+    color: var(--text-muted);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ─── SECTION ─── */
+  .section {
+    max-width: 1100px;
+    margin: 0 auto 4rem;
+    padding: 0 1.5rem;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .section-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--cream-dark);
+    line-height: 1;
+    min-width: 32px;
+  }
+  .section-info h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-dark);
+  }
+  .section-info p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .screens-row {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  /* ─── PHONE FRAME ─── */
+  .phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .phone-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .phone {
+    width: 240px;
+    height: 480px;
+    background: var(--cream-white);
+    border-radius: 30px;
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    box-shadow: 0 4px 24px rgba(44,36,22,0.08);
+  }
+  .phone.dark {
+    background: #0F0E0C;
+    border-color: #2A2820;
+  }
+
+  /* ─── STATUS BAR ─── */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px 4px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 30;
+  }
+  .status-bar.light { color: #6B6459; }
+  .si { display: flex; gap: 4px; align-items: center; }
+  .sd { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .sp { width: 7px; height: 3px; border-radius: 1px; background: currentColor; }
+
+  /* ─── TAB BAR ─── */
+  .tab-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(250,250,248,0.96);
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    padding: 8px 0 10px;
+    z-index: 25;
+  }
+  .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .tab-icon { width: 16px; height: 16px; border-radius: 4px; background: var(--cream-mid); }
+  .tab-icon.active { background: var(--brown-deep); }
+  .tab-lbl { font-size: 8px; color: var(--text-faint); }
+  .tab-lbl.active { color: var(--brown-deep); font-weight: 500; }
+
+  /* ══════════════════════════════════════════
+     SCREEN 1 — ONBOARDING
+  ══════════════════════════════════════════ */
+  .ob-img {
+    width: 100%; height: 200px;
+    position: relative; overflow: hidden;
+  }
+  .food-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px; height: 100%;
+  }
+  .fc { display: flex; align-items: center; justify-content: center; font-size: 26px; }
+  .fc:nth-child(1){background:#C4B99A;} .fc:nth-child(2){background:#D4C9A8;}
+  .fc:nth-child(3){background:#BFB48C;} .fc:nth-child(4){background:#D0C5A5;}
+  .fc:nth-child(5){background:#C8BD9D;} .fc:nth-child(6){background:#BAB08A;}
+  .ob-img-label {
+    position: absolute; bottom: 8px; left: 10px;
+    background: rgba(255,255,255,0.88);
+    padding: 3px 8px; border-radius: 6px;
+    font-size: 9px; font-weight: 500; color: var(--text-mid);
+    letter-spacing: 0.04em;
+  }
+  .ob-body { padding: 16px 16px 12px; }
+  .ob-tag {
+    display: inline-block; font-size: 9px; font-weight: 500;
+    letter-spacing: 0.1em; color: var(--brown-light); text-transform: uppercase;
+    border: 0.5px solid var(--cream-dark); border-radius: 4px; padding: 2px 6px; margin-bottom: 8px;
+  }
+  .ob-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 600; color: var(--text-dark);
+    line-height: 1.3; margin-bottom: 6px;
+  }
+  .ob-sub { font-size: 11px; color: var(--text-muted); line-height: 1.5; margin-bottom: 14px; }
+  .dots { display: flex; gap: 4px; margin-bottom: 14px; }
+  .dot { width: 16px; height: 3px; background: var(--cream-dark); border-radius: 2px; }
+  .dot.on { width: 24px; background: var(--brown-deep); }
+  .btn-p {
+    display: block; width: 100%; background: var(--brown-deep); color: var(--cream-bg);
+    font-size: 12px; font-weight: 500; text-align: center;
+    padding: 11px; border-radius: 10px; letter-spacing: 0.03em; margin-bottom: 8px;
+    text-decoration: none;
+  }
+  .btn-g {
+    display: block; width: 100%; color: var(--brown-light);
+    font-size: 11px; text-align: center; padding: 6px;
+  }
+
+  /* ══════════════════════════════════════════
+     SCREEN 2 — DASHBOARD
+  ══════════════════════════════════════════ */
+  .dash-inner { padding: 0 0 60px; }
+  .dash-hdr { padding: 28px 14px 10px; display: flex; justify-content: space-between; align-items: center; }
+  .dash-greet { font-size: 11px; color: var(--text-muted); }
+  .dash-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; color: var(--text-dark); }
+  .dash-av {
+    width: 30px; height: 30px; background: var(--brown-deep); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500; color: var(--cream-bg);
+  }
+  .search-bar {
+    margin: 0 14px 10px;
+    background: var(--cream-light); border-radius: 10px;
+    padding: 8px 12px; display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--text-faint);
+  }
+  .s-circle { width: 12px; height: 12px; border: 1.5px solid var(--text-faint); border-radius: 50%; flex-shrink: 0; }
+  .sec-ttl { padding: 0 14px 6px; font-size: 11px; font-weight: 500; color: var(--text-mid); letter-spacing: 0.06em; text-transform: uppercase; }
+  .feat-card {
+    margin: 0 14px 10px; background: var(--brown-deep);
+    border-radius: 14px; padding: 14px; position: relative; overflow: hidden;
+  }
+  .feat-card::before {
+    content: ''; position: absolute; width: 80px; height: 80px;
+    background: rgba(196,185,154,0.15); border-radius: 50%;
+    top: -20px; right: -20px;
+  }
+  .feat-tag { font-size: 8px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cream-dark); margin-bottom: 4px; }
+  .feat-name { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 600; color: var(--cream-bg); margin-bottom: 3px; }
+  .feat-desc { font-size: 10px; color: #8B8070; margin-bottom: 10px; }
+  .feat-meta { display: flex; align-items: center; gap: 8px; }
+  .m-pill {
+    background: rgba(255,255,255,0.1); border-radius: 6px;
+    padding: 3px 7px; font-size: 9px; color: var(--cream-dark);
+    display: flex; align-items: center; gap: 3px;
+  }
+  .m-dot { width: 4px; height: 4px; background: var(--cream-dark); border-radius: 50%; }
+  .scroll-row { display: flex; gap: 8px; padding: 0 14px 10px; overflow: hidden; }
+  .poi-card { flex-shrink: 0; width: 88px; border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; background: #fff; }
+  .poi-img { width: 100%; height: 52px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .poi-img.a{background:#F0E8D8;} .poi-img.b{background:#E8F0E0;} .poi-img.c{background:#F0E0E8;}
+  .poi-inf { padding: 5px 6px; }
+  .poi-n { font-size: 10px; font-weight: 500; color: var(--text-dark); line-height: 1.2; }
+  .poi-r { font-size: 9px; color: var(--brown-light); margin-top: 2px; }
+
+  /* ══════════════════════════════════════════
+     SCREEN 3 — POI DETAIL
+  ══════════════════════════════════════════ */
+  .poi-hero {
+    width: 100%; height: 150px;
+    background: linear-gradient(135deg, #D4C9A8, #BFB48C);
+    position: relative; display: flex; align-items: center; justify-content: center; font-size: 40px;
+  }
+  .back-btn {
+    position: absolute; top: 36px; left: 10px;
+    width: 26px; height: 26px; background: rgba(255,255,255,0.85);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: var(--brown-deep); font-weight: 600;
+  }
+  .save-btn {
+    position: absolute; top: 36px; right: 10px;
+    width: 26px; height: 26px; background: rgba(255,255,255,0.85);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px;
+  }
+  .badge-open {
+    position: absolute; bottom: 8px; right: 8px;
+    background: var(--green); color: #fff; font-size: 8px; font-weight: 500;
+    padding: 2px 7px; border-radius: 5px;
+  }
+  .poi-body { padding: 12px 14px 0; }
+  .poi-cat { font-size: 9px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brown-light); margin-bottom: 3px; }
+  .poi-name-h { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; color: var(--text-dark); margin-bottom: 5px; }
+  .stars { color: var(--gold); font-size: 11px; margin-bottom: 8px; }
+  .info-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+  .chip { background: var(--cream-light); border-radius: 6px; padding: 3px 8px; font-size: 9px; color: var(--text-mid); }
+  .ai-card { background: var(--brown-deep); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; }
+  .ai-lbl { font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brown-light); margin-bottom: 4px; }
+  .ai-txt { font-size: 10px; color: var(--cream-dark); line-height: 1.5; margin-bottom: 8px; }
+  .audio-row { display: flex; align-items: center; gap: 8px; }
+  .play-btn {
+    width: 22px; height: 22px; background: var(--cream-dark); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .play-tri { width:0; height:0; border-left:7px solid var(--brown-deep); border-top:4px solid transparent; border-bottom:4px solid transparent; margin-left:2px; }
+  .wave { flex: 1; height: 18px; display: flex; align-items: center; gap: 1.5px; }
+  .wb { flex: 1; background: rgba(196,185,154,0.35); border-radius: 1px; }
+  .wb.lit { background: var(--cream-dark); }
+  .a-time { font-size: 9px; color: #6B6459; flex-shrink: 0; }
+
+  /* ══════════════════════════════════════════
+     SCREEN 4 — TOUR
+  ══════════════════════════════════════════ */
+  .tour-hdr { padding: 28px 14px 8px; border-bottom: 0.5px solid var(--cream-light); }
+  .tour-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .t-back { font-size: 11px; color: var(--brown-light); }
+  .t-share { font-size: 10px; color: var(--brown-deep); font-weight: 500; }
+  .tour-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 600; color: var(--text-dark); }
+  .tour-meta { font-size: 9px; color: var(--brown-light); margin-top: 2px; }
+  .prog-wrap { padding: 8px 14px; }
+  .prog-lbl { display: flex; justify-content: space-between; font-size: 9px; color: var(--brown-light); margin-bottom: 4px; }
+  .prog-track { height: 3px; background: var(--cream-light); border-radius: 2px; }
+  .prog-fill { height: 100%; background: var(--brown-deep); border-radius: 2px; width: 42%; }
+  .stop-list { padding: 4px 14px; }
+  .stop-item { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-bottom: 0.5px solid #F0ECE4; }
+  .stop-left { display: flex; flex-direction: column; align-items: center; }
+  .stop-num {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--brown-deep); color: var(--cream-bg);
+    font-size: 9px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .stop-num.done { background: var(--cream-mid); color: var(--brown-mid); }
+  .stop-num.cur { background: var(--gold); color: #fff; }
+  .stop-num.nxt { background: var(--cream-light); color: var(--text-faint); }
+  .stop-ln { width: 1px; flex: 1; background: var(--border); margin: 3px 0; min-height: 14px; }
+  .stop-inf { flex: 1; padding-top: 2px; }
+  .stop-n { font-size: 11px; font-weight: 500; color: var(--text-dark); }
+  .stop-n.dim { color: var(--text-faint); }
+  .stop-d { font-size: 9px; color: var(--brown-light); line-height: 1.4; }
+  .stop-bdg { font-size: 8px; padding: 2px 5px; border-radius: 4px; background: #FBF6EE; color: var(--brown-light); margin-top: 2px; display: inline-block; }
+  .stop-bdg.cur { background: #FBF0D0; color: #A07020; }
+
+  /* ══════════════════════════════════════════
+     SCREEN 5 — ANALYTICS
+  ══════════════════════════════════════════ */
+  .analytics-body { padding: 28px 14px 70px; }
+  .analytics-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 12px; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .stat-card { background: var(--cream-bg); border-radius: 10px; padding: 9px 10px; }
+  .stat-v { font-size: 20px; font-weight: 500; color: var(--text-dark); line-height: 1; }
+  .stat-l { font-size: 9px; color: var(--brown-light); margin-top: 3px; }
+  .stat-c { font-size: 9px; color: var(--green); margin-top: 2px; }
+  .chart-card { background: #fff; border: 0.5px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+  .chart-t { font-size: 10px; font-weight: 500; color: var(--text-mid); margin-bottom: 8px; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 60px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .bar { width: 100%; background: var(--cream-mid); border-radius: 3px 3px 0 0; min-height: 4px; }
+  .bar.hi { background: var(--brown-deep); }
+  .bar-l { font-size: 7px; color: var(--text-faint); }
+  .poi-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 0.5px solid #F0ECE4; }
+  .rank { font-size: 11px; font-weight: 500; color: var(--cream-dark); width: 14px; }
+  .poi-item-info { flex: 1; }
+  .poi-item-n { font-size: 11px; color: var(--text-dark); }
+  .poi-bw { margin-top: 2px; height: 3px; background: var(--cream-light); border-radius: 2px; }
+  .poi-bf { height: 100%; background: var(--brown-light); border-radius: 2px; }
+  .poi-cnt { font-size: 9px; color: var(--brown-light); }
+
+  /* ══════════════════════════════════════════
+     SCREEN 6 — PROFILE
+  ══════════════════════════════════════════ */
+  .profile-body { padding: 28px 14px 70px; }
+  .profile-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 12px; }
+  .profile-hero { display: flex; align-items: center; gap: 10px; padding-bottom: 14px; border-bottom: 0.5px solid var(--border); margin-bottom: 12px; }
+  .p-av {
+    width: 48px; height: 48px; background: var(--brown-deep); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 600; color: var(--cream-dark);
+  }
+  .p-name { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; color: var(--text-dark); }
+  .p-sub { font-size: 10px; color: var(--brown-light); }
+  .p-badge {
+    margin-left: auto; background: var(--cream-bg); border: 0.5px solid var(--cream-mid);
+    border-radius: 7px; padding: 4px 9px; font-size: 9px; color: var(--brown-mid); font-weight: 500;
+  }
+  .prog-sec { margin-bottom: 12px; }
+  .prog-lbl-row { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 4px; color: var(--text-mid); }
+  .p-track { height: 5px; background: var(--cream-light); border-radius: 3px; margin-bottom: 10px; }
+  .p-fill { height: 100%; background: var(--brown-deep); border-radius: 3px; }
+  .badge-showcase { display: flex; gap: 6px; margin-bottom: 12px; }
+  .badge-item { flex: 1; background: var(--cream-bg); border-radius: 10px; padding: 8px 6px; text-align: center; }
+  .badge-icon { font-size: 18px; display: block; margin-bottom: 3px; }
+  .badge-name { font-size: 8px; color: var(--brown-mid); font-weight: 500; }
+  .badge-item.locked { opacity: 0.4; }
+  .settings-item { display: flex; align-items: center; padding: 9px 0; border-bottom: 0.5px solid #F0ECE4; gap: 10px; }
+  .s-icon { width: 26px; height: 26px; background: var(--cream-light); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .s-lbl { flex: 1; font-size: 11px; color: var(--text-dark); }
+  .s-arrow { font-size: 10px; color: var(--cream-dark); }
+  .s-toggle { width: 26px; height: 14px; background: var(--brown-deep); border-radius: 7px; position: relative; }
+  .s-toggle::after { content: ''; position: absolute; width: 10px; height: 10px; background: #fff; border-radius: 50%; top: 2px; right: 2px; }
+
+  /* ══════════════════════════════════════════
+     SCREEN 7 — MAP
+  ══════════════════════════════════════════ */
+  .map-canvas { position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; }
+  .map-bg { width: 100%; height: 100%; background: var(--map-bg); }
+  .blk { position: absolute; border-radius: 3px; }
+  .street-h { position: absolute; background: var(--street); }
+  .street-lbl { position: absolute; font-size: 7px; color: #A09888; font-weight: 500; letter-spacing: 0.04em; white-space: nowrap; }
+  .pm { position: absolute; transform: translate(-50%, -100%); z-index: 10; }
+  .pin {
+    width: 28px; height: 28px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+    display: flex; align-items: center; justify-content: center; border: 2px solid var(--cream-white);
+  }
+  .pin-i { transform: rotate(45deg); font-size: 12px; line-height: 1; }
+  .pin.done { background: var(--cream-mid); }
+  .pin.active { background: var(--brown-deep); width: 34px; height: 34px; }
+  .pin.next { background: #9E9285; }
+  .pulse {
+    position: absolute; top: 50%; left: 50%; width: 34px; height: 34px;
+    border: 2px solid var(--brown-deep); border-radius: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    animation: pulse 2s ease-out infinite; opacity: 0;
+  }
+  @keyframes pulse { 0%{opacity:.6;width:34px;height:34px;} 100%{opacity:0;width:56px;height:56px;} }
+  .user-dot { position: absolute; width: 14px; height: 14px; transform: translate(-50%, -50%); z-index: 15; }
+  .ud-inner { width: 10px; height: 10px; background: var(--green); border-radius: 50%; border: 2px solid var(--cream-white); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+  .ud-ring { width: 14px; height: 14px; border: 1.5px solid rgba(44,122,63,0.4); border-radius: 50%; position: absolute; animation: pulse2 2s ease-out infinite; }
+  @keyframes pulse2 { 0%{opacity:.8;transform:scale(1);} 100%{opacity:0;transform:scale(2);} }
+  .map-top { position: absolute; top: 24px; left: 0; right: 0; padding: 6px 10px; z-index: 20; display: flex; align-items: center; gap: 6px; }
+  .map-search { flex: 1; background: rgba(250,250,248,0.96); border-radius: 10px; border: 0.5px solid var(--border); padding: 7px 10px; display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-faint); }
+  .sc { width: 11px; height: 11px; border: 1.5px solid var(--text-faint); border-radius: 50%; flex-shrink: 0; }
+  .map-filter { width: 30px; height: 30px; background: rgba(250,250,248,0.96); border-radius: 9px; border: 0.5px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .fi { width: 12px; display: flex; flex-direction: column; gap: 2px; }
+  .fl { height: 1.5px; background: var(--brown-deep); border-radius: 1px; }
+  .chip-row { position: absolute; top: 64px; left: 0; right: 0; z-index: 20; display: flex; gap: 5px; padding: 0 10px; overflow: hidden; }
+  .m-chip { padding: 4px 9px; border-radius: 14px; font-size: 9px; font-weight: 500; border: 0.5px solid var(--border); background: rgba(250,250,248,0.96); color: var(--brown-mid); white-space: nowrap; }
+  .m-chip.on { background: var(--brown-deep); color: var(--cream-bg); border-color: var(--brown-deep); }
+  .compass { position: absolute; right: 10px; top: 108px; width: 22px; height: 22px; z-index: 20; background: rgba(250,250,248,0.92); border-radius: 50%; border: 0.5px solid var(--border); display: flex; align-items: center; justify-content: center; }
+  .compass-n { font-size: 7px; font-weight: 500; color: var(--brown-deep); }
+  .map-ctrl { position: absolute; right: 10px; bottom: 215px; display: flex; flex-direction: column; gap: 4px; z-index: 20; }
+  .ctrl-btn { width: 26px; height: 26px; background: var(--cream-white); border: 0.5px solid var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--brown-deep); }
+  .legend { position: absolute; left: 10px; bottom: 215px; z-index: 20; background: rgba(250,250,248,0.96); border: 0.5px solid var(--border); border-radius: 8px; padding: 5px 7px; display: flex; flex-direction: column; gap: 4px; }
+  .leg-row { display: flex; align-items: center; gap: 5px; font-size: 7px; color: var(--brown-mid); }
+  .leg-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .bottom-sheet { position: absolute; bottom: 0; left: 0; right: 0; z-index: 25; background: var(--cream-white); border-radius: 18px 18px 0 0; border-top: 0.5px solid var(--border); }
+  .sh-handle { width: 32px; height: 3px; background: var(--cream-mid); border-radius: 2px; margin: 8px auto 10px; }
+  .ap-card { padding: 0 12px 8px; display: flex; gap: 10px; align-items: flex-start; }
+  .ap-thumb { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; background: #F0E8D8; }
+  .ap-info { flex: 1; }
+  .ap-tag { font-size: 8px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brown-light); margin-bottom: 2px; }
+  .ap-name { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 600; color: var(--text-dark); line-height: 1.2; }
+  .ap-meta { font-size: 9px; color: var(--brown-light); margin-top: 3px; }
+  .ap-dist { display: inline-block; background: var(--cream-light); border-radius: 5px; padding: 2px 6px; font-size: 8px; color: var(--brown-mid); font-weight: 500; margin-top: 4px; }
+  .nav-btn { flex-shrink: 0; background: var(--brown-deep); color: var(--cream-bg); font-size: 9px; font-weight: 500; padding: 6px 10px; border-radius: 8px; text-align: center; margin-top: 2px; }
+  .divider { height: 0.5px; background: var(--cream-light); margin: 6px 12px; }
+  .mini-tour { padding: 6px 12px 10px; display: flex; gap: 5px; overflow: hidden; align-items: flex-start; }
+  .ms { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .mn { width: 18px; height: 18px; border-radius: 50%; font-size: 8px; font-weight: 500; display: flex; align-items: center; justify-content: center; }
+  .mn.done { background: var(--cream-mid); color: var(--brown-mid); }
+  .mn.cur { background: var(--brown-deep); color: var(--cream-bg); }
+  .mn.nxt { background: var(--cream-light); color: var(--text-faint); }
+  .mn-name { font-size: 7px; color: var(--brown-light); text-align: center; max-width: 36px; line-height: 1.2; }
+  .mc { width: 16px; height: 1px; background: var(--border); margin-top: 8px; flex-shrink: 0; }
+
+  /* ══════════════════════════════════════════
+     SCREEN 8 — AR MODE
+  ══════════════════════════════════════════ */
+  .ar-cam { position: absolute; top: 0; left: 0; right: 0; height: 310px; background: #1E1C18; overflow: hidden; }
+  .ar-sky { position: absolute; top: 0; left: 0; right: 0; height: 130px; background: #16140F; }
+  .ar-bldg-row { position: absolute; bottom: 55px; left: 0; right: 0; display: flex; align-items: flex-end; }
+  .ar-bldg { background: #2C2820; }
+  .ar-walk { position: absolute; bottom: 0; left: 0; right: 0; height: 55px; background: #201D1A; border-top: 1px solid #2E2B27; }
+  .ar-reticle {
+    position: absolute; width: 60px; height: 60px; border-radius: 50%;
+    border: 1px solid rgba(196,185,154,0.5); top: 140px; left: 50%; transform: translateX(-50%); z-index: 12;
+  }
+  .ar-reticle::before { content: ''; position: absolute; width: 1px; height: 8px; background: rgba(196,185,154,0.5); top: -4px; left: 50%; margin-left: -0.5px; }
+  .ar-reticle::after { content: ''; position: absolute; width: 8px; height: 1px; background: rgba(196,185,154,0.5); left: -4px; top: 50%; margin-top: -0.5px; }
+  .ar-tag { position: absolute; z-index: 15; }
+  .ar-card { background: rgba(250,250,248,0.94); border-radius: 10px; padding: 7px 9px; border: 0.5px solid rgba(255,255,255,0.2); }
+  .ar-card-name { font-family: 'Playfair Display', serif; font-size: 11px; font-weight: 600; color: var(--text-dark); white-space: nowrap; }
+  .ar-card-dist { font-size: 8px; color: var(--brown-light); }
+  .ar-card-open { font-size: 7px; color: var(--green); font-weight: 500; }
+  .ar-line { width: 1px; background: rgba(250,250,248,0.6); margin: 0 auto; }
+  .ar-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cream-bg); border: 1.5px solid rgba(255,255,255,0.4); margin: 0 auto; }
+  .ar-dir { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 16; }
+  .ar-dir-circle { width: 36px; height: 36px; background: rgba(196,185,154,0.15); border-radius: 50%; border: 1px solid rgba(196,185,154,0.4); display: flex; align-items: center; justify-content: center; }
+  .ar-walk-hint { position: absolute; bottom: 8px; left: 12px; z-index: 16; font-size: 8px; color: rgba(196,185,154,0.8); }
+  .ar-bottom { position: absolute; bottom: 0; left: 0; right: 0; background: #141210; border-top: 0.5px solid #2E2B27; padding: 10px 12px 14px; z-index: 20; }
+  .ar-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .ar-mode-lbl { font-size: 9px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #8B7355; }
+  .ar-pills { display: flex; gap: 4px; }
+  .ar-pill { padding: 3px 7px; border-radius: 10px; font-size: 8px; font-weight: 500; border: 0.5px solid #3A3428; color: #6B6459; }
+  .ar-pill.on { background: var(--brown-deep); color: var(--cream-dark); border-color: var(--brown-deep); }
+  .ar-next { background: #2C2416; border-radius: 10px; padding: 9px 10px; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .ar-emoji { font-size: 16px; width: 34px; height: 34px; background: #3A3020; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ar-nlbl { font-size: 8px; color: #8B7355; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+  .ar-nname { font-family: 'Playfair Display', serif; font-size: 12px; font-weight: 600; color: var(--cream-bg); }
+  .ar-nwalk { font-size: 9px; color: var(--cream-dark); }
+  .ar-arr { font-size: 14px; color: var(--cream-dark); }
+  .ar-wave { display: flex; align-items: flex-end; gap: 2px; height: 18px; margin-bottom: 6px; }
+  .aw { width: 4px; border-radius: 1px 1px 0 0; }
+  .ar-status { display: flex; justify-content: space-between; align-items: center; }
+  .ar-prog-txt { font-size: 9px; color: #6B6459; }
+  .ar-prog-bar { width: 60px; height: 3px; background: #2C2820; border-radius: 2px; }
+  .ar-prog-fill { width: 60%; height: 100%; background: var(--cream-dark); border-radius: 2px; }
+
+  /* ─── COLOR PALETTE SECTION ─── */
+  .palette-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 1rem; }
+  .pal-swatch { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .pal-color { width: 48px; height: 48px; border-radius: 10px; border: 0.5px solid rgba(0,0,0,0.08); }
+  .pal-name { font-size: 9px; color: var(--text-muted); text-align: center; }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    border-top: 0.5px solid var(--border);
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--cream-white);
+    margin-top: 2rem;
+  }
+  .footer strong { color: var(--text-dark); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<!-- ─── PAGE HEADER ─── -->
+<div class="page-header">
+  <div class="page-header-tag">UI Design Kit · 2024</div>
+  <h1>HeriStepAI</h1>
+  <p>Thuyết minh tự động các quán ăn trên phố ẩm thực Hồ Thị Kỷ — 8 màn hình Mobile UI · Modern &amp; Minimalist</p>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 1: ONBOARDING + DASHBOARD
+══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">01–02</div>
+    <div class="section-info">
+      <h2>Onboarding &amp; Dashboard</h2>
+      <p>Màn hình chào mừng và trang chủ chính</p>
+    </div>
+  </div>
+  <div class="screens-row">
+
+    <!-- S1: ONBOARDING -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><div class="si"><div class="sd"></div><div class="sd"></div><div class="sp"></div></div></div>
+        <div style="padding-top:24px;">
+          <div class="ob-img">
+            <div class="food-grid">
+              <div class="fc">🍜</div><div class="fc">🥟</div><div class="fc">🍢</div>
+              <div class="fc">🥗</div><div class="fc">🍲</div><div class="fc">🧆</div>
+            </div>
+            <div class="ob-img-label">Phố ẩm thực Hồ Thị Kỷ, HCMC</div>
+          </div>
+          <div class="ob-body">
+            <div class="ob-tag">HeriStepAI · HCMC</div>
+            <div class="ob-title">Khám phá vị ngon, nghe kể chuyện xưa</div>
+            <div class="ob-sub">AI thuyết minh tự động theo từng bước chân của bạn trên phố ẩm thực.</div>
+            <div class="dots"><div class="dot on"></div><div class="dot"></div><div class="dot"></div></div>
+            <div class="btn-p">Bắt đầu khám phá</div>
+            <div class="btn-g">Đã có tài khoản? Đăng nhập</div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-label">Onboarding</div>
+    </div>
+
+    <!-- S2: DASHBOARD -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><div class="si"><div class="sd"></div><div class="sd"></div><div class="sp"></div></div></div>
+        <div class="dash-inner" style="padding-top:24px;">
+          <div class="dash-hdr">
+            <div><div class="dash-greet">Xin chào, Minh Tuấn 👋</div><div class="dash-title">Phố Hồ Thị Kỷ</div></div>
+            <div class="dash-av">MT</div>
+          </div>
+          <div class="search-bar"><div class="s-circle"></div>Tìm quán ăn, món ăn...</div>
+          <div class="sec-ttl">Tour hôm nay</div>
+          <div class="feat-card">
+            <div class="feat-tag">Tour đang chờ · 5 điểm dừng</div>
+            <div class="feat-name">Vòng quanh ẩm thực đêm</div>
+            <div class="feat-desc">Trải nghiệm 5 quán đặc sắc với thuyết minh AI</div>
+            <div class="feat-meta">
+              <div class="m-pill"><div class="m-dot"></div>2.4 km</div>
+              <div class="m-pill"><div class="m-dot"></div>~75 phút</div>
+              <div class="m-pill"><div class="m-dot"></div>Miễn phí</div>
+            </div>
+          </div>
+          <div class="sec-ttl">Điểm nổi bật gần đây</div>
+          <div class="scroll-row">
+            <div class="poi-card"><div class="poi-img a">🍜</div><div class="poi-inf"><div class="poi-n">Bún bò Huế Cô Ba</div><div class="poi-r">★ 4.8 · 120m</div></div></div>
+            <div class="poi-card"><div class="poi-img b">🥟</div><div class="poi-inf"><div class="poi-n">Há cảo Chú Tám</div><div class="poi-r">★ 4.6 · 230m</div></div></div>
+            <div class="poi-card"><div class="poi-img c">🧆</div><div class="poi-inf"><div class="poi-n">Bánh mì Phương</div><div class="poi-r">★ 4.9 · 80m</div></div></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon active"></div><div class="tab-lbl active">Trang chủ</div></div>
+          <div class="tab-item"><div class="tab-icon"></div><div class="tab-lbl">Khám phá</div></div>
+          <div class="tab-item"><div class="tab-icon"></div><div class="tab-lbl">Tour</div></div>
+          <div class="tab-item"><div class="tab-icon"></div><div class="tab-lbl">Hồ sơ</div></div>
+        </div>
+      </div>
+      <div class="phone-label">Dashboard · Home</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 2: POI DETAIL + TOUR
+══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">03–04</div>
+    <div class="section-info">
+      <h2>Chi tiết POI &amp; Tour</h2>
+      <p>Thông tin quán ăn với AI thuyết minh và danh sách điểm dừng tour</p>
+    </div>
+  </div>
+  <div class="screens-row">
+
+    <!-- S3: POI DETAIL -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="status-bar" style="z-index:31;"><span>9:41</span><div class="si"><div class="sd"></div><div class="sd"></div><div class="sp"></div></div></div>
+        <div style="padding-top:24px;">
+          <div class="poi-hero">
+            🍜
+            <div class="back-btn">←</div>
+            <div class="save-btn">♡</div>
+            <div class="badge-open">Đang mở cửa</div>
+          </div>
+          <div class="poi-body">
+            <div class="poi-cat">Quán bún · Phố Hồ Thị Kỷ</div>
+            <div class="poi-name-h">Bún bò Huế Cô Ba</div>
+            <div class="stars">★★★★★ <span style="font-size:9px;color:var(--text-muted);">4.8 (324 đánh giá)</span></div>
+            <div class="info-chips">
+              <div class="chip">6:00 – 22:00</div>
+              <div class="chip">Từ 35.000đ</div>
+              <div class="chip">Ngoài trời</div>
+            </div>
+            <div class="ai-card">
+              <div class="ai-lbl">AI Thuyết minh</div>
+              <div class="ai-txt">Quán bún bò Huế này có lịch sử hơn 40 năm, được Cô Ba sáng lập từ năm 1982. Nước dùng được hầm từ xương bò cùng sả và mắm ruốc theo công thức gia truyền...</div>
+              <div class="audio-row">
+                <div class="play-btn"><div class="play-tri"></div></div>
+                <div class="wave">
+                  <div class="wb" style="height:4px;"></div><div class="wb lit" style="height:10px;"></div>
+                  <div class="wb lit" style="height:14px;"></div><div class="wb lit" style="height:9px;"></div>
+                  <div class="wb" style="height:6px;"></div><div class="wb" style="height:12px;"></div>
+                  <div class="wb" style="height:8px;"></div><div class="wb" style="height:5px;"></div>
+                  <div class="wb lit" style="height:11px;"></div><div class="wb" style="height:7px;"></div>
+                  <div class="wb" style="height:4px;"></div><div class="wb lit" style="height:9px;"></div>
+                </div>
+                <div class="a-time">0:48</div>
+              </div>
+            </div>
+            <div class="btn-p" style="font-size:11px;">Thêm vào Tour của tôi</div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-label">Chi tiết POI</div>
+    </div>
+
+    <!-- S4: TOUR -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><div class="si"><div class="sd"></div><div class="sd"></div><div class="sp"></div></div></div>
+        <div style="padding-top:24px;">
+          <div class="tour-hdr">
+            <div class="tour-nav"><div class="t-back">← Quay lại</div><div class="t-share">Chia sẻ ↗</div></div>
+            <div class="tour-title">Vòng quanh ẩm thực đêm</div>
+            <div class="tour-meta">5 điểm dừng · 2.4 km · ~75 phút</div>
+          </div>
+          <div class="prog-wrap">
+            <div class="prog-lbl"><span>Tiến độ Tour</span><span>2/5 điểm</span></div>
+            <div class="prog-track"><div class="prog-fill"></div></div>
+          </div>
+          <div class="stop-list">
+            <div class="stop-item">
+              <div class="stop-left"><div class="stop-num done">✓</div><div class="stop-ln"></div></div>
+              <div class="stop-inf"><div class="stop-n">Bún bò Huế Cô Ba</div><div class="stop-d">Khởi đầu với tô bún bò đậm đà</div><div class="stop-bdg">Đã ghé thăm</div></div>
+            </div>
+            <div class="stop-item">
+              <div class="stop-left"><div class="stop-num done">✓</div><div class="stop-ln"></div></div>
+              <div class="stop-inf"><div class="stop-n">Há cảo Chú Tám</div><div class="stop-d">Há cảo chiên giòn trứ danh</div><div class="stop-bdg">Đã ghé thăm</div></div>
+            </div>
+            <div class="stop-item">
+              <div class="stop-left"><div class="stop-num cur">3</div><div class="stop-ln"></div></div>
+              <div class="stop-inf"><div class="stop-n">Bánh mì Phương</div><div class="stop-d">Bánh mì nhân đặc biệt độc quyền</div><div class="stop-bdg cur">Đang ở đây</div></div>
+            </div>
+            <div class="stop-item">
+              <div class="stop-left"><div class="stop-num nxt">4</div><div class="stop-ln"></div></div>
+              <div class="stop-inf"><div class="stop-n dim">Chè Thái Bà Hạnh</div><div class="stop-d" style="color:#C4BEB8;">Tráng miệng chè Thái truyền thống</div></div>
+            </div>
+            <div class="stop-item" style="border:none;">
+              <div class="stop-left"><div class="stop-num nxt">5</div></div>
+              <div class="stop-inf"><div class="stop-n dim">Cà phê Sài Gòn Xưa</div><div class="stop-d" style="color:#C4BEB8;">Kết thúc với cà phê vợt pha phin</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-label">Tour &amp; POI List</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 3: ANALYTICS + PROFILE
+══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">05–06</div>
+    <div class="section-info">
+      <h2>Analytics &amp; Profile</h2>
+      <p>Thống kê hành trình và hồ sơ người dùng</p>
+    </div>
+  </div>
+  <div class="screens-row">
+
+    <!-- S5: ANALYTICS -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><div class="si"><div class="sd"></div><div class="sd"></div><div class="sp"></div></div></div>
+        <div class="analytics-body">
+          <div class="analytics-title">Thống kê</div>
+          <div class="stat-grid">
+            <div class="stat-card"><div class="stat-v">24</div><div class="stat-l">Quán đã ghé</div><div class="stat-c">↑ 6 tuần này</div></div>
+            <div class="stat-card"><div class="stat-v">8.2<span style="font-size:12px;">km</span></div><div class="stat-l">Tổng quãng đường</div><div class="stat-c">↑ 1.4km hôm nay</div></div>
+            <div class="stat-card"><div class="stat-v">5</div><div class="stat-l">Tour hoàn thành</div><div class="stat-c">↑ 2 tuần này</div></div>
+            <div class="stat-card"><div class="stat-v">47<span style="font-size:12px;">ph</span></div><div class="stat-l">Nghe thuyết minh</div><div class="stat-c">↑ 12ph hôm nay</div></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-t">Quán ghé thăm trong tuần</div>
+            <div class="bar-chart">
+              <div class="bar-col"><div class="bar" style="height:24px;"></div><div class="bar-l">T2</div></div>
+              <div class="bar-col"><div class="bar" style="height:36px;"></div><div class="bar-l">T3</div></div>
+              <div class="bar-col"><div class="bar" style="height:20px;"></div><div class="bar-l">T4</div></div>
+              <div class="bar-col"><div class="bar hi" style="height:48px;"></div><div class="bar-l">T5</div></div>
+              <div class="bar-col"><div class="bar" style="height:32px;"></div><div class="bar-l">T6</div></div>
+              <div class="bar-col"><div class="bar hi" style="height:44px;"></div><div class="bar-l">T7</div></div>
+              <div class="bar-col"><div class="bar" style="height:16px;"></div><div class="bar-l">CN</div></div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-t">Điểm được ghé nhiều nhất</div>
+            <div class="poi-item"><div class="rank">01</div><div class="poi-item-info"><div class="poi-item-n">Bún bò Huế Cô Ba</div><div class="poi-bw"><div class="poi-bf" style="width:90%;"></div></div></div><div class="poi-cnt">12x</div></div>
+            <div class="poi-item"><div class="rank">02</div><div class="poi-item-info"><div class="poi-item-n">Bánh mì Phương</div><div class="poi-bw"><div class="poi-bf" style="width:70%;"></div></div></div><div class="poi-cnt">9x</div></div>
+            <div class="poi-item" style="border:none;"><div class="rank">03</div><div class="poi-item-info"><div class="poi-item-n">Há cảo Chú Tám</div><div class="poi-bw"><div class="poi-bf" style="width:52%;"></div></div></div><div class="poi-cnt">7x</div></div>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon"></div><div class="tab-lbl">Trang chủ</div></div>
+          <div class="tab-item"><div class="tab-icon"></div><div class="tab-lbl">Khám phá</div></div>
+          <div class="tab-item"><div class="tab-icon"></div><div class="tab-lbl">Tour</div></div>
+          <div class="tab-item"><div class="tab-icon active"></div><div class="tab-lbl active">Thống kê</div></div>
+        </div>
+      </div>
+      <div class="phone-label">Analytics</div>
+    </div>
+
+    <!-- S6: PROFILE -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><div class="si"><div class="sd"></div><div class="sd"></div><div class="sp"></div></div></div>
+        <div class="profile-body">
+          <div class="profile-title">Hồ sơ</div>
+          <div class="profile-hero">
+            <div class="p-av">MT</div>
+            <div><div class="p-name">Minh Tuấn</div><div class="p-sub">Thám tử ẩm thực · Cấp 5</div></div>
+            <div class="p-badge">✦ Explorer</div>
+          </div>
+          <div class="prog-sec">
+            <div class="prog-lbl-row"><span>Tiến độ Cấp 6</span><span style="color:var(--brown-light);">720/1000 xp</span></div>
+            <div class="p-track"><div class="p-fill" style="width:72%;"></div></div>
+          </div>
+          <div style="font-size:10px;font-weight:500;color:var(--text-mid);margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase;">Huy hiệu đạt được</div>
+          <div class="badge-showcase">
+            <div class="badge-item"><span class="badge-icon">🏆</span><div class="badge-name">Nhà vô địch</div></div>
+            <div class="badge-item"><span class="badge-icon">🗺️</span><div class="badge-name">Người khám phá</div></div>
+            <div class="badge-item locked"><span class="badge-icon">🌟</span><div class="badge-name">Huyền thoại</div></div>
+          </div>
+          <div class="settings-item"><div class="s-icon">🔔</div><div class="s-lbl">Thông báo thuyết minh</div><div class="s-toggle"></div></div>
+          <div class="settings-item"><div class="s-icon">🌐</div><div class="s-lbl">Ngôn ngữ thuyết minh</div><div class="s-arrow">VI ›</div></div>
+          <div class="settings-item"><div class="s-icon">🎧</div><div class="s-lbl">Âm lượng &amp; Giọng đọc</div><div class="s-arrow">›</div></div>
+          <div class="settings-item" style="border:none;"><div class="s-icon">📋</div><div class="s-lbl">Lịch sử Tour đã đi</div><div class="s-arrow">5 tours ›</div></div>
+        </div>
+        <div class="tab-bar">
+          <div class="tab-item"><div class="tab-icon"></div><div class="tab-lbl">Trang chủ</div></div>
+          <div class="tab-item"><div class="tab-icon"></div><div class="tab-lbl">Khám phá</div></div>
+          <div class="tab-item"><div class="tab-icon"></div><div class="tab-lbl">Tour</div></div>
+          <div class="tab-item"><div class="tab-icon active"></div><div class="tab-lbl active">Hồ sơ</div></div>
+        </div>
+      </div>
+      <div class="phone-label">Profile &amp; Settings</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 4: MAP + AR
+══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">07–08</div>
+    <div class="section-info">
+      <h2>Map &amp; AR Mode</h2>
+      <p>Bản đồ điều hướng tour và chế độ thực tế tăng cường</p>
+    </div>
+  </div>
+  <div class="screens-row">
+
+    <!-- S7: MAP -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="status-bar" style="z-index:31;"><span>9:41</span><div class="si"><div class="sd"></div><div class="sd"></div><div class="sp"></div></div></div>
+        <div class="map-canvas">
+          <div class="map-bg">
+            <!-- Blocks -->
+            <div class="blk" style="left:0;top:30px;width:65px;height:58px;background:#E4DDD1;"></div>
+            <div class="blk" style="left:0;top:98px;width:65px;height:54px;background:#DDD6C8;"></div>
+            <div class="blk" style="left:0;top:162px;width:65px;height:50px;background:#E4DDD1;"></div>
+            <div class="blk" style="left:0;top:222px;width:65px;height:58px;background:#D8D0C2;"></div>
+            <div class="blk" style="right:0;top:30px;width:60px;height:62px;background:#DDD6C8;"></div>
+            <div class="blk" style="right:0;top:102px;width:60px;height:50px;background:#E4DDD1;"></div>
+            <div class="blk" style="right:0;top:162px;width:60px;height:58px;background:#D8D0C2;"></div>
+            <div class="blk" style="right:0;top:230px;width:60px;height:52px;background:#E4DDD1;"></div>
+            <div class="blk" style="left:28px;top:290px;width:76px;height:48px;background:#E4DDD1;"></div>
+            <div class="blk" style="right:16px;top:290px;width:72px;height:48px;background:#DDD6C8;"></div>
+            <!-- Streets -->
+            <div class="street-h" style="left:70px;top:0;width:100px;height:100%;"></div>
+            <div class="street-h" style="top:88px;left:0;width:100%;height:20px;"></div>
+            <div class="street-h" style="top:152px;left:0;width:100%;height:18px;"></div>
+            <div class="street-h" style="top:220px;left:0;width:100%;height:18px;"></div>
+            <div class="street-h" style="top:282px;left:0;width:100%;height:18px;"></div>
+            <!-- Street labels -->
+            <div class="street-lbl" style="left:76px;top:93px;">Hồ Thị Kỷ</div>
+            <div class="street-lbl" style="left:76px;top:157px;">Nguyễn Tri Phương</div>
+            <div class="street-lbl" style="left:8px;top:56px;transform:rotate(-90deg);transform-origin:left top;">Lý Thường Kiệt</div>
+            <!-- Route -->
+            <svg style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:5;" viewBox="0 0 240 480" fill="none">
+              <path d="M120 290 L120 225 L120 165 L120 102 L120 76" stroke="#2C2416" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round" opacity="0.65"/>
+              <path d="M120 165 L85 165 L85 225 L142 225" stroke="#2C2416" stroke-width="1.5" stroke-dasharray="4 3" stroke-linecap="round" opacity="0.3"/>
+            </svg>
+            <!-- POI markers -->
+            <div class="pm" style="left:120px;top:80px;"><div class="pin done"><div class="pin-i" style="font-size:10px;">✓</div></div></div>
+            <div class="pm" style="left:85px;top:166px;"><div class="pin done"><div class="pin-i" style="font-size:10px;">✓</div></div></div>
+            <div class="pm" style="left:120px;top:166px;z-index:12;"><div class="pin active" style="position:relative;"><div class="pulse"></div><div class="pin-i">🍜</div></div></div>
+            <div class="pm" style="left:142px;top:228px;"><div class="pin next" style="width:22px;height:22px;"><div class="pin-i" style="font-size:9px;">🍵</div></div></div>
+            <div class="pm" style="left:120px;top:290px;"><div class="pin next" style="width:22px;height:22px;"><div class="pin-i" style="font-size:9px;">☕</div></div></div>
+            <!-- User dot -->
+            <div class="user-dot" style="left:136px;top:200px;"><div class="ud-ring"></div><div class="ud-inner"></div></div>
+          </div>
+        </div>
+        <!-- Map overlays -->
+        <div class="map-top">
+          <div class="map-search"><div class="sc"></div>Tìm trên bản đồ...</div>
+          <div class="map-filter"><div class="fi"><div class="fl"></div><div class="fl" style="width:70%;"></div><div class="fl" style="width:50%;"></div></div></div>
+        </div>
+        <div class="chip-row">
+          <div class="m-chip on">Tất cả</div>
+          <div class="m-chip">Đang mở</div>
+          <div class="m-chip">Đã thăm</div>
+          <div class="m-chip">Gần nhất</div>
+        </div>
+        <div class="compass"><div class="compass-n">N</div></div>
+        <div class="map-ctrl"><div class="ctrl-btn">+</div><div class="ctrl-btn" style="font-size:16px;">−</div><div class="ctrl-btn" style="font-size:10px;">◎</div></div>
+        <div class="legend">
+          <div class="leg-row"><div class="leg-dot" style="background:#2C2416;"></div>Đang ở đây</div>
+          <div class="leg-row"><div class="leg-dot" style="background:#D4C9B0;"></div>Đã ghé</div>
+          <div class="leg-row"><div class="leg-dot" style="background:#9E9285;"></div>Sắp đến</div>
+          <div class="leg-row"><div class="leg-dot" style="background:#2C7A3F;"></div>Vị trí tôi</div>
+        </div>
+        <!-- Bottom sheet -->
+        <div class="bottom-sheet">
+          <div class="sh-handle"></div>
+          <div class="ap-card">
+            <div class="ap-thumb">🍜</div>
+            <div class="ap-info">
+              <div class="ap-tag">Điểm 3/5 · Đang hoạt động</div>
+              <div class="ap-name">Bánh mì Phương</div>
+              <div class="ap-meta">★ 4.9 · Bánh mì đặc sản</div>
+              <div class="ap-dist">80m · ~2 phút đi bộ</div>
+            </div>
+            <div class="nav-btn">Đường đi</div>
+          </div>
+          <div class="divider"></div>
+          <div class="mini-tour">
+            <div class="ms"><div class="mn done">✓</div><div class="mn-name">Cô Ba</div></div>
+            <div class="mc"></div>
+            <div class="ms"><div class="mn done">✓</div><div class="mn-name">Chú Tám</div></div>
+            <div class="mc"></div>
+            <div class="ms"><div class="mn cur">3</div><div class="mn-name">Phương</div></div>
+            <div class="mc"></div>
+            <div class="ms"><div class="mn nxt">4</div><div class="mn-name">Bà Hạnh</div></div>
+            <div class="mc"></div>
+            <div class="ms"><div class="mn nxt">5</div><div class="mn-name">SG Xưa</div></div>
+          </div>
+          <div class="tab-bar" style="position:relative;border-top:0.5px solid var(--border);">
+            <div class="tab-item"><div class="tab-icon"></div><div class="tab-lbl">Trang chủ</div></div>
+            <div class="tab-item"><div class="tab-icon active"></div><div class="tab-lbl active">Bản đồ</div></div>
+            <div class="tab-item"><div class="tab-icon"></div><div class="tab-lbl">Tour</div></div>
+            <div class="tab-item"><div class="tab-icon"></div><div class="tab-lbl">Hồ sơ</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-label">Map &amp; Navigation</div>
+    </div>
+
+    <!-- S8: AR MODE -->
+    <div class="phone-wrap">
+      <div class="phone dark">
+        <div class="status-bar light"><span>9:41</span><div class="si"><div class="sd"></div><div class="sd"></div><div class="sp"></div></div></div>
+        <!-- AR Camera -->
+        <div class="ar-cam">
+          <div class="ar-sky"></div>
+          <div class="ar-bldg-row">
+            <div class="ar-bldg" style="width:52px;height:110px;background:#232018;"></div>
+            <div class="ar-bldg" style="width:44px;height:78px;background:#1E1C18;"></div>
+            <div class="ar-bldg" style="width:68px;height:128px;background:#252219;"></div>
+            <div class="ar-bldg" style="width:38px;height:68px;background:#1E1C18;"></div>
+            <div class="ar-bldg" style="width:52px;height:88px;background:#221F1C;"></div>
+          </div>
+          <div class="ar-walk"></div>
+          <div class="ar-reticle"></div>
+          <!-- AR Tags -->
+          <div class="ar-tag" style="left:56px;top:52px;">
+            <div class="ar-card">
+              <div class="ar-card-name">Bánh mì Phương</div>
+              <div class="ar-card-dist">80m · Đang mở cửa</div>
+              <div class="ar-card-open">● Điểm dừng tiếp theo</div>
+            </div>
+            <div class="ar-line" style="height:28px;"></div>
+            <div class="ar-dot"></div>
+          </div>
+          <div class="ar-tag" style="right:10px;top:88px;">
+            <div class="ar-card" style="padding:5px 7px;opacity:0.7;">
+              <div class="ar-card-name" style="font-size:9px;">Chè Thái Bà Hạnh</div>
+              <div class="ar-card-dist" style="font-size:7px;">320m</div>
+            </div>
+            <div class="ar-line" style="height:16px;"></div>
+            <div class="ar-dot" style="width:5px;height:5px;"></div>
+          </div>
+          <div class="ar-dir">
+            <div class="ar-dir-circle">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 2L8 12M8 2L4 7M8 2L12 7" stroke="#C4B99A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <div class="ar-walk-hint">Đi thẳng 80m</div>
+        </div>
+        <!-- AR Bottom -->
+        <div class="ar-bottom">
+          <div class="ar-top-row">
+            <div class="ar-mode-lbl">Chế độ AR</div>
+            <div class="ar-pills"><div class="ar-pill on">AR</div><div class="ar-pill">Bản đồ</div></div>
+          </div>
+          <div class="ar-next">
+            <div class="ar-emoji">🍞</div>
+            <div style="flex:1;">
+              <div class="ar-nlbl">Điểm dừng tiếp theo</div>
+              <div class="ar-nname">Bánh mì Phương</div>
+              <div class="ar-nwalk">~2 phút · 80m phía trước</div>
+            </div>
+            <div class="ar-arr">›</div>
+          </div>
+          <div class="ar-wave">
+            <div class="aw" style="height:4px;background:#3A3428;"></div>
+            <div class="aw" style="height:10px;background:#C4B99A;"></div>
+            <div class="aw" style="height:14px;background:#C4B99A;"></div>
+            <div class="aw" style="height:8px;background:#C4B99A;"></div>
+            <div class="aw" style="height:5px;background:#3A3428;"></div>
+            <div class="aw" style="height:12px;background:#C4B99A;"></div>
+            <div class="aw" style="height:6px;background:#3A3428;"></div>
+            <div class="aw" style="height:9px;background:#C4B99A;"></div>
+            <div class="aw" style="height:16px;background:#C4B99A;"></div>
+            <div class="aw" style="height:7px;background:#3A3428;"></div>
+            <div class="aw" style="height:11px;background:#C4B99A;"></div>
+            <div class="aw" style="height:4px;background:#3A3428;"></div>
+            <span style="font-size:8px;color:#6B6459;margin-left:4px;line-height:18px;">AI đang thuyết minh...</span>
+          </div>
+          <div class="ar-status">
+            <div class="ar-prog-txt">Điểm 3 / 5 trong Tour</div>
+            <div class="ar-prog-bar"><div class="ar-prog-fill"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-label">AR Mode · Thực tế tăng cường</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── COLOR PALETTE ─── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num" style="font-size:20px;">♦</div>
+    <div class="section-info">
+      <h2>Color Palette</h2>
+      <p>Hệ màu chủ đạo của HeriStepAI</p>
+    </div>
+  </div>
+  <div class="palette-row">
+    <div class="pal-swatch"><div class="pal-color" style="background:#2C2416;"></div><div class="pal-name">Brown Deep<br>#2C2416</div></div>
+    <div class="pal-swatch"><div class="pal-color" style="background:#6B5A3E;"></div><div class="pal-name">Brown Mid<br>#6B5A3E</div></div>
+    <div class="pal-swatch"><div class="pal-color" style="background:#8B7355;"></div><div class="pal-name">Brown Light<br>#8B7355</div></div>
+    <div class="pal-swatch"><div class="pal-color" style="background:#C4B99A;"></div><div class="pal-name">Cream Dark<br>#C4B99A</div></div>
+    <div class="pal-swatch"><div class="pal-color" style="background:#D4C9B0;"></div><div class="pal-name">Cream Mid<br>#D4C9B0</div></div>
+    <div class="pal-swatch"><div class="pal-color" style="background:#F0ECE4;"></div><div class="pal-name">Cream Light<br>#F0ECE4</div></div>
+    <div class="pal-swatch"><div class="pal-color" style="background:#F5F0E8;"></div><div class="pal-name">Cream Bg<br>#F5F0E8</div></div>
+    <div class="pal-swatch"><div class="pal-color" style="background:#FAFAF8;"></div><div class="pal-name">White Warm<br>#FAFAF8</div></div>
+    <div class="pal-swatch"><div class="pal-color" style="background:#2C7A3F;"></div><div class="pal-name">Green<br>#2C7A3F</div></div>
+    <div class="pal-swatch"><div class="pal-color" style="background:#C4A24A;"></div><div class="pal-name">Gold<br>#C4A24A</div></div>
+  </div>
+</div>
+
+<!-- ─── FOOTER ─── -->
+<div class="footer">
+  <strong>HeriStepAI</strong> · UI Design Kit · Phố Ẩm Thực Hồ Thị Kỷ, TP.HCM<br>
+  <span style="margin-top:4px;display:block;">8 màn hình · Modern &amp; Minimalist · Typography: Playfair Display + DM Sans</span>
+</div>
+
+</body>
+</html>

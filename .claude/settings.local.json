@@ -34,7 +34,28 @@
       "Bash(Select-String -Pattern \"error\" -Context 0,2)",
       "Bash(git restore:*)",
       "Bash(git pull:*)",
-      "Bash(adb:*)"
+      "Bash(adb:*)",
+      "Bash(head -20 echo \"---\" grep -n \"Tours\\\\b\\\\|RecentTours\\\\|POIs\\\\b\" \"c:\\\\Users\\\\Lenovo\\\\Desktop\\\\Project\\\\HK2 - III\\\\C#\\\\doan\\\\src\\\\HeriStepAI.Mobile\\\\ViewModels\\\\MainPageViewModel.cs\")",
+      "WebSearch",
+      "Bash(\"C:/Users/Lenovo/.jdk/jdk-17.0.16/bin/keytool.exe\" -genkeypair -v -keystore heristepai-release.keystore -alias heristepai -keyalg RSA -keysize 2048 -validity 10000 -dname \"CN=HeriStepAI, OU=Mobile, O=HeriStepAI, L=HCM, S=HCM, C=VN\" -storepass heristepai2024 -keypass heristepai2024)",
+      "Bash(winget list:*)",
+      "Read(//c/Users/Lenovo/AppData/Local/Microsoft/**)",
+      "WebFetch(domain:www.flowiseai.com)",
+      "WebFetch(domain:dify-hosting.com)",
+      "WebFetch(domain:www.lindy.ai)",
+      "WebFetch(domain:www.conbersa.ai)",
+      "WebFetch(domain:dify.ai)",
+      "WebFetch(domain:www.architjn.com)",
+      "WebFetch(domain:docs.dify.ai)",
+      "Bash(\"%LOCALAPPDATA%/Android/Sdk/emulator/emulator\" -list-avds)",
+      "Bash(emulator -list-avds)",
+      "Bash(\"%LOCALAPPDATA%/Android/Sdk/emulator/emulator\" -avd Pixel_8 -no-snapshot-load)",
+      "Bash(handle \"HeriStepAI.API.dll\")",
+      "Bash(git diff *)",
+      "Bash(Select-String \"^@@|^---|\\\\+\\\\+\\\\+\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Lenovo\\Desktop\\Project\\HK2 - III\\C#\\doan\\docs"
     ]
   }
 }

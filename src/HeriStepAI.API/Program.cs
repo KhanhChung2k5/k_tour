@@ -176,7 +176,10 @@ builder.Services.AddAuthorization();
 builder.Services.AddMemoryCache();
 
 // Visit log queue (Channel-based, singleton buffer + background worker batch INSERT)
+//dùng singleton để đảm bảo queue được sử dụng trên toàn bộ request
+//và background worker được sử dụng trên toàn bộ request
 builder.Services.AddSingleton<VisitLogQueue>();
+//dùng hosted service để đảm bảo background worker được chạy trên toàn bộ request
 builder.Services.AddHostedService<VisitLogWorker>();
 
 // Services

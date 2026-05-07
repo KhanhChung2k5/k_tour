@@ -372,7 +372,6 @@
             <span class="badge">Leaflet + OpenStreetMap</span>
             <span class="badge">.NET Text-to-Speech</span>
             <span class="badge">Supabase Storage</span>
-            <span class="badge">n8n Automation</span>
         </div>
     </div>
 
@@ -457,11 +456,6 @@
                     <div class="mod-name">Supabase Storage</div>
                     <div class="mod-desc">S3-compatible object storage cho ảnh POI. Upload từ Web Admin.</div>
                 </div>
-                <div class="arch-module">
-                    <div class="mod-icon">🔄</div>
-                    <div class="mod-name">n8n Automation</div>
-                    <div class="mod-desc">Daily reports, certificate generation, webhook trigger từ API</div>
-                </div>
             </div>
 
             <h3>Luồng Dữ Liệu Chính</h3>
@@ -492,7 +486,7 @@
                 <span class="flow-arrow">→</span>
                 <span class="flow-step alt">Analytics Dashboard</span>
                 <span class="flow-arrow">→</span>
-                <span class="flow-step success">Daily Reports → n8n</span>
+                <span class="flow-step success">Analytics (VisitLogs)</span>
             </div>
 
             <div class="highlight" style="margin-top:1.5rem;">
@@ -1019,7 +1013,7 @@
             <p>Nguồn số liệu chính là bảng <strong>VisitLogs</strong>: mỗi lượt ghé ghi một dòng. <strong>Dashboard &amp;
                 báo cáo</strong> được tính <strong>trực tiếp</strong> từ <code>VisitLogs</code> qua
                 <code>IAnalyticsService</code> (GROUP BY, COUNT, filter theo ngày/POI) — <strong>không dùng bảng
-                tổng hợp <code>Analytics</code></strong>. n8n có thể gọi API báo cáo theo khoảng thời gian.</p>
+                tổng hợp <code>Analytics</code></strong>.</p>
 
             <div class="card-grid">
                 <div class="card">
@@ -1037,24 +1031,6 @@
                         <li>Summary, top POI, thống kê theo POI: truy vấn <code>VisitLogs</code> (EF Core / LINQ)</li>
                         <li>Không có bảng “daily aggregate” trong luồng hiện tại</li>
                         <li>Phân loại theo <code>VisitType</code> (Geofence, MapClick, QRCode) trên tập log</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <h3>🤖 Daily Report API</h3>
-                    <ul>
-                        <li><code>GET /api/report/daily?date=&amp;token=</code></li>
-                        <li>Bảo vệ bởi <code>REPORT_TOKEN</code> header</li>
-                        <li>Trả JSON tổng hợp cho n8n</li>
-                        <li>n8n webhook → email/Slack/certificate</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <h3>👣 User Daily Visits</h3>
-                    <ul>
-                        <li>Đếm số POI unique mỗi user ghé trong ngày</li>
-                        <li>Dùng để cấp chứng nhận du lịch (n8n)</li>
-                        <li>Endpoint: <code>GET /api/report/user-visits</code></li>
-                        <li>PostgreSQL: load → LINQ-to-Objects (tránh COUNT DISTINCT *)</li>
                     </ul>
                 </div>
             </div>
@@ -1179,7 +1155,7 @@
                     <ul>
                         <li>Bảng chi tiết tất cả visit logs</li>
                         <li>Filter theo date range, POI, visit type</li>
-                        <li>Export trigger cho n8n daily report</li>
+                        <li>Gọi API analytics qua <code>IHttpClientFactory</code> (Admin Web)</li>
                     </ul>
                 </div>
             </div>
@@ -1641,17 +1617,6 @@ options.<span class="fn">UseNpgsql</span>(connStr);
                         <li><code>JWT_ISSUER</code>, <code>JWT_AUDIENCE</code></li>
                         <li><code>SUPABASE_URL</code>, <code>SUPABASE_ANON_KEY</code></li>
                         <li><code>SUPABASE_SERVICE_ROLE_KEY</code></li>
-                        <li><code>REPORT_TOKEN</code> (n8n auth)</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <h3>🔄 n8n Automation</h3>
-                    <ul>
-                        <li>Workflow configs trong <code>n8n/</code></li>
-                        <li>Daily trigger: <code>GET /api/report/daily</code></li>
-                        <li>User visits check → certificate generation</li>
-                        <li>Email/Slack notification on milestones</li>
-                        <li>Auth bởi <code>REPORT_TOKEN</code> header</li>
                     </ul>
                 </div>
             </div>
@@ -1689,7 +1654,6 @@ dotnet ef database update --project src/HeriStepAI.API
                         <tr><td>Authentication</td><td>JWT + BCrypt</td><td>HS256, 24h TTL, SecureStorage/Cookie</td></tr>
                         <tr><td>Mobile DB</td><td>SQLite (sqlite-net-pcl)</td><td>Offline cache, auto-sync</td></tr>
                         <tr><td>TTS</td><td>.NET ITextToSpeech</td><td>Platform-native voice, 3 languages</td></tr>
-                        <tr><td>Automation</td><td>n8n</td><td>Daily reports, webhook, certificate gen</td></tr>
                         <tr><td>Container</td><td>Docker + Render.com</td><td>API + Web separate Dockerfiles</td></tr>
                     </tbody>
                 </table>
@@ -2062,7 +2026,7 @@ sequenceDiagram
 
     <footer>
         <strong>HeriStepAI</strong> — Hệ thống hướng dẫn du lịch tự động · ASP.NET Core 8.0 · .NET MAUI · PostgreSQL ·
-        Supabase · n8n<br>
+        Supabase<br>
         <span style="margin-top:.4rem;display:block;">API: port 5000 · Web: port 5001 · Mobile: Android + iOS</span>
     </footer>
 

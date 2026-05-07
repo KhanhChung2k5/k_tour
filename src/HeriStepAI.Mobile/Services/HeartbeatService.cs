@@ -1,3 +1,5 @@
+using Microsoft.Maui.Dispatching;
+
 namespace HeriStepAI.Mobile.Services;
 
 /// <summary>
@@ -33,7 +35,15 @@ public sealed class HeartbeatService : IDisposable
         // Gửi ngay khi mở app, không chờ interval đầu tiên
         _ = _apiService.HeartbeatAsync();
 
-        _timer = Application.Current!.Dispatcher.CreateTimer();
+        // Application.Current đôi khi chưa gán trong ctor App — tránh NRE khi CreateTimer
+        var dispatcher = Application.Current?.Dispatcher ?? Dispatcher.GetForCurrentThread();
+        if (dispatcher is null)
+        {
+            AppLog.Info("HeartbeatService: dispatcher unavailable, retry later");
+            return;
+        }
+
+        _timer = dispatcher.CreateTimer();
         // Gửi heartbeat mỗi 2 giây (TTL server = 3s)
         _timer.Interval = TimeSpan.FromSeconds(2);
         _timer.Tick += async (_, _) => await _apiService.HeartbeatAsync();

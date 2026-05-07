@@ -9,6 +9,10 @@ using System.Security.Claims;
 namespace HeriStepAI.API.Controllers;
 
 // Singleton tracker — sống cùng vòng đời ứng dụng, không cần DB
+
+/// <summary>
+/// Tracker để theo dõi session active.
+/// </summary>
 public static class HeartbeatTracker
 {
     private static readonly TimeSpan Threshold = TimeSpan.FromSeconds(3);
@@ -20,6 +24,9 @@ public static class HeartbeatTracker
         Cleanup();
     }
 
+    /// <summary>
+    /// Số lượng session active.
+    /// </summary>
     public static int Count
     {
         get
@@ -59,6 +66,10 @@ public class AnalyticsController : ControllerBase
 
     [HttpPost("heartbeat")]
     [AllowAnonymous]
+
+    /// <summary>
+    /// Gửi heartbeat đến server để giữ session active.
+    /// </summary>
     public IActionResult Heartbeat([FromBody] HeartbeatRequest request)
     {
         var userId = User.Identity?.IsAuthenticated == true
@@ -71,16 +82,24 @@ public class AnalyticsController : ControllerBase
         HeartbeatTracker.Touch(userId);
         return Ok();
     }
+    /// <summary>
+    /// Lấy số lượng session active.
+    /// </summary>
 
     [HttpGet("online-now")]
     [Authorize(Roles = "Admin")]
+    
     public IActionResult GetOnlineNow() =>
-        Ok(new { OnlineNow = HeartbeatTracker.Count });
+        Ok(new { OnlineNow = HeartbeatTracker.Count});
 
+    /// <summary>
+    /// Ghi lại lượt ghé thăm.
+    /// </summary>
     [HttpPost("visit")]
     [AllowAnonymous]
     public IActionResult LogVisit([FromBody] VisitLogRequest request)
     {
+        // Log visit request
         // Always prefer JWT claims when authenticated (prevents client spoofing UserId=0).
         string? userId = null;
         if (User.Identity?.IsAuthenticated == true)
@@ -88,27 +107,34 @@ public class AnalyticsController : ControllerBase
         if (string.IsNullOrWhiteSpace(userId))
             userId = request.UserId;
 
+        //
+
+        // Log visit request
         _logger.LogInformation(
             "[LogVisit] Received: POId={POId}, UserId={UserId}, VisitType={VisitType} | JWT={JwtAuth}",
             request.POId, userId, request.VisitType, User.Identity?.IsAuthenticated);
-
+        // Log visit request
         if (request.POId <= 0)
         {
             _logger.LogWarning("[LogVisit] REJECTED: POId={POId} invalid", request.POId);
             return BadRequest(new { Error = "Invalid POId" });
         }
 
+        // Enqueue visit log item vào queue
+
         _visitQueue.Enqueue(new VisitLogItem(request.POId, userId, request.Latitude, request.Longitude, request.VisitType));
         _logger.LogInformation("[LogVisit] Enqueued: POId={POId}, UserId={UserId}", request.POId, userId);
-
+        // Trả về status 202 Accepted
         return Accepted(new { Message = "Visit queued" });
     }
 
     /// <summary>Tổng lượt ghé thăm và phân loại — tính từ VisitLogs (không dùng bảng Analytics).</summary>
     [HttpGet("summary")]
     [Authorize(Roles = "Admin")]
+    
     public async Task<IActionResult> GetVisitSummary([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
+        // Lấy tổng lượt ghé thăm và phân loại
         var (total, geofence, mapClick, qrCode) = await _analyticsService.GetVisitSummaryAsync(startDate, endDate);
         return Ok(new { TotalVisits = total, Geofence = geofence, MapClick = mapClick, QRCode = qrCode });
     }
@@ -122,6 +148,10 @@ public class AnalyticsController : ControllerBase
     }
 
     [HttpGet("poi/{poiId}/statistics")]
+    
+    /// <summary>
+    /// Lấy thống kê lượt ghé thăm của một POI.
+    /// </summary>
     public async Task<IActionResult> GetPOIStatistics(int poiId, [FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
     {
         if (User.IsInRole("ShopOwner"))
@@ -153,12 +183,19 @@ public class AnalyticsController : ControllerBase
 
     [HttpGet("devices")]
     [Authorize(Roles = "Admin")]
+
+    /// <summary>
+    /// Lấy danh sách thiết bị.
+    /// </summary>
     public async Task<IActionResult> GetDevices([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
         var devices = await _analyticsService.GetDeviceStatsAsync(page, pageSize);
         return Ok(devices);
     }
 
+    /// <summary>
+    /// Lấy thống kê thiết bị.
+    /// </summary>
     [HttpGet("devices/summary")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetDevicesSummary()
@@ -167,6 +204,9 @@ public class AnalyticsController : ControllerBase
         return Ok(summary);
     }
 
+    /// <summary>
+    /// Lấy danh sách điểm Geofence.
+    /// </summary>
     [HttpGet("heatmap")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetHeatmap(
@@ -176,6 +216,9 @@ public class AnalyticsController : ControllerBase
         var points = await _analyticsService.GetHeatmapDataAsync(startDate, endDate);
         return Ok(points);
     }
+    /// <summary>
+    /// Lấy chi tiết thiết bị.
+    /// </summary>
 
     [HttpGet("devices/{deviceId}/details")]
     [Authorize(Roles = "Admin")]

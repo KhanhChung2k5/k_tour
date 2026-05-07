@@ -292,7 +292,10 @@ public partial class SubscriptionViewModel : ObservableObject
         if (_subscription.IsActive)
         {
             MainThread.BeginInvokeOnMainThread(() =>
-                Application.Current!.MainPage = App.Services!.GetRequiredService<AppShell>());
+            {
+                Application.Current!.MainPage = App.Services!.GetRequiredService<AppShell>();
+                App.TryStartHeartbeatForActiveSubscription();
+            });
             return;
         }
 
@@ -326,7 +329,10 @@ public partial class SubscriptionViewModel : ObservableObject
         _subscription.ActivateFromServer(plan, exp);
 
         MainThread.BeginInvokeOnMainThread(() =>
-            Application.Current!.MainPage = App.Services!.GetRequiredService<AppShell>());
+        {
+            Application.Current!.MainPage = App.Services!.GetRequiredService<AppShell>();
+            App.TryStartHeartbeatForActiveSubscription();
+        });
         return true;
     }
 

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HeriStepAI.Mobile;
 using HeriStepAI.Mobile.Services;
 
 namespace HeriStepAI.Mobile.ViewModels;
@@ -72,6 +73,7 @@ public partial class AuthViewModel : ObservableObject
         if (success)
         {
             Application.Current!.MainPage = IPlatformApplication.Current!.Services.GetRequiredService<AppShell>();
+            App.TryStartHeartbeatForActiveSubscription();
         }
         else
         {

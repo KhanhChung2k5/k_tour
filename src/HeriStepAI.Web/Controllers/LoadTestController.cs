@@ -50,8 +50,8 @@ public class LoadTestController : Controller
         try
         {
             var client = _httpClientFactory.CreateClient("API");
-            if (!string.IsNullOrEmpty(token))
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            // Không gửi Auth token — để API dùng userId từ body (dev_SIMxxx)
+            // Nếu gửi token Admin thì API sẽ override userId = Admin ID (= "1")
 
             var payload = JsonSerializer.Serialize(new
             {

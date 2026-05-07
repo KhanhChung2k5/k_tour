@@ -3,11 +3,20 @@ using Microsoft.Maui.Devices.Sensors;
 
 namespace HeriStepAI.Mobile.Services;
 
+/// <summary>
+/// Dịch vụ phát hiện vào vùng POI.
+/// </summary>
 public class GeofenceService : IGeofenceService
 {
     private List<POI> _pois = new();
+    /// <summary>
+    /// POI hiện tại.
+    /// </summary>
     private POI? _currentPOI = null;
     private readonly Dictionary<int, DateTime> _poiCooldowns = new();
+    /// <summary>
+    /// Thời gian cooldown cho mỗi POI.
+    /// </summary>
     private readonly TimeSpan _cooldownPeriod = TimeSpan.FromMinutes(5);
     private const double MinRadius = 50; // Minimum geofence radius in meters
 
@@ -20,7 +29,9 @@ public class GeofenceService : IGeofenceService
         _poiCooldowns.Clear();
         AppLog.Info($"GeofenceService initialized with {_pois.Count} POIs, cooldowns reset");
     }
-
+    /// <summary>
+    /// Phát hiện vào vùng POI.
+    /// </summary>
     public POI? CheckGeofence(Location location)
     {
         if (_pois == null || !_pois.Any())
@@ -36,15 +47,25 @@ public class GeofenceService : IGeofenceService
             if (distance <= effectiveRadius)
                 candidates.Add((poi, distance));
         }
+        /// <summary>
+        /// POI gần nhất.
+        /// </summary>
 
         POI? closestPOI = null;
         double closestDistance = 0;
         if (candidates.Count > 0)
         {
+            /// <summary>
+            /// POI gần nhất.
+            /// </summary>
             var best = candidates
+            /// <summary>
+            /// Sắp xếp POI theo Priority và khoảng cách.
+            /// </summary>
                 .OrderByDescending(x => x.Poi.Priority)
                 .ThenBy(x => x.DistanceMeters)
                 .First();
+            
             closestPOI = best.Poi;
             closestDistance = best.DistanceMeters;
         }
@@ -56,6 +77,9 @@ public class GeofenceService : IGeofenceService
                 return null;
 
             // Per-POI cooldown check
+            /// <summary>
+            /// Cooldown check cho mỗi POI.
+            /// </summary>
             if (_poiCooldowns.TryGetValue(closestPOI.Id, out var lastTime)
                 && DateTime.UtcNow - lastTime < _cooldownPeriod)
             {
@@ -63,7 +87,9 @@ public class GeofenceService : IGeofenceService
                 return null;
             }
 
-            // Trigger!
+            /// <summary>
+            /// Trigger!
+            /// </summary>
             _currentPOI = closestPOI;
             _poiCooldowns[closestPOI.Id] = DateTime.UtcNow;
             POIEntered?.Invoke(this, closestPOI);
@@ -81,6 +107,9 @@ public class GeofenceService : IGeofenceService
         return null;
     }
 
+    /// <summary>
+    /// Tính khoảng cách giữa 2 tọa độ.
+    /// </summary>
     private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
     {
         const double R = 6371000;

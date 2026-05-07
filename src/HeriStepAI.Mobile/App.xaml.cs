@@ -20,14 +20,14 @@ public partial class App : Application
             InitializeComponent();
             ResponsiveHelper.Initialize();
 
-            _heartbeat = new HeartbeatService(serviceProvider.GetRequiredService<IApiService>());
+            _heartbeat = serviceProvider.GetRequiredService<HeartbeatService>();
 
             // Gate on subscription: show payment page if not active
             var subscription = serviceProvider.GetRequiredService<ISubscriptionService>();
             if (subscription.IsActive)
             {
                 MainPage = serviceProvider.GetRequiredService<AppShell>();
-                _heartbeat.Start();
+                // Không gọi Start() ở đây: Application.Current/Dispatcher có thể chưa sẵn sàng → OnStart
             }
             else
             {
@@ -57,6 +57,26 @@ public partial class App : Application
         }
     }
 
+    /// <summary>Bắt đầu heartbeat khi đã có gói — gọi từ OnStart/OnResume hoặc sau khi chuyển sang AppShell.</summary>
+    public static void TryStartHeartbeatForActiveSubscription()
+    {
+        if (Services?.GetService<ISubscriptionService>() is not { IsActive: true }) return;
+        try
+        {
+            Services.GetRequiredService<HeartbeatService>().Start();
+        }
+        catch (Exception ex)
+        {
+            LogToDebug($"TryStartHeartbeat: {ex.Message}");
+        }
+    }
+
+    protected override void OnStart()
+    {
+        base.OnStart();
+        TryStartHeartbeatForActiveSubscription();
+    }
+
     protected override void OnSleep()
     {
         base.OnSleep();
@@ -66,7 +86,7 @@ public partial class App : Application
     protected override void OnResume()
     {
         base.OnResume();
-        _heartbeat.Start();
+        TryStartHeartbeatForActiveSubscription();
     }
 
     private static void LogToDebug(string message)

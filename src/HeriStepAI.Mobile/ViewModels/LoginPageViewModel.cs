@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HeriStepAI.Mobile;
 using HeriStepAI.Mobile.Services;
 using HeriStepAI.Mobile.Views;
 
@@ -41,6 +42,7 @@ public partial class LoginPageViewModel : ObservableObject
         if (success)
         {
             Application.Current!.MainPage = IPlatformApplication.Current!.Services.GetRequiredService<AppShell>();
+            App.TryStartHeartbeatForActiveSubscription();
         }
         else
         {
