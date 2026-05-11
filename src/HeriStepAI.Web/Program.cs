@@ -84,6 +84,7 @@ builder.Services.AddAuthorization();
 
 // Supabase Storage
 builder.Services.AddSingleton<ISupabaseStorageService, SupabaseStorageService>();
+builder.Services.AddSingleton<ILogRunner, FileLogRunner>();
 
 // Dịch thuyết minh (MyMemory) — đồng bộ khi chủ quán sửa tiếng Việt
 builder.Services.AddHttpClient("MyMemory", client =>

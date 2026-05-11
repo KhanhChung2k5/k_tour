@@ -128,29 +128,6 @@
                  MinimumHeightRequest="300"
                  ZIndex="1" />
 
-        <!-- Test Mode Status Banner (shown when test mode is active) -->
-        <Frame Grid.Row="1"
-               BackgroundColor="#E8F5E9"
-               CornerRadius="12"
-               Padding="12,8"
-               HasShadow="True"
-               HorizontalOptions="Center"
-               VerticalOptions="Start"
-               Margin="16,8,16,0"
-               IsVisible="{Binding ShowTestModeStatus}"
-               ZIndex="8">
-            <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
-                <Label Text="&#x1F9EA;"
-                       FontSize="14"
-                       VerticalOptions="Center" />
-                <Label Text="{Binding TestModeStatus}"
-                       FontSize="13"
-                       FontAttributes="Bold"
-                       TextColor="#2E7D32"
-                       VerticalOptions="Center" />
-            </HorizontalStackLayout>
-        </Frame>
-
         <!-- Floating My Location Button -->
         <Frame Grid.Row="1"
                BackgroundColor="{StaticResource White}"
@@ -168,27 +145,6 @@
             </Frame.GestureRecognizers>
             <Label Text="&#x1F4CD;"
                    FontSize="20"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center" />
-        </Frame>
-
-        <!-- Floating Test Mode Button -->
-        <Frame Grid.Row="1"
-               BackgroundColor="{StaticResource Primary}"
-               CornerRadius="18"
-               Padding="12,8"
-               HasShadow="True"
-               HorizontalOptions="End"
-               VerticalOptions="End"
-               Margin="0,0,16,128"
-               ZIndex="5">
-            <Frame.GestureRecognizers>
-                <TapGestureRecognizer Command="{Binding ToggleTestModeCommand}" />
-            </Frame.GestureRecognizers>
-            <Label Text="{Binding TestModeButtonText}"
-                   TextColor="{StaticResource White}"
-                   FontSize="12"
-                   FontAttributes="Bold"
                    HorizontalOptions="Center"
                    VerticalOptions="Center" />
         </Frame>

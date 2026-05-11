@@ -106,9 +106,9 @@ public class AnalyticsController : Controller
             ViewBag.GeofenceByPOI = geoByPoi;
             ViewBag.ManualByPOI = manualByPoi;
             // Gán tổng số lượt ghé thăm theo loại
-            ViewBag.TotalGeofence = totalGeofence;
-            ViewBag.TotalManual = totalManual;
-            ViewBag.TotalVisits = totalGeofence + totalManual;
+            ViewBag.TotalGeofence = totalGeofence ;
+            ViewBag.TotalManual = totalManual ;
+            ViewBag.TotalVisits = totalGeofence + totalManual ;
             // Gán tổng số POI
             ViewBag.TotalPOIs = allPOIs.Count;
         }

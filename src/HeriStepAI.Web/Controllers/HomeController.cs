@@ -68,6 +68,8 @@ public class HomeController : Controller
                 ViewBag.SubPayVerified = 0;
             }
 
+            // Tổng lượt ghé thăm + Tự động nhận diện (Geofence) — đồng bộ với trang Analytics
+
             if (summaryResponse.IsSuccessStatusCode)
             {
                 var content = await summaryResponse.Content.ReadAsStringAsync();

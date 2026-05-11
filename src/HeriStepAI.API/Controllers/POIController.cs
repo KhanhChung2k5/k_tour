@@ -8,17 +8,34 @@ namespace HeriStepAI.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+
+/// <summary>
+/// Controller để quản lý POI.
+/// </summary>
 public class POIController : ControllerBase
 {
+    /// <summary>
+    /// Service để quản lý POI.
+    /// </summary>
     private readonly IPOIService _poiService;
+    /// <summary>
+    /// Service để quản lý geocoding.
+    /// </summary>
     private readonly IGeocodingService _geocodingService;
 
+    /// <summary>
+    /// Constructor của POIController.
+    /// </summary>
     public POIController(IPOIService poiService, IGeocodingService geocodingService)
     {
         _poiService = poiService;
         _geocodingService = geocodingService;
     }
 
+    /// <summary>
+    /// Geocode.
+    /// GET http://localhost:5000/api/poi/geocode
+    /// </summary>
     [HttpGet("geocode")]
     public async Task<IActionResult> Geocode([FromQuery] double lat, [FromQuery] double lng)
     {
@@ -26,6 +43,10 @@ public class POIController : ControllerBase
         return Ok(new { Latitude = lat, Longitude = lng, Address = address ?? "Không xác định" });
     }
 
+    /// <summary>
+    /// Lấy tất cả POI.
+    /// GET http://localhost:5000/api/poi
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetAllPOIs()
     {
@@ -41,6 +62,10 @@ public class POIController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Lấy POI theo ID.
+    /// GET http://localhost:5000/api/poi/{id}
+    /// </summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPOI(int id)
     {
@@ -49,6 +74,10 @@ public class POIController : ControllerBase
         return Ok(poi);
     }
 
+    /// <summary>
+    /// Lấy nội dung POI theo ID và ngôn ngữ.
+    /// GET http://localhost:5000/api/poi/{id}/content/{language}
+    /// </summary>
     [HttpGet("{id}/content/{language}")]
     public async Task<IActionResult> GetContent(int id, string language)
     {
@@ -57,6 +86,10 @@ public class POIController : ControllerBase
         return Ok(content);
     }
 
+    /// <summary>
+    /// Tạo POI.
+    /// POST http://localhost:5000/api/poi
+    /// </summary>
     [HttpPost]
     [Authorize(Roles = "ShopOwner")]
     public async Task<IActionResult> CreatePOI([FromBody] POI poi)
@@ -81,6 +114,10 @@ public class POIController : ControllerBase
         return CreatedAtAction(nameof(GetPOI), new { id = created.Id }, created);
     }
 
+    /// <summary>
+    /// Cập nhật POI.
+    /// PUT http://localhost:5000/api/poi/{id}
+    /// </summary>
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin,ShopOwner")]
     public async Task<IActionResult> UpdatePOI(int id, [FromBody] POI poi)
@@ -112,6 +149,10 @@ public class POIController : ControllerBase
         return Ok(updated);
     }
 
+    /// <summary>
+    /// Xóa POI.
+    /// DELETE http://localhost:5000/api/poi/{id}
+    /// </summary>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin,ShopOwner")]
     public async Task<IActionResult> DeletePOI(int id)

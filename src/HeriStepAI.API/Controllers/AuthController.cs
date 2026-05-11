@@ -32,6 +32,11 @@ public class AuthController : ControllerBase
         return Ok(new { Created = created, Message = message });
     }
 
+    /// <summary>
+    /// Đăng nhập.
+    /// POST http://localhost:5000/api/auth/login
+    /// </summary>
+
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest? request)
     {
@@ -62,6 +67,10 @@ public class AuthController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Đăng ký.
+    /// POST http://localhost:5000/api/auth/register
+    /// </summary>
     [HttpPost("register")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)

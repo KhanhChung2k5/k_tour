@@ -38,9 +38,6 @@ public partial class MapPage : ContentPage
             // Subscribe to map update requests
             _viewModel.MapNeedsUpdate += OnMapNeedsUpdate;
 
-            // Subscribe to real-time location updates during test mode
-            _viewModel.SimulatedLocationChanged += OnSimulatedLocationChanged;
-
             // Subscribe to geofence triggers for map highlighting
             _viewModel.GeofenceTriggered += OnGeofenceTriggered;
 
@@ -237,26 +234,6 @@ public partial class MapPage : ContentPage
     {
         _lastLoadedTourId = _viewModel.CurrentTourId;
         LoadMapAsync();
-    }
-
-    /// <summary>
-    /// Move the current location marker on the map without full reload.
-    /// Uses JavaScript evaluation to update the Leaflet marker position.
-    /// </summary>
-    private void OnSimulatedLocationChanged(object? sender, Location location)
-    {
-        MainThread.BeginInvokeOnMainThread(async () =>
-        {
-            try
-            {
-                var js = $"if(typeof currentMarker !== 'undefined') {{ currentMarker.setLatLng([{C(location.Latitude)}, {C(location.Longitude)}]); map.panTo([{C(location.Latitude)}, {C(location.Longitude)}], {{animate: true, duration: 0.5}}); }}";
-                await MapWebView.EvaluateJavaScriptAsync(js);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error updating map marker: {ex.Message}");
-            }
-        });
     }
 
     /// <summary>

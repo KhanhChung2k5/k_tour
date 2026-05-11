@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using HeriStepAI.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,13 +12,30 @@ namespace HeriStepAI.Web.Controllers;
 public class LoadTestController : Controller
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogRunner _logRunner;
 
-    public LoadTestController(IHttpClientFactory httpClientFactory)
+    public LoadTestController(IHttpClientFactory httpClientFactory, ILogRunner logRunner)
     {
         _httpClientFactory = httpClientFactory;
+        _logRunner = logRunner;
     }
 
     public IActionResult Index() => View();
+
+    [HttpGet]
+    public IActionResult GeofenceSimulator() => View();
+
+    [HttpGet]
+    public async Task<IActionResult> POIs()
+    {
+        var client = CreateAuthenticatedClient();
+        var resp = await client.GetAsync("poi");
+        if (!resp.IsSuccessStatusCode)
+            return StatusCode((int)resp.StatusCode, new { error = "Không tải được danh sách POI." });
+
+        var json = await resp.Content.ReadAsStringAsync();
+        return Content(json, "application/json", Encoding.UTF8);
+    }
 
     [HttpPost]
     public async Task<IActionResult> Run([FromBody] LoadTestRequest req)
@@ -41,6 +59,30 @@ public class LoadTestController : Controller
             minMs    = results.Length > 0 ? results.Min(r => r.ElapsedMs) : 0,
             items    = results
         });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SaveQueueLog([FromBody] QueueLogSaveRequest req)
+    {
+        if (req == null) return BadRequest(new { error = "Payload rỗng." });
+        await _logRunner.OverwriteAsync(req.Text ?? string.Empty, req.SessionId);
+        return Ok(new { ok = true, path = _logRunner.LogFilePath });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DownloadQueueLog()
+    {
+        if (!System.IO.File.Exists(_logRunner.LogFilePath))
+            return NotFound("Chưa có file logqueue.txt");
+        var bytes = await _logRunner.ReadBytesAsync();
+        return File(bytes, "text/plain", "logqueue.txt");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ReadQueueLog()
+    {
+        var text = await _logRunner.ReadAsync();
+        return Ok(new { text });
     }
 
     private async Task<DeviceResult> FireVisit(int index, int poiId, string? token)
@@ -87,6 +129,15 @@ public class LoadTestController : Controller
             };
         }
     }
+
+    private HttpClient CreateAuthenticatedClient()
+    {
+        var client = _httpClientFactory.CreateClient("API");
+        var token = Request.Cookies["AuthToken"];
+        if (!string.IsNullOrEmpty(token))
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return client;
+    }
 }
 
 public class LoadTestRequest
@@ -102,4 +153,10 @@ public class DeviceResult
     public int    StatusCode { get; set; }
     public long   ElapsedMs { get; set; }
     public string? Error    { get; set; }
+}
+
+public class QueueLogSaveRequest
+{
+    public string? Text { get; set; }
+    public string? SessionId { get; set; }
 }

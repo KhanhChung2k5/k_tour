@@ -1,0 +1,369 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Geofence Simulator";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title-text">Geofence Simulator (Web)</h1>
+        <p class="page-subtitle-text">Giả lập gần 3/4 POI, di chuyển theo mét, và log queue vào logqueue.txt.</p>
+    </div>
+    <a href="@Url.Action("Index", "LoadTest")" class="btn btn-outline-light btn-sm">← LoadTest</a>
+</div>
+
+<div style="display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start;">
+    <div class="table-card" style="padding:18px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-sm btn-warning" onclick="startCluster(3)">Near 3</button>
+            <button class="btn btn-sm btn-warning" onclick="startCluster(4)">Near 4</button>
+        </div>
+
+        <div style="margin-top:12px;display:flex;align-items:center;gap:8px;">
+            <label for="stepMeters" style="font-size:0.85rem;color:var(--cream-muted);margin:0;">Meters</label>
+            <input id="stepMeters" type="number" value="20" min="1" max="500"
+                   style="width:110px;background:var(--dark3);border:1px solid var(--border);color:var(--cream);border-radius:8px;padding:6px 10px;">
+        </div>
+
+        <div style="margin-top:12px;display:grid;grid-template-columns:repeat(4, 1fr);gap:8px;">
+            <button class="btn btn-sm btn-ghost" onclick="moveSim('up')">Up</button>
+            <button class="btn btn-sm btn-ghost" onclick="moveSim('down')">Down</button>
+            <button class="btn btn-sm btn-ghost" onclick="moveSim('left')">Left</button>
+            <button class="btn btn-sm btn-ghost" onclick="moveSim('right')">Right</button>
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-sm btn-outline-light" onclick="saveLog()">Save logqueue.txt</button>
+            <a class="btn btn-sm btn-outline-light" href="/LoadTest/DownloadQueueLog" target="_blank">Download logqueue.txt</a>
+            <button class="btn btn-sm btn-outline-light" onclick="readSavedLog()">View saved log</button>
+        </div>
+
+        <div id="statusBox" style="margin-top:12px;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--dark3);font-size:0.82rem;color:var(--cream-muted);">
+            Ready.
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-rows:320px auto;gap:12px;">
+        <div class="table-card" style="padding:0;overflow:hidden;">
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:600;">Map Preview</div>
+            <div id="simMap" style="height:270px;width:100%;"></div>
+        </div>
+        <div class="table-card" style="padding:0;overflow:hidden;">
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:600;">Queue Log Preview</div>
+            <pre id="logPreview" style="margin:0;padding:16px;height:300px;overflow:auto;background:var(--dark2);color:#d6f5df;font-size:12px;line-height:1.4;"></pre>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(() => {
+    const MIN_RADIUS = 50;
+    const COOLDOWN_MS = 5 * 60 * 1000;
+    const queue = [];
+    const lastPlayedAt = new Map();
+    let currentPoiId = null;
+    let processing = false;
+    let allPois = [];
+    let simPois = [];
+    let simLocation = null;
+    const sessionId = `sim-${Date.now().toString(36)}`;
+    const logs = [];
+
+    const statusBox = document.getElementById('statusBox');
+    const logPreview = document.getElementById('logPreview');
+    const map = L.map('simMap', { zoomControl: true }).setView([16.0544, 108.2022], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+    const poiLayers = new Map();
+    let simMarker = null;
+
+    function log(msg) {
+        const line = `${new Date().toLocaleTimeString()} | ${msg}`;
+        logs.push(line);
+        if (logs.length > 1200) logs.shift();
+        logPreview.textContent = logs.join('\n');
+        logPreview.scrollTop = logPreview.scrollHeight;
+    }
+
+    function setStatus(text) {
+        statusBox.textContent = text;
+    }
+
+    function pick(obj, ...keys) {
+        for (const k of keys) {
+            if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
+        }
+        return null;
+    }
+
+    function renderClusterOnMap() {
+        for (const layer of poiLayers.values()) map.removeLayer(layer.marker), map.removeLayer(layer.circle);
+        poiLayers.clear();
+
+        if (!simPois || simPois.length === 0) return;
+        const bounds = [];
+
+        for (const poi of simPois) {
+            const latLng = [poi.Latitude, poi.Longitude];
+            bounds.push(latLng);
+            const radius = Math.max(poi.Radius || 0, MIN_RADIUS);
+            const marker = L.marker(latLng).addTo(map).bindPopup(
+                `<b>${poi.Name}</b><br/>ID: ${poi.Id}<br/>Priority: ${poi.Priority}<br/>Radius: ${radius}m`
+            );
+            const circle = L.circle(latLng, {
+                radius,
+                color: '#f59e0b',
+                fillColor: '#f59e0b',
+                fillOpacity: 0.12,
+                weight: 2
+            }).addTo(map);
+            poiLayers.set(poi.Id, { marker, circle });
+        }
+
+        if (simLocation) {
+            const p = [simLocation.lat, simLocation.lon];
+            bounds.push(p);
+            if (!simMarker) {
+                simMarker = L.circleMarker(p, {
+                    radius: 8,
+                    color: '#22c55e',
+                    fillColor: '#22c55e',
+                    fillOpacity: 0.95,
+                    weight: 2
+                }).addTo(map).bindPopup('Simulated device');
+            } else {
+                simMarker.setLatLng(p);
+            }
+        }
+
+        if (bounds.length > 0) {
+            map.fitBounds(bounds, { padding: [24, 24], maxZoom: 18 });
+        }
+    }
+
+    function updateSimMarker() {
+        if (!simLocation) return;
+        const p = [simLocation.lat, simLocation.lon];
+        if (!simMarker) {
+            simMarker = L.circleMarker(p, {
+                radius: 8,
+                color: '#22c55e',
+                fillColor: '#22c55e',
+                fillOpacity: 0.95,
+                weight: 2
+            }).addTo(map).bindPopup('Simulated device');
+        } else {
+            simMarker.setLatLng(p);
+        }
+        map.panTo(p, { animate: true, duration: 0.4 });
+    }
+
+    function haversine(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) ** 2;
+        return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function moveByMeters(origin, dir, meters) {
+        const earth = 6378137;
+        let north = 0, east = 0;
+        if (dir === 'up') north = meters;
+        if (dir === 'down') north = -meters;
+        if (dir === 'right') east = meters;
+        if (dir === 'left') east = -meters;
+        const dLat = north / earth;
+        const dLon = east / (earth * Math.cos(origin.lat * Math.PI / 180));
+        return { lat: origin.lat + dLat * 180 / Math.PI, lon: origin.lon + dLon * 180 / Math.PI };
+    }
+
+    function ensureQueue(poi) {
+        const now = Date.now();
+        const last = lastPlayedAt.get(poi.Id);
+        if (last && now - last < COOLDOWN_MS) {
+            log(`[QUEUE] cooldown skip ${poi.Name}(${poi.Id})`);
+            return;
+        }
+        if (queue.some(x => x.Id === poi.Id) || currentPoiId === poi.Id) return;
+        queue.push(poi);
+        log(`[QUEUE] enqueue ${poi.Name}(${poi.Id}) size=${queue.length}`);
+        processQueue();
+    }
+
+    async function processQueue() {
+        if (processing) return;
+        processing = true;
+        log('[QUEUE] processing started');
+        while (queue.length > 0) {
+            const poi = queue.shift();
+            currentPoiId = poi.Id;
+            log(`[QUEUE] dequeue ${poi.Name}(${poi.Id})`);
+            await new Promise(r => setTimeout(r, 1200));
+            log(`[QUEUE] done ${poi.Name}(${poi.Id})`);
+            lastPlayedAt.set(poi.Id, Date.now());
+            currentPoiId = null;
+        }
+        processing = false;
+        log('[QUEUE] processing idle');
+    }
+
+    function pickBestCandidate(candidates) {
+        candidates.sort((a, b) => (b.poi.Priority - a.poi.Priority) || (a.dist - b.dist));
+        return candidates[0];
+    }
+
+    function checkGeofence() {
+        if (!simLocation || simPois.length === 0) return;
+        const candidates = [];
+        for (const poi of simPois) {
+            const r = Math.max(poi.Radius || 0, MIN_RADIUS);
+            const d = haversine(simLocation.lat, simLocation.lon, poi.Latitude, poi.Longitude);
+            if (d <= r) candidates.push({ poi, dist: d });
+        }
+
+        if (candidates.length === 0) {
+            if (currentPoiId !== null) {
+                log(`[GEOFENCE] leave current=${currentPoiId}`);
+                currentPoiId = null;
+            }
+            log(`[GEOFENCE] in-range=0 at (${simLocation.lat.toFixed(6)},${simLocation.lon.toFixed(6)})`);
+            return;
+        }
+
+        const summary = candidates
+            .sort((a, b) => (b.poi.Priority - a.poi.Priority) || (a.dist - b.dist))
+            .slice(0, 4)
+            .map(x => `${x.poi.Name}(id=${x.poi.Id},prio=${x.poi.Priority},dist=${x.dist.toFixed(1)}m)`)
+            .join(', ');
+        log(`[GEOFENCE] in-range=${candidates.length} ${summary}`);
+
+        const best = pickBestCandidate(candidates);
+        if (currentPoiId === best.poi.Id) {
+            log(`[GEOFENCE] hold current=${best.poi.Name}(${best.poi.Id})`);
+            return;
+        }
+        currentPoiId = best.poi.Id;
+        log(`[GEOFENCE] ENTER ${best.poi.Name}(${best.poi.Id},dist=${best.dist.toFixed(1)}m)`);
+        ensureQueue(best.poi);
+    }
+
+    function denseCluster(pois, count) {
+        let best = null, bestScore = Number.MAX_VALUE;
+        for (const pivot of pois) {
+            const cluster = [...pois]
+                .sort((a, b) => haversine(pivot.Latitude, pivot.Longitude, a.Latitude, a.Longitude)
+                    - haversine(pivot.Latitude, pivot.Longitude, b.Latitude, b.Longitude))
+                .slice(0, count);
+            if (cluster.length < count) continue;
+            let score = 0;
+            for (let i = 0; i < cluster.length; i++) {
+                for (let j = i + 1; j < cluster.length; j++) {
+                    score += haversine(cluster[i].Latitude, cluster[i].Longitude, cluster[j].Latitude, cluster[j].Longitude);
+                }
+            }
+            if (score < bestScore) { bestScore = score; best = cluster; }
+        }
+        return best || [];
+    }
+
+    async function loadPois() {
+        const r = await fetch('/LoadTest/POIs');
+        if (!r.ok) throw new Error('Load POIs failed');
+        const raw = await r.json();
+        allPois = raw
+            .map(p => {
+                const id = Number(pick(p, 'Id', 'id'));
+                const name = String(pick(p, 'Name', 'name') ?? `POI ${id}`);
+                const lat = Number(pick(p, 'Latitude', 'latitude', 'Lat', 'lat'));
+                const lon = Number(pick(p, 'Longitude', 'longitude', 'Lng', 'lng', 'Lon', 'lon'));
+                const radius = Number(pick(p, 'Radius', 'radius') ?? 0);
+                const priority = Number(pick(p, 'Priority', 'priority') ?? 0);
+                return {
+                    Id: id,
+                    Name: name,
+                    Latitude: lat,
+                    Longitude: lon,
+                    Radius: radius,
+                    Priority: priority
+                };
+            })
+            .filter(p => Number.isFinite(p.Id) && Number.isFinite(p.Latitude) && Number.isFinite(p.Longitude) && p.Latitude !== 0 && p.Longitude !== 0);
+        log(`[SIM] loaded POIs=${allPois.length}`);
+        setStatus(`Loaded ${allPois.length} POIs. Click Near 3/4 to start.`);
+    }
+
+    window.startCluster = async function(clusterSize) {
+        try {
+            if (allPois.length === 0) await loadPois();
+            simPois = denseCluster(allPois, clusterSize);
+            if (simPois.length < clusterSize) {
+                setStatus(`Not enough POIs for cluster ${clusterSize}.`);
+                return;
+            }
+            const lat = simPois.reduce((s, p) => s + p.Latitude, 0) / simPois.length;
+            const lon = simPois.reduce((s, p) => s + p.Longitude, 0) / simPois.length;
+            simLocation = { lat, lon };
+            const names = simPois.map(p => `${p.Name}(id=${p.Id},prio=${p.Priority})`).join(', ');
+            log(`[SIM] cluster-${clusterSize}: ${names}`);
+            log(`[SIM] start (${lat.toFixed(6)},${lon.toFixed(6)})`);
+            setStatus(`Cluster ${clusterSize} ready. You can move now.`);
+            renderClusterOnMap();
+            checkGeofence();
+        } catch (e) {
+            setStatus(`Error: ${e.message}`);
+        }
+    };
+
+    window.moveSim = function(dir) {
+        if (!simLocation) {
+            setStatus('Chọn Near 3 hoặc Near 4 trước.');
+            return;
+        }
+        let meters = Number(document.getElementById('stepMeters').value || 20);
+        meters = Math.max(1, Math.min(500, meters));
+        simLocation = moveByMeters(simLocation, dir, meters);
+        log(`[SIM] move ${dir} ${meters}m -> (${simLocation.lat.toFixed(6)},${simLocation.lon.toFixed(6)})`);
+        setStatus(`Moved ${dir} ${meters}m`);
+        updateSimMarker();
+        checkGeofence();
+    };
+
+    window.saveLog = async function() {
+        const payload = logs.join('\n');
+        const r = await fetch('/LoadTest/SaveQueueLog', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: payload, sessionId })
+        });
+        if (!r.ok) {
+            setStatus('Save log failed');
+            return;
+        }
+        setStatus('Saved to server file logqueue.txt');
+    };
+
+    window.readSavedLog = async function() {
+        const r = await fetch('/LoadTest/ReadQueueLog');
+        if (!r.ok) {
+            setStatus('Read saved log failed');
+            return;
+        }
+        const data = await r.json();
+        alert((data.text || '').slice(-4000) || 'logqueue.txt is empty');
+    };
+
+    log(`[SIM] Geofence web simulator ready (session=${sessionId})`);
+    loadPois().catch(e => {
+        log(`[SIM] load POIs error: ${e.message}`);
+        setStatus(`Load POIs error: ${e.message}`);
+    });
+})();
+</script>
+}

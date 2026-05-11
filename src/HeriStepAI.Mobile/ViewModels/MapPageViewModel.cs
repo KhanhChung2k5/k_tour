@@ -15,7 +15,6 @@ public partial class MapPageViewModel : ObservableObject
     private readonly ILocationService _locationService;
     private readonly ITourSelectionService _tourSelectionService;
     private readonly ILocalizationService _localizationService;
-    private readonly ILocationSimulatorService _simulator;
     private readonly IGeofenceService _geofenceService;
 
     /// <summary>Danh sach POI hien thi tren ban do. Khong dung [ObservableProperty] de tranh trung ten.</summary>
@@ -35,25 +34,6 @@ public partial class MapPageViewModel : ObservableObject
 
     [ObservableProperty]
     private string searchText = string.Empty;
-
-    [ObservableProperty]
-    private bool isTestMode = false;
-
-    [ObservableProperty]
-    private string testModeButtonText = "🧪 Test Mode";
-
-    // Test mode status
-    [ObservableProperty]
-    private string testModeStatus = "";
-
-    [ObservableProperty]
-    private bool showTestModeStatus = false;
-
-    [ObservableProperty]
-    private int testModeTotalPOIs = 0;
-
-    [ObservableProperty]
-    private string testModeCurrentPOIName = "";
 
     /// <summary>True when map is filtered to the active tour’s POIs only.</summary>
     [ObservableProperty]
@@ -77,9 +57,6 @@ public partial class MapPageViewModel : ObservableObject
     // Event to notify map update
     public event EventHandler? MapNeedsUpdate;
 
-    // Event to notify map to move current location marker (without full reload)
-    public event EventHandler<Location>? SimulatedLocationChanged;
-
     // Event to notify map that a POI was triggered by geofence
     public event EventHandler<POI>? GeofenceTriggered;
 
@@ -90,7 +67,6 @@ public partial class MapPageViewModel : ObservableObject
         ILocationService locationService,
         ITourSelectionService tourSelectionService,
         ILocalizationService localizationService,
-        ILocationSimulatorService simulator,
         IGeofenceService geofenceService)
     {
         _poiService = poiService;
@@ -99,7 +75,6 @@ public partial class MapPageViewModel : ObservableObject
         _locationService = locationService;
         _tourSelectionService = tourSelectionService;
         _localizationService = localizationService;
-        _simulator = simulator;
         _geofenceService = geofenceService;
 
         _localizationService.LanguageChanged += (_, _) => RefreshTranslations();
@@ -109,12 +84,6 @@ public partial class MapPageViewModel : ObservableObject
 
         // Subscribe to geofence triggers for auto-narration
         _geofenceService.POIEntered += OnGeofencePOIEntered;
-
-        // Khi narration hoàn tất → chuyển simulator sang POI tiếp theo
-        _narrationService.NarrationCompleted += OnNarrationCompleted;
-
-        // Khi simulator đã chạy hết tất cả POI → tự dừng test mode
-        _simulator.SimulationCompleted += OnSimulationCompleted;
 
         // Run initialization in background to avoid blocking
         Task.Run(async () =>
@@ -167,8 +136,6 @@ public partial class MapPageViewModel : ObservableObject
         {
             CurrentLocation = location;
             _geofenceService.CheckGeofence(location);
-            if (IsTestMode)
-                SimulatedLocationChanged?.Invoke(this, location);
         });
     }
 
@@ -179,12 +146,6 @@ public partial class MapPageViewModel : ObservableObject
     private void OnGeofencePOIEntered(object? sender, POI poi)
     {
         AppLog.Info($"📍 Geofence triggered: {poi.Name} (ID={poi.Id})");
-
-        if (IsTestMode)
-        {
-            TestModeStatus = $"🔊 {poi.Name}";
-            TestModeCurrentPOIName = poi.Name;
-        }
 
         GeofenceTriggered?.Invoke(this, poi);
 
@@ -401,9 +362,6 @@ public partial class MapPageViewModel : ObservableObject
     [RelayCommand]
     private async Task ClearTourFilter()
     {
-        if (IsTestMode)
-            StopTestMode();
-
         _tourSelectionService.SelectedTour = null;
         await LoadPOIsAsync();
         await GetCurrentLocationAsync();
@@ -414,77 +372,6 @@ public partial class MapPageViewModel : ObservableObject
     private void CenterOnLocation()
     {
         MapNeedsUpdate?.Invoke(this, EventArgs.Empty);
-    }
-
-    /// <summary>
-    /// Khi narration xong 1 POI → báo simulator advance sang POI kế tiếp.
-    /// </summary>
-    private void OnNarrationCompleted(object? sender, EventArgs e)
-    {
-        if (IsTestMode)
-        {
-            _simulator.AdvanceToNext();
-        }
-    }
-
-    /// <summary>
-    /// Khi simulator đã đi hết tất cả POI → tự dừng test mode.
-    /// </summary>
-    private void OnSimulationCompleted(object? sender, EventArgs e)
-    {
-        MainThread.BeginInvokeOnMainThread(() =>
-        {
-            AppLog.Info("✅ Simulation completed all POIs, stopping test mode");
-            StopTestMode();
-        });
-    }
-
-    [RelayCommand]
-    private void ToggleTestMode()
-    {
-        if (!IsTestMode)
-        {
-            var route = POIs.ToList();
-            if (route.Count == 0)
-            {
-                AppLog.Info("Cannot start test mode: no POIs available");
-                return;
-            }
-
-            // Re-initialize geofence with the route POIs
-            _geofenceService.Initialize(route);
-
-            // Start event-driven simulation (90s max timeout per POI)
-            // Simulator chờ narration xong (AdvanceToNext) rồi mới chuyển POI
-            _simulator.StartSimulation(route, maxSecondsPerPOI: 90);
-
-            // Update UI state
-            IsTestMode = true;
-            TestModeButtonText = "🛑 Stop";
-            ShowTestModeStatus = true;
-            TestModeTotalPOIs = route.Count;
-            TestModeStatus = $"🧪 Simulating {route.Count} POI...";
-
-            AppLog.Info($"🧪 Test Mode started with {route.Count} POIs, event-driven");
-        }
-        else
-        {
-            StopTestMode();
-        }
-    }
-
-    private void StopTestMode()
-    {
-        _simulator.StopSimulation();
-        _narrationService.StopNarration();
-
-        IsTestMode = false;
-        TestModeButtonText = "🧪 Test Mode";
-        ShowTestModeStatus = false;
-        TestModeStatus = "";
-        TestModeCurrentPOIName = "";
-
-        AppLog.Info("🛑 Test Mode stopped");
     }
 
     private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)

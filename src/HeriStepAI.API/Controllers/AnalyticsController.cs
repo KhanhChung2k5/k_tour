@@ -36,6 +36,9 @@ public static class HeartbeatTracker
         }
     }
 
+    /// <summary>
+    /// Xóa session cũ.
+    /// </summary>
     private static void Cleanup()
     {
         var cutoff = DateTime.UtcNow - Threshold;
@@ -45,14 +48,29 @@ public static class HeartbeatTracker
     }
 }
 
+/// <summary>
+/// Controller để quản lý analytics.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
 public class AnalyticsController : ControllerBase
 {
+    /// <summary>
+    /// Service để quản lý analytics.
+    /// </summary>
     private readonly IAnalyticsService _analyticsService;
+    /// <summary>
+    /// Service để quản lý POI.
+    /// </summary>
     private readonly IPOIService _poiService;
+    /// <summary>
+    /// Logger để quản lý analytics.
+    /// </summary>
     private readonly ILogger<AnalyticsController> _logger;
+    /// <summary>
+    /// Queue để quản lý visit log.
+    /// </summary>
     private readonly VisitLogQueue _visitQueue;
 
     public AnalyticsController(IAnalyticsService analyticsService, IPOIService poiService,
@@ -121,7 +139,7 @@ public class AnalyticsController : ControllerBase
         }
 
         // Enqueue visit log item vào queue
-
+        /// <summary>
         _visitQueue.Enqueue(new VisitLogItem(request.POId, userId, request.Latitude, request.Longitude, request.VisitType));
         _logger.LogInformation("[LogVisit] Enqueued: POId={POId}, UserId={UserId}", request.POId, userId);
         // Trả về status 202 Accepted

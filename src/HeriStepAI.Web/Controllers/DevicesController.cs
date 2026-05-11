@@ -84,6 +84,8 @@ public class DevicesController : Controller
     }
 
     [HttpGet]
+
+    /// <summary>Lấy số lượng thiết bị online</summary>
     public async Task<IActionResult> OnlineNow()
     {
         var client = CreateAuthenticatedClient();

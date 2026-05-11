@@ -19,6 +19,12 @@ public class TourGeneratorService : ITourGeneratorService
         _loc = localizationService;
     }
 
+    /// <summary>
+    /// Tạo tour tự động dựa trên FoodType và giá
+    /// </summary>
+    /// <param name="pois">Danh sách địa điểm</param>
+    /// <returns>Danh sách tour</returns>
+
     public List<Tour> GenerateSmartTours(List<POI> pois)
     {
         var tours = new List<Tour>();
@@ -36,9 +42,10 @@ public class TourGeneratorService : ITourGeneratorService
         {
             var foodType = (FoodType)group.Key;
             var poisInGroup = group.ToList();
+            // Skip if less than 2 POIs
+            if (poisInGroup.Count < 2) continue; 
 
-            if (poisInGroup.Count < 2) continue; // Skip if less than 2 POIs
-
+            // Tạo tour theo loại món ăn
             tours.Add(new Tour
             {
                 Id = group.Key,
@@ -69,6 +76,7 @@ public class TourGeneratorService : ITourGeneratorService
             .Take(5)
             .ToList();
 
+        // Tạo tour "Best Rated" (top rated POIs)
         if (topRatedPOIs.Count >= 3)
         {
             tours.Add(new Tour
@@ -122,6 +130,7 @@ public class TourGeneratorService : ITourGeneratorService
         return tours;
     }
 
+    // Tạo tour theo mức giá
     private List<Tour> GenerateBudgetTours(List<POI> foodPOIs)
     {
         var budgetTours = new List<Tour>();
@@ -210,6 +219,8 @@ public class TourGeneratorService : ITourGeneratorService
         return budgetTours;
     }
 
+    // Lấy tên loại món ăn
+
     private string GetFoodTypeName(FoodType foodType) => foodType switch
     {
         FoodType.Seafood => $"🦞 {_loc.GetString("TourGen_SeafoodName")}",
@@ -220,6 +231,8 @@ public class TourGeneratorService : ITourGeneratorService
         FoodType.Noodles => $"🍝 {_loc.GetString("TourGen_NoodlesName")}",
         _ => $"🍴 {_loc.GetString("TourGen_DefaultName")}"
     };
+
+    // Lấy mô tả loại món ăn
 
     private string GetFoodTypeDescription(FoodType foodType) => foodType switch
     {

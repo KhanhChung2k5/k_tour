@@ -9,27 +9,45 @@ namespace HeriStepAI.API.Controllers;
 
 [ApiController]
 [Route("api/poi-payments")]
+
+/// <summary>
+/// Controller để quản lý thanh toán POI.
+/// </summary>
 public class POIPaymentsController : ControllerBase
 {
+    /// <summary>
+    /// Context của database.
+    /// </summary>
     private readonly ApplicationDbContext _db;
+    /// <summary>
+    /// Constructor của POIPaymentsController.
+    /// </summary>
 
     public POIPaymentsController(ApplicationDbContext db)
     {
         _db = db;
     }
 
-    /// <summary>ShopOwner tạo bản ghi thanh toán sau khi POI được tạo.</summary>
+    /// <summary>
+    /// ShopOwner tạo bản ghi thanh toán sau khi POI được tạo.
+    /// POST http://localhost:5000/api/poi-payments/report
+    /// </summary>
     [HttpPost("report")]
     [Authorize(Roles = "ShopOwner")]
     public async Task<IActionResult> Report([FromBody] ReportPOIPaymentDto? body)
-    {
+    {   
         if (body is null)
             return BadRequest(new { Message = "Body required" });
-
+        /// <summary>
+        /// OwnerIdClaim.
+        /// </summary>
         var ownerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!int.TryParse(ownerIdClaim, out var ownerId))
             return Unauthorized();
 
+        /// <summary>
+        /// POI.
+        /// </summary>
         var poi = await _db.POIs.FirstOrDefaultAsync(p => p.Id == body.POIId && p.OwnerId == ownerId);
         if (poi == null)
             return NotFound(new { Message = "POI không tồn tại hoặc không thuộc quyền sở hữu của bạn." });
@@ -43,7 +61,9 @@ public class POIPaymentsController : ControllerBase
 
         var amount = POIPricing.GetPrice(poi.Priority);
         var transferRef = $"POIPAY-{poi.Id}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
-
+        /// <summary>
+        /// Payment.
+        /// </summary>
         var payment = new POIPayment
         {
             POIId = poi.Id,
@@ -100,8 +120,11 @@ public class POIPaymentsController : ControllerBase
         if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<PaymentReconciliationStatus>(status, true, out var st))
             q = q.Where(p => p.Status == st);
 
+        /// <summary>
+        /// Rows.
+        /// </summary>
         var rows = await q
-            .OrderByDescending(p => p.ReportedAtUtc)
+            .OrderByDescending(p => p.ReportedAtUtc)    
             .Take(take)
             .Select(p => new
             {

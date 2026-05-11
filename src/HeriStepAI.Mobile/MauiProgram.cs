@@ -24,7 +24,6 @@ public static class MauiProgram
         // Services
         builder.Services.AddSingleton<IAuthService, MobileAuthService>();
         builder.Services.AddSingleton<IVoicePreferenceService, VoicePreferenceService>();
-        builder.Services.AddSingleton<ILocationSimulatorService, LocationSimulatorService>();
         builder.Services.AddSingleton<ILocationService, LocationService>();
         builder.Services.AddSingleton<IGeofenceService, GeofenceService>();
         builder.Services.AddSingleton<INarrationService, NarrationService>();

@@ -4,7 +4,9 @@ namespace HeriStepAI.Mobile.Services;
 
 public interface IApiService
 {
+    /// <summary>Lấy danh sách địa điểm</summary>
     Task<List<POI>?> GetAllPOIsAsync();
+    /// <summary>Ghi lại lần ghé thăm địa điểm</summary>
     Task LogVisitAsync(int poiId, double? latitude, double? longitude, VisitType visitType);
     Task HeartbeatAsync();
 
@@ -16,6 +18,7 @@ public interface IApiService
     Task<SubscriptionEntitlementDto?> GetSubscriptionEntitlementAsync(string deviceKey);
 }
 
+/// <summary>Trạng thái gói theo DeviceKey (sau khi Admin xác nhận CK).</summary>
 public sealed class SubscriptionEntitlementDto
 {
     public string Status { get; set; } = "";
@@ -23,6 +26,7 @@ public sealed class SubscriptionEntitlementDto
     public DateTime? ExpiresAtUtc { get; set; }
 }
 
+/// <summary>Báo thanh toán lên server để Admin đối soát CK.</summary>
 public sealed class SubscriptionPaymentReport
 {
     public string DeviceKey { get; init; } = "";
@@ -34,6 +38,7 @@ public sealed class SubscriptionPaymentReport
     public string? Platform { get; init; }
 }
 
+/// <summary>Loại lần ghé thăm (Geofence, MapClick)</summary>
 public enum VisitType
 {
     Geofence = 1,

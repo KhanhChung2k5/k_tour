@@ -8,7 +8,10 @@
         <h1 class="page-title-text">Giả lập thiết bị</h1>
         <p class="page-subtitle-text">Gửi hàng loạt request visit để kiểm tra khả năng xử lý hàng đợi API.</p>
     </div>
-    <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-light btn-sm">← Dashboard</a>
+    <div style="display:flex;gap:8px;">
+        <a href="@Url.Action("GeofenceSimulator", "LoadTest")" class="btn btn-outline-light btn-sm">Geofence Simulator</a>
+        <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-light btn-sm">← Dashboard</a>
+    </div>
 </div>
 
 <div style="display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start;">
