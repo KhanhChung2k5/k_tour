@@ -278,7 +278,7 @@
             return;
         }
 
-        candidates.sort((a, b) => (b.poi.Priority - a.poi.Priority) || (a.dist - b.dist));
+        candidates.sort((a, b) => (b.poi.Priority - a.poi.Priority) || (a.dist - b.dist) || (a.poi.Id - b.poi.Id));
         const best = candidates[0];
 
         if (dev.currentPoiId === best.poi.Id) return;

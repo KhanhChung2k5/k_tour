@@ -1,4 +1,5 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    using HeriStepAI.Mobile.Models;
+using HeriStepAI.Geo;
+using HeriStepAI.Mobile.Models;
 using Microsoft.Maui.Devices.Sensors;
 
 namespace HeriStepAI.Mobile.Services;
@@ -9,16 +10,10 @@ namespace HeriStepAI.Mobile.Services;
 public class GeofenceService : IGeofenceService
 {
     private List<POI> _pois = new();
-    /// <summary>
-    /// POI hiện tại.
-    /// </summary>
     private POI? _currentPOI = null;
     private readonly Dictionary<int, DateTime> _poiCooldowns = new();
-    /// <summary>
-    /// Thời gian cooldown cho mỗi POI.
-    /// </summary>
     private readonly TimeSpan _cooldownPeriod = TimeSpan.FromMinutes(5);
-    private const double MinRadius = 50; // Minimum geofence radius in meters
+    private const double MinRadius = 50;
 
     public event EventHandler<POI>? POIEntered;
 
@@ -29,6 +24,7 @@ public class GeofenceService : IGeofenceService
         _poiCooldowns.Clear();
         AppLog.Info($"GeofenceService initialized with {_pois.Count} POIs, cooldowns reset");
     }
+
     /// <summary>
     /// Phát hiện vào vùng POI.
     /// </summary>
@@ -37,49 +33,28 @@ public class GeofenceService : IGeofenceService
         if (_pois == null || !_pois.Any())
             return null;
 
-        // Trong vùng geofence: ưu tiên Priority (cao nhất = 3), sau đó mới tới khoảng cách (gần nhất).
-        // Trùng vùng nhiều POI → POI có Priority cao hơn được thuyết minh trước; cùng Priority → gần hơn thắng.
-        var candidates = new List<(POI Poi, double DistanceMeters)>();
-        foreach (var poi in _pois)
-        {
-            var effectiveRadius = Math.Max(poi.Radius, MinRadius);
-            var distance = CalculateDistance(location.Latitude, location.Longitude, poi.Latitude, poi.Longitude);
-            if (distance <= effectiveRadius)
-                candidates.Add((poi, distance));
-        }
-        /// <summary>
-        /// POI gần nhất.
-        /// </summary>
+        // Trong vùng geofence: ưu tiên Priority (cao hơn trước), cùng Priority → gần hơn thắng (GeofenceSelection).
+        var geoPois = _pois
+            .Select(p => new GeofencePoi(p.Id, p.Name, p.Latitude, p.Longitude, p.Radius, p.Priority))
+            .ToList();
+
+        var bestGeo = GeofenceSelection.FindBestInside(location.Latitude, location.Longitude, geoPois, MinRadius);
 
         POI? closestPOI = null;
         double closestDistance = 0;
-        if (candidates.Count > 0)
+        if (bestGeo != null)
         {
-            /// <summary>
-            /// POI gần nhất.
-            /// </summary>
-            var best = candidates
-            /// <summary>
-            /// Sắp xếp POI theo Priority và khoảng cách.
-            /// </summary>
-                .OrderByDescending(x => x.Poi.Priority)
-                .ThenBy(x => x.DistanceMeters)
-                .First();
-            
-            closestPOI = best.Poi;
-            closestDistance = best.DistanceMeters;
+            closestPOI = _pois.First(p => p.Id == bestGeo.Value.Id);
+            closestDistance = GeofenceSelection.HaversineMeters(
+                location.Latitude, location.Longitude,
+                closestPOI.Latitude, closestPOI.Longitude);
         }
 
         if (closestPOI != null)
         {
-            // Already inside this same POI - no re-trigger
             if (_currentPOI?.Id == closestPOI.Id)
                 return null;
 
-            // Per-POI cooldown check
-            /// <summary>
-            /// Cooldown check cho mỗi POI.
-            /// </summary>
             if (_poiCooldowns.TryGetValue(closestPOI.Id, out var lastTime)
                 && DateTime.UtcNow - lastTime < _cooldownPeriod)
             {
@@ -87,9 +62,6 @@ public class GeofenceService : IGeofenceService
                 return null;
             }
 
-            /// <summary>
-            /// Trigger!
-            /// </summary>
             _currentPOI = closestPOI;
             _poiCooldowns[closestPOI.Id] = DateTime.UtcNow;
             POIEntered?.Invoke(this, closestPOI);
@@ -97,7 +69,6 @@ public class GeofenceService : IGeofenceService
             return closestPOI;
         }
 
-        // Outside all POIs - reset current
         if (_currentPOI != null)
         {
             AppLog.Info($"📤 Left geofence: {_currentPOI.Name}");
@@ -105,27 +76,5 @@ public class GeofenceService : IGeofenceService
         }
 
         return null;
-    }
-
-    /// <summary>
-    /// Tính khoảng cách giữa 2 tọa độ.
-    /// </summary>
-    private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
-    {
-        const double R = 6371000;
-        var dLat = ToRadians(lat2 - lat1);
-        var dLon = ToRadians(lon2 - lon1);
-
-        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
-                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-
-        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-        return R * c;
-    }
-
-    private double ToRadians(double degrees)
-    {
-        return degrees * Math.PI / 180;
     }
 }

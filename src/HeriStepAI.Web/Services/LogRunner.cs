@@ -13,14 +13,19 @@ public interface ILogRunner
 
 public sealed class FileLogRunner : ILogRunner, IDisposable
 {
+    private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
     private readonly string _logPath;
     private readonly Channel<ILogCommand> _channel;
     private readonly CancellationTokenSource _cts = new();
     private readonly Task _worker;
 
-    public FileLogRunner()
+    /// <param name="logFilePath">Đường dẫn file log đầy đủ; null hoặc rỗng dùng %TEMP%\HeriStepAI\logqueue.txt (production).</param>
+    public FileLogRunner(string? logFilePath = null)
     {
-        _logPath = Path.Combine(Path.GetTempPath(), "HeriStepAI", "logqueue.txt");
+        _logPath = string.IsNullOrWhiteSpace(logFilePath)
+            ? Path.Combine(Path.GetTempPath(), "HeriStepAI", "logqueue.txt")
+            : Path.GetFullPath(logFilePath);
         _channel = Channel.CreateUnbounded<ILogCommand>(new UnboundedChannelOptions
         {
             SingleReader = true,
@@ -66,7 +71,7 @@ public sealed class FileLogRunner : ILogRunner, IDisposable
                         var payload = string.IsNullOrWhiteSpace(c.SessionId)
                             ? normalized
                             : $"===== session:{c.SessionId} | {DateTime.Now:yyyy-MM-dd HH:mm:ss} ====={Environment.NewLine}{normalized}";
-                        await File.WriteAllTextAsync(_logPath, payload, Encoding.UTF8, _cts.Token);
+                        await File.WriteAllTextAsync(_logPath, payload, Utf8NoBom, _cts.Token);
                         c.Done.TrySetResult();
                     }
                     catch (Exception ex)
@@ -81,7 +86,7 @@ public sealed class FileLogRunner : ILogRunner, IDisposable
                         if (!File.Exists(_logPath))
                             c.Done.TrySetResult(string.Empty);
                         else
-                            c.Done.TrySetResult(await File.ReadAllTextAsync(_logPath, Encoding.UTF8, _cts.Token));
+                            c.Done.TrySetResult(await File.ReadAllTextAsync(_logPath, Utf8NoBom, _cts.Token));
                     }
                     catch (Exception ex)
                     {
