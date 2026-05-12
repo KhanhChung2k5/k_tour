@@ -11,13 +11,13 @@ public class MobileAuthService : IAuthService
     private static string GetBaseUrl()
     {
 #if DEBUG
-        const string NgrokUrl = "https://6d5d-2402-800-6315-7ced-b1f6-ab74-fd56-22b9.ngrok-free.app/api/";
+        const string NgrokUrl = "https://f5a5-2402-800-6315-7ced-f107-9126-2a94-4f8a.ngrok-free.app/api/";
         if (!string.IsNullOrEmpty(NgrokUrl)) return NgrokUrl;
         if (DeviceInfo.Platform == DevicePlatform.Android) return "http://10.0.2.2:5000/api/";
         if (DeviceInfo.Platform == DevicePlatform.iOS) return "http://127.0.0.1:5000/api/";
         return "http://localhost:5000/api/";
 #else
-        return "https://6d5d-2402-800-6315-7ced-b1f6-ab74-fd56-22b9.ngrok-free.app/api/";
+        return "https://f5a5-2402-800-6315-7ced-f107-9126-2a94-4f8a.ngrok-free.app/api/";
 #endif
     }
 

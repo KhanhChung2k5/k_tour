@@ -16,7 +16,7 @@ public class ApiService : IApiService
 #if DEBUG
         // Đổi NGROK_URL thành URL ngrok hiện tại khi test trên thiết bị thật
         // Để trống ("") để dùng localhost (emulator)
-        const string NgrokUrl = "https://6d5d-2402-800-6315-7ced-b1f6-ab74-fd56-22b9.ngrok-free.app/api/";
+        const string NgrokUrl = "https://f5a5-2402-800-6315-7ced-f107-9126-2a94-4f8a.ngrok-free.app/api/";
 
         if (!string.IsNullOrEmpty(NgrokUrl)) return NgrokUrl;
 
@@ -27,7 +27,7 @@ public class ApiService : IApiService
         return "http://localhost:5000/api/";
 #else
         // TODO: Thay bằng URL production thực tế khi deploy
-        return "https://6d5d-2402-800-6315-7ced-b1f6-ab74-fd56-22b9.ngrok-free.app/api/";
+        return "https://f5a5-2402-800-6315-7ced-f107-9126-2a94-4f8a.ngrok-free.app/api/";
 #endif
     }
 

@@ -103,6 +103,8 @@ builder.Services.AddHttpClient("API", client =>
         ?? "http://localhost:5000/api/";
     client.BaseAddress = new Uri(baseUrl);
     client.Timeout = TimeSpan.FromSeconds(90);
+    // Bỏ qua trang cảnh báo của ngrok khi dùng free tier tunnel
+    client.DefaultRequestHeaders.Add("ngrok-skip-browser-warning", "true");
 });
 
 var app = builder.Build();
@@ -117,6 +119,7 @@ if (!app.Environment.IsDevelopment())
 // Bỏ HTTPS redirect khi dùng HTTP local
 // app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.MapGet("/favicon.ico", () => Results.NoContent());
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
