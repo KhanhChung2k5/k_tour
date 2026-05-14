@@ -101,15 +101,23 @@ public class LoadTestController : Controller
     /// Dùng để hiển thị server-side queue log trong GeofenceSimulator.
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> RecentVisitLogs([FromQuery] int seconds = 60)
+    public async Task<IActionResult> RecentVisitLogs([FromQuery] int seconds = 60, [FromQuery] string? sessionKey = null)
     {
         seconds = Math.Clamp(seconds, 5, 300);
         var since = DateTime.UtcNow.AddSeconds(-seconds);
 
-        var logs = await _db.VisitLogs
+        var query = _db.VisitLogs
             .Where(v => v.VisitTime >= since
                      && v.UserId != null
-                     && v.UserId.StartsWith("SIM-DEV-"))
+                     && v.UserId.StartsWith("SIM-"));
+
+        if (!string.IsNullOrWhiteSpace(sessionKey))
+        {
+            var prefix = $"SIM-{sessionKey}-DEV-";
+            query = query.Where(v => v.UserId != null && v.UserId.StartsWith(prefix));
+        }
+
+        var logs = await query
             .OrderBy(v => v.VisitTime)
             .Select(v => new
             {
@@ -124,6 +132,20 @@ public class LoadTestController : Controller
             .ToListAsync();
 
         return Ok(logs);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CleanupSimVisitLogs([FromBody] SimLogCleanupRequest req)
+    {
+        if (req == null || string.IsNullOrWhiteSpace(req.SessionKey))
+            return BadRequest(new { ok = false, error = "SessionKey is required." });
+
+        var prefix = $"SIM-{req.SessionKey}-DEV-";
+        var rows = await _db.VisitLogs
+            .Where(v => v.UserId != null && v.UserId.StartsWith(prefix))
+            .ExecuteDeleteAsync();
+
+        return Ok(new { ok = true, deleted = rows, sessionKey = req.SessionKey });
     }
 
     [HttpPost]
@@ -227,4 +249,9 @@ public class GeofenceVisitRequest
     public string? DeviceId  { get; set; }
     public double? Latitude  { get; set; }
     public double? Longitude { get; set; }
+}
+
+public class SimLogCleanupRequest
+{
+    public string? SessionKey { get; set; }
 }

@@ -383,6 +383,31 @@
                 </Grid>
                 <BoxView Color="{StaticResource WarmBorder}" HeightRequest="0.5" />
 
+                <!-- Device Capability -->
+                <Grid ColumnDefinitions="Auto,*,Auto" Padding="4,14" ColumnSpacing="14">
+                    <Border Grid.Column="0"
+                            BackgroundColor="#EAF4EE"
+                            StrokeShape="RoundRectangle 10"
+                            WidthRequest="36" HeightRequest="36"
+                            Padding="0" Stroke="Transparent">
+                        <Label Text="📱" FontSize="17"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
+                        <Label Text="Hiệu năng thiết bị" FontSize="14"
+                               TextColor="{StaticResource TextPrimary}" />
+                        <Label Text="{Binding DeviceProfileDetail}" FontSize="11"
+                               TextColor="{StaticResource TextMuted}" />
+                    </VerticalStackLayout>
+                    <Border Grid.Column="2"
+                            BackgroundColor="{Binding DeviceProfileBadgeColor}"
+                            StrokeShape="RoundRectangle 8" Padding="10,5" Stroke="Transparent">
+                        <Label Text="{Binding DeviceProfileLabel}"
+                               TextColor="{StaticResource White}" FontSize="11" FontAttributes="Bold" />
+                    </Border>
+                </Grid>
+                <BoxView Color="{StaticResource WarmBorder}" HeightRequest="0.5" />
+
                 <!-- Version -->
                 <Grid ColumnDefinitions="Auto,*,Auto" Padding="4,14" ColumnSpacing="14">
                     <Border Grid.Column="0"

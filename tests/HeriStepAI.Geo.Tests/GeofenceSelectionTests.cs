@@ -168,4 +168,29 @@ public sealed class GeofenceSelectionTests
         Assert.NotNull(best);
         Assert.Equal(20, best.Value.Id);
     }
+
+    [Fact]
+    [Trait("Geofence", GeofenceTestCaseIds.GF011_SameDistance_DifferentPriority_HigherPriorityWins)]
+    public void GF011_FourPois_EqualDistance_HigherPriorityWins()
+    {
+        var user = (HubLat, HubLon);
+        const double r = 300;
+        var northP1 = new GeofencePoi(31, "N-P1", OffsetMeters(HubLat, HubLon, 100).Lat, HubLon, r, 1);
+        var southP2 = new GeofencePoi(32, "S-P2", OffsetMeters(HubLat, HubLon, -100).Lat, HubLon, r, 2);
+        var eastP3 = new GeofencePoi(33, "E-P3", HubLat, OffsetMeters(HubLat, HubLon, 0, 100).Lon, r, 3);
+        var westP4 = new GeofencePoi(34, "W-P4", HubLat, OffsetMeters(HubLat, HubLon, 0, -100).Lon, r, 4);
+        var list = new[] { northP1, southP2, eastP3, westP4 };
+
+        var dN = GeofenceSelection.HaversineMeters(user.Item1, user.Item2, northP1.Latitude, northP1.Longitude);
+        var dS = GeofenceSelection.HaversineMeters(user.Item1, user.Item2, southP2.Latitude, southP2.Longitude);
+        var dE = GeofenceSelection.HaversineMeters(user.Item1, user.Item2, eastP3.Latitude, eastP3.Longitude);
+        var dW = GeofenceSelection.HaversineMeters(user.Item1, user.Item2, westP4.Latitude, westP4.Longitude);
+        Assert.Equal(dN, dS, 5);
+        Assert.Equal(dN, dE, 5);
+        Assert.Equal(dN, dW, 5);
+
+        var best = GeofenceSelection.FindBestInside(user.Item1, user.Item2, list, MinR);
+        Assert.NotNull(best);
+        Assert.Equal(34, best.Value.Id);
+    }
 }

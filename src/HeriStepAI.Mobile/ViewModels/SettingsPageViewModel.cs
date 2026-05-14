@@ -12,6 +12,7 @@ public partial class SettingsPageViewModel : ObservableObject
     private readonly ILocalizationService _localizationService;
     private readonly IVoicePreferenceService _voicePreference;
     private readonly IAnalyticsService _analytics;
+    private readonly IDeviceCapabilityService _deviceCapability;
 
     [ObservableProperty]
     private string selectedLanguage = "Tiếng Việt";
@@ -122,6 +123,13 @@ public partial class SettingsPageViewModel : ObservableObject
             : Color.FromArgb("#2C2416"); // Primary
     }
 
+    // ── Device profile properties ──
+    public string DeviceProfileLabel => _deviceCapability.IsStrong ? "Mạnh" : "Yếu";
+    public string DeviceProfileDetail => $"{_deviceCapability.CpuCores} core · ~{_deviceCapability.AvailableRamMb} MB RAM";
+    public Color DeviceProfileBadgeColor => _deviceCapability.IsStrong
+        ? Color.FromArgb("#2C7A3F")
+        : Color.FromArgb("#C4A24A");
+
     /// <summary>
     /// Constructor.
     /// </summary>
@@ -130,13 +138,15 @@ public partial class SettingsPageViewModel : ObservableObject
         ILocationService locationService,
         ILocalizationService localizationService,
         IVoicePreferenceService voicePreference,
-        IAnalyticsService analytics)
+        IAnalyticsService analytics,
+        IDeviceCapabilityService deviceCapability)
     {
         _poiService = poiService;
         _locationService = locationService;
         _localizationService = localizationService;
         _voicePreference = voicePreference;
         _analytics = analytics;
+        _deviceCapability = deviceCapability;
         RefreshTopPOIs();
 
         _localizationService.LanguageChanged += (_, _) => RefreshTranslations();

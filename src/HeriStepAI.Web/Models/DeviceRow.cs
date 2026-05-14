@@ -7,6 +7,9 @@ public class DeviceRow
     public int UniquePOIs { get; set; }
     public DateTime FirstSeen { get; set; }
     public DateTime LastSeen { get; set; }
+    public string? DeviceProfile { get; set; }
+    public int? DeviceCores { get; set; }
+    public long? DeviceRamMb { get; set; }
 }
 
 public class DeviceSummary
@@ -57,4 +60,18 @@ public class DevicePoiVisitRow
     public int VisitCount { get; set; }
     public DateTime FirstVisit { get; set; }
     public DateTime LastVisit { get; set; }
+}
+
+public class TouristRow
+{
+    public int Id { get; set; }
+    public string Username { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string? FullName { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public string? DeviceProfile { get; set; }
+    public int? DeviceCores { get; set; }
+    public long? DeviceRamMb { get; set; }
+    public DateTime? DeviceProfileAt { get; set; }
 }

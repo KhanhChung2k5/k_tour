@@ -257,6 +257,46 @@ public class AuthController : ControllerBase
 
         return Ok(new { user.Id, user.Username, user.Email, user.FullName, user.Role });
     }
+
+    /// <summary>Mobile gọi sau khi login để lưu thông tin năng lực thiết bị.</summary>
+    [HttpPatch("me/device-profile")]
+    [Authorize]
+    public async Task<IActionResult> UpdateDeviceProfile([FromBody] DeviceProfileRequest req)
+    {
+        var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+        var user = await _context.Users.AsTracking().FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) return NotFound();
+
+        user.DeviceProfile  = req.Profile;
+        user.DeviceCores    = req.Cores;
+        user.DeviceRamMb    = req.RamMb;
+        user.DeviceProfileAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { Message = "Device profile updated", profile = req.Profile.ToString() });
+    }
+
+    /// <summary>Admin: danh sách Tourist kèm device profile.</summary>
+    [HttpGet("tourists")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetTourists()
+    {
+        var list = await _context.Users
+            .AsNoTracking()
+            .Where(u => u.Role == UserRole.Tourist)
+            .OrderByDescending(u => u.DeviceProfileAt ?? u.CreatedAt)
+            .Select(u => new
+            {
+                u.Id, u.Username, u.Email, u.FullName,
+                u.IsActive, u.CreatedAt,
+                DeviceProfile   = u.DeviceProfile.HasValue ? u.DeviceProfile.ToString() : null,
+                u.DeviceCores,
+                u.DeviceRamMb,
+                u.DeviceProfileAt
+            })
+            .ToListAsync();
+        return Ok(list);
+    }
 }
 
 public class LoginRequest
@@ -290,4 +330,11 @@ public class ShopOwnerSelfRegisterRequest
     public string Password { get; set; } = string.Empty;
     public string? FullName { get; set; }
     public string? Phone { get; set; }
+}
+
+public class DeviceProfileRequest
+{
+    public MobileDeviceProfile Profile { get; set; }
+    public int? Cores { get; set; }
+    public long? RamMb { get; set; }
 }

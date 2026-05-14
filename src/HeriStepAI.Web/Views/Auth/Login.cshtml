@@ -582,8 +582,23 @@
     </div>
     <div class="wave-label">AI đang lắng nghe &amp; giới thiệu</div>
 
+    <!-- QR tải app -->
+    <div style="margin-top:28px;text-align:center;position:relative;z-index:2;animation:slide-up 0.7s cubic-bezier(0.22,1,0.36,1) 0.5s both;">
+        <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--cream-muted);margin-bottom:10px;">
+            Tải app du khách
+        </div>
+        <div style="display:inline-block;padding:8px;background:#fff;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+            <div id="appQrCode"></div>
+        </div>
+        <div style="margin-top:8px;font-size:0.7rem;color:var(--cream-muted);line-height:1.6;">
+            <span style="color:var(--amber);">📱 Mạnh</span> → offline · sync POI · nghe không cần wifi<br>
+            <span style="color:var(--cream-muted);">📱 Yếu</span> → online only · không lưu local
+        </div>
+    </div>
+
     <div class="divider-line"></div>
 </div>
+
 
 <!-- RIGHT PANEL -->
 <div class="right-panel">
@@ -667,6 +682,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
     function togglePw() {
         var inp = document.getElementById('password');
@@ -686,6 +702,15 @@
         btn.disabled = true;
         content.innerHTML = '<span class="spinner"></span> Đang xác thực...';
     }
+
+    new QRCode(document.getElementById('appQrCode'), {
+        text: 'https://github.com/KhanhChung2k5/k_tour/releases/latest',
+        width: 110,
+        height: 110,
+        colorDark: '#0D0B08',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+    });
 </script>
 </body>
 </html>

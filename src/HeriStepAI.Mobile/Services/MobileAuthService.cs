@@ -8,24 +8,32 @@ public class MobileAuthService : IAuthService
     private const string TokenKey = "auth_token";
     private const string UserKey = "auth_user";
 
+    private readonly IDeviceCapabilityService _deviceCapability;
+
     private static string GetBaseUrl()
     {
 #if DEBUG
-        const string NgrokUrl = "https://f5a5-2402-800-6315-7ced-f107-9126-2a94-4f8a.ngrok-free.app/api/";
+        const string NgrokUrl = "https://64b4-113-185-76-244.ngrok-free.app/api/";
         if (!string.IsNullOrEmpty(NgrokUrl)) return NgrokUrl;
         if (DeviceInfo.Platform == DevicePlatform.Android) return "http://10.0.2.2:5000/api/";
         if (DeviceInfo.Platform == DevicePlatform.iOS) return "http://127.0.0.1:5000/api/";
         return "http://localhost:5000/api/";
 #else
-        return "https://f5a5-2402-800-6315-7ced-f107-9126-2a94-4f8a.ngrok-free.app/api/";
+        return "https://64b4-113-185-76-244.ngrok-free.app/api/";
 #endif
     }
 
-    private readonly HttpClient _http = new()
+    private readonly HttpClient _http;
+
+    public MobileAuthService(IDeviceCapabilityService deviceCapability)
     {
-        BaseAddress = new Uri(GetBaseUrl()),
-        Timeout = TimeSpan.FromSeconds(60)
-    };
+        _deviceCapability = deviceCapability;
+        _http = new HttpClient
+        {
+            BaseAddress = new Uri(GetBaseUrl()),
+            Timeout = TimeSpan.FromSeconds(60)
+        };
+    }
 
     public event EventHandler? UserProfileUpdated;
 
@@ -58,6 +66,8 @@ public class MobileAuthService : IAuthService
             {
                 _ = Task.Run(RefreshUserProfileAsync);
             }
+
+            _ = Task.Run(PushDeviceProfileAsync);
 
             return true;
         }
@@ -210,6 +220,25 @@ public class MobileAuthService : IAuthService
         Preferences.Default.Set("has_session", "1"); // quick-login flag (sync, 0ms)
         await SecureStorage.Default.SetAsync(TokenKey, auth.Token!);
         await SecureStorage.Default.SetAsync(UserKey, JsonConvert.SerializeObject(CurrentUser));
+
+        _ = Task.Run(PushDeviceProfileAsync);
+    }
+
+    private async Task PushDeviceProfileAsync()
+    {
+        try
+        {
+            var profile = _deviceCapability.IsStrong ? 1 : 0;
+            var payload = JsonConvert.SerializeObject(new
+            {
+                profile,
+                cores = _deviceCapability.CpuCores,
+                ramMb = _deviceCapability.AvailableRamMb
+            });
+            await _http.PatchAsync("auth/me/device-profile",
+                new StringContent(payload, Encoding.UTF8, "application/json"));
+        }
+        catch { /* fire-and-forget, không block login */ }
     }
 
     private void SetToken(string token)

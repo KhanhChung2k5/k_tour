@@ -16,6 +16,9 @@ public interface IApiService
 
     /// <summary>Trạng thái gói theo DeviceKey (sau khi Admin xác nhận CK).</summary>
     Task<SubscriptionEntitlementDto?> GetSubscriptionEntitlementAsync(string deviceKey);
+
+    /// <summary>Gửi năng lực thiết bị (mạnh/yếu) lên server — fire-and-forget khi khởi động app.</summary>
+    Task PushDeviceProfileAsync();
 }
 
 /// <summary>Trạng thái gói theo DeviceKey (sau khi Admin xác nhận CK).</summary>

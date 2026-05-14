@@ -10,13 +10,14 @@ public class ApiService : IApiService
     private readonly HttpClient _httpClient;
     private readonly IAuthService _authService;
     private readonly ISubscriptionService _subscriptionService;
+    private readonly IDeviceCapabilityService _deviceCapability;
 
     private static string GetBaseUrl()
     {
 #if DEBUG
         // Đổi NGROK_URL thành URL ngrok hiện tại khi test trên thiết bị thật
         // Để trống ("") để dùng localhost (emulator)
-        const string NgrokUrl = "https://f5a5-2402-800-6315-7ced-f107-9126-2a94-4f8a.ngrok-free.app/api/";
+        const string NgrokUrl = "https://64b4-113-185-76-244.ngrok-free.app/api/";
 
         if (!string.IsNullOrEmpty(NgrokUrl)) return NgrokUrl;
 
@@ -27,14 +28,15 @@ public class ApiService : IApiService
         return "http://localhost:5000/api/";
 #else
         // TODO: Thay bằng URL production thực tế khi deploy
-        return "https://f5a5-2402-800-6315-7ced-f107-9126-2a94-4f8a.ngrok-free.app/api/";
+        return "https://64b4-113-185-76-244.ngrok-free.app/api/";
 #endif
     }
 
-    public ApiService(IAuthService authService, ISubscriptionService subscriptionService)
+    public ApiService(IAuthService authService, ISubscriptionService subscriptionService, IDeviceCapabilityService deviceCapability)
     {
         _authService = authService;
         _subscriptionService = subscriptionService;
+        _deviceCapability = deviceCapability;
         var baseUrl = GetBaseUrl();
         try
         {
@@ -98,6 +100,24 @@ public class ApiService : IApiService
     /// </summary>
     private Task<string> GetOrCreateDeviceIdAsync()
         => Task.FromResult("dev_" + _subscriptionService.DeviceKey);
+
+    public async Task PushDeviceProfileAsync()
+    {
+        try
+        {
+            var deviceId = await GetOrCreateDeviceIdAsync();
+            var payload = JsonConvert.SerializeObject(new
+            {
+                deviceId,
+                profile = _deviceCapability.IsStrong ? 1 : 0,
+                cores   = _deviceCapability.CpuCores,
+                ramMb   = _deviceCapability.AvailableRamMb
+            });
+            await _httpClient.PostAsync("analytics/devices/profile",
+                new StringContent(payload, Encoding.UTF8, "application/json"));
+        }
+        catch { /* fire-and-forget */ }
+    }
 
     public async Task LogVisitAsync(int poiId, double? latitude, double? longitude, VisitType visitType)
     {

@@ -2,9 +2,9 @@
 
 | Thuộc tính | Giá trị |
 |------------|---------|
-| **Phiên bản** | 1.0 |
-| **Ngày** | 2026-04-22 |
-| **Trạng thái** | Hoàn thành|
+| **Phiên bản** | 1.1 |
+| **Ngày** | 2026-05-13 |
+| **Trạng thái** | Cập nhật — sync với codebase |
 
 ---
 
@@ -42,7 +42,8 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | 9 | **Heatmap vị trí (Web + API)** | Admin xem mật độ du khách theo vị trí GPS thực tế; chỉ tính `VisitType = Geofence`; hiển thị **30 giây gần nhất (realtime)**, auto-refresh 3s; POI markers hover tooltip |
 | 10 | **Heartbeat / Online Now (Mobile + API)** | Mobile gửi heartbeat mỗi **2 giây**; API dùng `HeartbeatTracker` (ConcurrentDictionary, TTL **3s**) để đếm thiết bị đang online; Admin xem qua `GET /analytics/online-now` |
 | 11 | **Visit Log Queue (API)** | `POST /analytics/visit` enqueue vào `Channel<VisitLogItem>` (buffer 1000); `VisitLogWorker` (BackgroundService) gom batch 10 items / 500ms rồi INSERT một lần duy nhất — giữ 1 DB connection cho toàn bộ traffic |
-| 12 | **Giả lập thiết bị / Load Test (Web)** | Admin gửi N request visit song song (10/20/30/50/100) đến API để kiểm tra khả năng xử lý hàng đợi; hiển thị kết quả chi tiết từng device (HTTP status, elapsed ms) và tổng hợp (avg/min/max) |
+| 12 | **Giả lập thiết bị / GeofenceSimulator (Web)** | Admin chạy **1–10 thiết bị ảo** đồng thời trên bản đồ; mỗi device tự di chuyển (auto-walk), vào geofence → gọi `POST /api/analytics/visit` thật; server log panel hiển thị batch INSERT từ `VisitLogWorker`; 11 test case presets (GF-001→GF-011) kiểm tra ưu tiên POI, tie-breaking, hội tụ |
+| 13 | **Kiểm tra hiệu năng thiết bị (Mobile + API + Web)** | App đo CPU cores + RAM khi khởi động → phân loại `Strong` (≥4 core, ≥1.5GB) / `Weak` → gửi lên `POST /api/analytics/devices/profile` (AllowAnonymous) → lưu bảng `DeviceProfiles` (upsert theo `DeviceId`); Admin xem badge Mạnh/Yếu trong trang **Devices**; thiết bị mạnh dùng SQLite offline + sync, thiết bị yếu chỉ online-only |
 
 ### 2.2 Ngoài phạm vi (hiện không có trong repo — không mô tả như đã ship)
 
@@ -61,8 +62,8 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 |------|------------------------|------|-------------|
 | **Admin** | `Role = 1` (claim) | Web | Dashboard, **duyệt/từ chối** đăng ký ShopOwner, POI **xem/sửa** (API/DbContext), analytics, **xác nhận/từ chối POI Payment** (`/POIPayments`), **xác nhận/từ chối thanh toán gói Mobile** (`/SubscriptionPayments`) — **không** luồng “tạo POI + tạo owner” |
 | **ShopOwner** | `Role = 2` | Web | **Đăng ký** (`ApprovalStatus` Pending → Approved); chỉ POI `OwnerId` = mình; **tự tạo POI** sau khi được duyệt; **báo thanh toán kích hoạt POI** (Web `POST /ShopOwner/ReportPayment`); DbContext |
-| **Guest/Subscriber (Mobile)** | Không dùng account/role | Mobile | Thanh toán gói, xem POI/map/tour, geofence, visit log |
-| **Anonymous API** | — | Mobile/API | Một số `GET /api/poi` và `POST /api/analytics/visit` có thể public (theo cấu hình API) |
+| **Tourist / Subscriber (Mobile)** | `Role = 3` (tùy chọn) hoặc ẩn danh | Mobile | Thanh toán gói (ẩn danh), xem POI/map/tour, geofence, visit log; **có thể đăng ký/đăng nhập** qua `AuthPage` (Tourist role) nhưng không bắt buộc — `DeviceId` vẫn dùng cho visit log dù không đăng nhập |
+| **Anonymous API** | `DeviceId = "dev_XXXXXX"` | Mobile/API | `GET /api/poi`, `POST /api/analytics/visit`, `POST /api/analytics/devices/profile`, `POST /api/analytics/heartbeat` là AllowAnonymous; device được nhận diện qua DeviceKey, không cần JWT |
 
 ---
 
@@ -72,34 +73,39 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 
 | Màn / nhóm | Route chính | State / hành vi |
 |------------|-------------|------------------|
-| Login | `/Auth/Login` | Form; lỗi `ViewBag.Error`; **403** ShopOwner Pending/Rejected → thông báo từ API; redirect khi OK |
+| Login | `/Auth/Login` | Form; lỗi `ViewBag.Error`; **403** ShopOwner Pending/Rejected → thông báo từ API; redirect khi OK; **panel trái** hiển thị QR code (QRCode.js) trỏ đến GitHub Releases để tải app mobile |
 | Đăng ký chủ quán | `/Auth/RegisterShopOwner` | Form công khai → `POST api/auth/register-shop-owner` → chờ Admin duyệt |
 | Admin Dashboard | `/Home/Dashboard` | Metrics qua API; nút **Duyệt đăng ký chủ quán** |
 | Approvals | `/Approvals` | Danh sách pending; **Duyệt** / **Từ chối** qua API |
 | POI Index | `/POI` | Danh sách (sort theo **Priority** rồi thời gian); **GET /POI/Create** redirect về Index (Admin không tạo POI mới) |
 | POI Edit / Details | `/POI/...` | Admin sửa POI có sẵn (DbContext/API tùy flow); upload ảnh Supabase |
 | Analytics | `/Analytics` | Admin; top POI + breakdown (API) |
-| Devices | `/Devices` | Admin; danh sách thiết bị ẩn danh (`dev_XXXXXX`) từ `VisitLogs`; thống kê ActiveToday / 7 ngày / 30 ngày; phân trang 50 item. `XXXXXX` = `SubscriptionService.DeviceKey` → khớp trực tiếp với cột DeviceKey trong `/SubscriptionPayments` |
+| Devices | `/Devices` | Admin; danh sách thiết bị ẩn danh (`dev_XXXXXX`) từ `VisitLogs` + **badge Mạnh/Yếu** join từ bảng `DeviceProfiles`; thống kê ActiveToday / 7 ngày / 30 ngày; phân trang 50 item; bảng **Tài khoản Du khách** (Tourist) hiển thị DeviceProfile, CPU cores, RAM bên dưới |
 | POI Payments | `/POIPayments` | Admin; tổng hợp `Pending/Verified/Rejected`; xác nhận → POI.IsActive = true; từ chối → POI vẫn inactive |
 | Subscription Payments | `/SubscriptionPayments` | Admin; đối soát gói thanh toán Mobile; xác nhận → tính `SubscriptionExpiresAtUtc`; từ chối → không kích hoạt |
 | **Heatmap vị trí** | `/Heatmap` | Admin; bản đồ Leaflet + leaflet-heat; chỉ điểm `Geofence`; hiển thị **30 giây gần nhất (realtime)**, auto-refresh 3s; chấm POI hover tooltip |
-| **Giả lập thiết bị** | `/LoadTest` | Admin; chọn số lượng device (10–200) + POI ID; gửi song song N request visit đến API; kết quả: bảng chi tiết từng device + stat cards avg/min/max ms |
+| **GeofenceSimulator** | `/LoadTest/GeofenceSimulator` | Admin; **1–10 thiết bị ảo** di chuyển trên bản đồ (auto-walk, hội tụ); vào geofence → gọi API thật; bảng stats per-device (Queue/Enters/API ✓✗/Avg ms); **server log panel** hiển thị batch INSERT từ `VisitLogWorker`; 11 test case presets GF-001→GF-011 |
 | ShopOwner Dashboard / **Create** / Edit / Statistics | `/ShopOwner/...` | **Tạo POI** mới + DbContext; 403/NotFound nếu không sở hữu POI |
 
 ### 4.2 Mobile (`HeriStepAI.Mobile`)
 
+**Startup flow:** `App.xaml.cs` kiểm tra `ISubscriptionService.IsActive` → nếu chưa có gói → `SubscriptionPage`; nếu có gói → `AppShell`. Song song (fire-and-forget): sync POI + `PushDeviceProfileAsync`.
+
 | Màn | Hành vi chính |
 |-----|----------------|
 | `SubscriptionPage` | Chọn gói, QR thanh toán, xác nhận; lỗi validation |
+| `AuthPage` | Màn **hợp nhất** login + register; tab-switch qua `ShowLogin` / `ShowRegister` binding (Tourist role, tùy chọn) |
+| `LoginPage` | Form login độc lập (email + password); lưu session `SecureStorage` |
+| `RegisterPage` | Form đăng ký Tourist (`POST /api/auth/register-tourist`) |
 | `MainPage` | Tour cards từ `TourGeneratorService`; chọn tour → `TourDetailPage` |
 | `TourDetailPage` | Danh sách POI tour; **Bắt đầu Tour** → `TourSelectionService` → `//MapPage` |
 | `MapPage` | WebView map; geofence; visit log; loading map async |
 | `POIListPage` / `POIDetailPage` | List/detail; TTS |
-| `SettingsPage` | Ngôn ngữ, logout |
+| `SettingsPage` | Ngôn ngữ, thông tin thiết bị (Mạnh/Yếu), logout |
 
-**State chung:** loading / empty / error — theo từng ViewModel (sync POI, API fail vẫn có thể hiện SQLite).
+**State chung:** loading / empty / error — theo từng ViewModel; thiết bị `Weak` luôn fetch API, thiết bị `Strong` đọc từ SQLite (`pois.db`) khi offline.
 
-**HeartbeatService:** Khởi động cùng app (`App.xaml.cs`); gửi `POST /api/analytics/heartbeat` mỗi 5 giây; dừng khi app close. Không block UX nếu API fail.
+**HeartbeatService:** Khởi động cùng app (`App.xaml.cs`); gửi `POST /api/analytics/heartbeat` mỗi **2 giây**; dừng khi app background/close. Không block UX nếu API fail.
 
 ---
 
@@ -129,10 +135,12 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 |----|---------|
 | **FR-AUTH-01** | Web: POST login form → gọi `POST /api/auth/login` → set cookie session + `AuthToken` (JWT). |
 | **FR-AUTH-02** | Web: sau login, **Admin** → `/Home/Dashboard`; **ShopOwner** → `/ShopOwner/Dashboard`. |
-| **FR-AUTH-03** | Mobile: lưu trạng thái subscription (`SecureStorage`); kiểm tra còn hạn khi mở app — không cần đăng nhập. |
+| **FR-AUTH-03** | Mobile: lưu trạng thái subscription (`SecureStorage`); kiểm tra còn hạn khi mở app — sử dụng cơ bản **không cần đăng nhập** (ẩn danh qua DeviceKey); đăng ký/đăng nhập Tourist là **tùy chọn** qua `AuthPage`. |
 | **FR-AUTH-04** | API: mật khẩu hash BCrypt; JWT TTL theo cấu hình (vd. 24h). |
 | **FR-AUTH-05** | ShopOwner: `POST api/auth/login` trả **403** nếu `ApprovalStatus` = Pending hoặc Rejected (JSON `Message`). |
 | **FR-AUTH-06** | Đăng ký chủ quán công khai: `POST api/auth/register-shop-owner` → `ApprovalStatus = Pending`. Admin: `GET .../pending-shop-owners`, `POST .../approve-shop-owner/{id}`, `POST .../reject-shop-owner/{id}`. |
+| **FR-AUTH-07** | **Tourist mobile** (tùy chọn): `POST /api/auth/register-tourist` (AllowAnonymous) → tạo `User` với `Role=Tourist`, `ApprovalStatus=NotApplicable`, trả JWT; `POST /api/auth/login` với Tourist credentials → JWT; session lưu `SecureStorage`. Sau login, `MobileAuthService.SaveSessionAsync` fire-and-forget `PushDeviceProfileAsync`. Admin xem danh sách Tourist qua `GET /api/auth/tourists` (Admin JWT). |
+| **FR-AUTH-08** | **QR tải app**: Trang `/Auth/Login` (Web) hiển thị QR code (QRCode.js) trong panel trái trỏ đến `https://github.com/KhanhChung2k5/k_tour/releases/latest`; kèm chú thích phân biệt thiết bị Mạnh (offline) / Yếu (online-only). |
 
 ### 6.2 POI (API + Web)
 
@@ -164,6 +172,9 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 | **FR-ANA-06** | **Heartbeat / Online Now**: Mobile gửi `POST /api/analytics/heartbeat` (AllowAnonymous) mỗi **2 giây** kèm `UserId`; API lưu vào `HeartbeatTracker` (ConcurrentDictionary in-memory, TTL **3s**); Admin gọi `GET /analytics/online-now` để lấy số thiết bị đang hoạt động. Dữ liệu không persist vào DB. |
 | **FR-ANA-07** | **Visit Log Queue**: `POST /analytics/visit` enqueue item vào `Channel<VisitLogItem>` (singleton, buffer 1000, DropOldest); `VisitLogWorker` (BackgroundService, single reader) gom tối đa 10 items trong 500ms rồi thực hiện batch `SaveChangesAsync` một lần — đảm bảo chỉ 1 DB connection bất kể N request đồng thời. |
 | **FR-ANA-08** | **Giả lập thiết bị** tại `/LoadTest` (Admin): nhập số lượng device (1–200) và POI ID mục tiêu; Web gửi N request `POST /api/analytics/visit` song song (`Task.WhenAll`); trả về summary (total/success/failed/avg/min/max ms) và chi tiết từng device (DeviceId, HTTP status, elapsed ms). |
+| **FR-ANA-09** | **Kiểm tra hiệu năng thiết bị**: `POST /api/analytics/devices/profile` (AllowAnonymous) nhận `{ deviceId, profile: 0/1, cores, ramMb }` → upsert bảng `DeviceProfiles`; `GET /api/analytics/devices` join `DeviceProfiles` theo `DeviceId` → trả thêm trường `DeviceProfile`, `DeviceCores`, `DeviceRamMb`. |
+| **FR-DEV-01** | **Mobile — phát hiện năng lực**: `DeviceCapabilityService` đo `Environment.ProcessorCount` (CPU cores) và RAM (`ActivityManager.GetMemoryInfo().TotalMem` trên Android, `GC.GetGCMemoryInfo()` fallback); ngưỡng `Strong` = cores ≥ 4 **AND** RAM ≥ 1.500 MB; kết quả lưu vào `Preferences["device_profile_v1"]`. |
+| **FR-DEV-02** | **Mobile — gửi profile khi khởi động**: `App.xaml.cs` gọi `ApiService.PushDeviceProfileAsync()` (fire-and-forget) ngay sau khi khởi tạo; `DeviceId` = `"dev_" + SubscriptionService.DeviceKey` (ổn định, không đổi); `POIService` dùng `IDeviceCapabilityService.IsStrong` để quyết định khởi tạo SQLite (`Strong`) hoặc chỉ fetch API (`Weak`). |
 
 ### 6.5 Mobile — Tour (như đã code)
 
@@ -177,10 +188,11 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 
 | ID | Yêu cầu |
 |----|---------|
-| **FR-API-01** | `POST /api/auth/login` (Web — Admin/ShopOwner). ShopOwner **403** nếu `ApprovalStatus` ≠ Approved. Mobile không gọi auth. |
+| **FR-API-01** | `POST /api/auth/login` (Web — Admin/ShopOwner; Mobile — Tourist tùy chọn). ShopOwner **403** nếu `ApprovalStatus` ≠ Approved. |
 | **FR-API-01b** | `POST /api/auth/register-shop-owner` (công khai). `GET /api/auth/pending-shop-owners`, `POST .../approve-shop-owner/{id}`, `POST .../reject-shop-owner/{id}` (Admin JWT). |
+| **FR-API-01c** | `POST /api/auth/register-tourist` (AllowAnonymous) — tạo tài khoản Tourist, trả JWT ngay. `GET /api/auth/me` (Authorized). `PATCH /api/auth/me/device-profile` (Authorized) — cập nhật DeviceProfile trên User record. `GET /api/auth/tourists` (Admin) — danh sách Tourist kèm DeviceProfile. |
 | **FR-API-02** | `GET /api/poi` (sort **Priority** desc). `POST /api/poi` — **ShopOwner** JWT. `GET /api/poi/{id}`, `GET /api/poi/{id}/content/{lang}`, `GET /api/poi/my-pois` (ShopOwner). |
-| **FR-API-03** | Analytics: `GET .../analytics/summary`, `.../top-pois`, `.../visit`, statistics theo POI. |
+| **FR-API-03** | Analytics: `GET .../analytics/summary`, `.../top-pois`, `.../visit` (AllowAnonymous), statistics theo POI. `POST .../analytics/devices/profile` (AllowAnonymous) — upsert `DeviceProfiles`. `GET .../analytics/devices` — join `DeviceProfiles`, trả badge Mạnh/Yếu. `GET .../analytics/devices/{id}/details`. |
 
 ---
 
@@ -219,7 +231,31 @@ HeriStepAI là hệ thống **thuyết minh / khám phá địa điểm** kết 
 
 | Field | Kiểu | Ghi chú |
 |-------|------|---------|
-| `ApprovalStatus` | enum `AccountApprovalStatus` | **Pending** / **Approved** / **Rejected** — đăng ký chủ quán công khai; chỉ **Approved** mới login Web được. |
+| `Id` | int | PK |
+| `Username` | string (max 100) | |
+| `Email` | string (max 255, unique) | |
+| `PasswordHash` | string | BCrypt |
+| `FullName` | string? | |
+| `Phone` | string? | |
+| `Role` | enum `UserRole` | Admin=1, ShopOwner=2, Tourist=3 |
+| `CreatedAt` | DateTime | UTC |
+| `IsActive` | bool | toggle bởi Admin |
+| `ApprovalStatus` | enum `AccountApprovalStatus` | **Pending** / **Approved** / **Rejected** / **NotApplicable** — ShopOwner cần duyệt; Tourist = NotApplicable |
+| `DeviceProfile` | enum? `MobileDeviceProfile` | **Strong=1** / **Weak=0** / null nếu chưa báo cáo — chỉ có ý nghĩa với Tourist |
+| `DeviceCores` | int? | Số CPU core thiết bị |
+| `DeviceRamMb` | long? | RAM MB thiết bị |
+| `DeviceProfileAt` | DateTime? | Thời điểm cập nhật device profile lần cuối |
+
+### 9.0b DeviceProfiles (bảng riêng — ẩn danh)
+
+| Field | Kiểu | Ghi chú |
+|-------|------|---------|
+| `Id` | int | PK |
+| `DeviceId` | string (max 128, unique) | `"dev_XXXXXX"` — khớp với `VisitLogs.UserId` |
+| `Profile` | enum `MobileDeviceProfile` | Strong=1 / Weak=0 |
+| `Cores` | int? | |
+| `RamMb` | long? | |
+| `UpdatedAt` | DateTime | UTC, upsert mỗi lần app khởi động |
 
 ### 9.1 POI (API `HeriStepAI.API.Models.POI` — cho UI/Web/Mobile sync)
 
@@ -1762,6 +1798,83 @@ sequenceDiagram
 | 5 | Tổng hợp kết quả | Web tính avg/min/max elapsed ms từ N DeviceResult. |
 | 6 | Bảng chi tiết | Mỗi device hiển thị: DeviceID, ✓ OK / ✗ FAIL, HTTP code, elapsed ms (màu xanh/vàng/đỏ theo ngưỡng). |
 | 7 | Worker xử lý ngầm | Sau khi Web trả kết quả, Worker vẫn đang gom batch và INSERT vào DB. |
+
+---
+
+### C.24 Kiểm tra hiệu năng thiết bị (Device Capability Check)
+
+```mermaid
+sequenceDiagram
+    participant App as App.xaml.cs
+    participant DCS as DeviceCapabilityService
+    participant API as ApiService (Mobile)
+    participant SS as SubscriptionService
+    participant HTTP as HTTP Client
+    participant AC as AnalyticsController (API)
+    participant AS as AnalyticsService
+    participant DB as PostgreSQL
+
+    Note over App,DB: ── Khởi động app ──
+
+    App->>DCS: new DeviceCapabilityService()
+    DCS->>DCS: Environment.ProcessorCount → CpuCores
+    alt Android
+        DCS->>DCS: ActivityManager.GetMemoryInfo().TotalMem → RamMb
+    else iOS / khác
+        DCS->>DCS: GC.GetGCMemoryInfo().TotalAvailableMemoryBytes → RamMb
+    end
+    DCS->>DCS: CpuCores ≥ 4 AND RamMb ≥ 1500 → Profile = Strong / Weak
+    DCS->>DCS: Preferences.Set("device_profile_v1", Profile)
+    DCS-->>App: IsStrong = true / false
+
+    App->>API: PushDeviceProfileAsync() [fire-and-forget]
+    API->>SS: DeviceKey
+    SS-->>API: "XXXXXX"
+    API->>API: deviceId = "dev_XXXXXX"
+    API->>DCS: IsStrong, CpuCores, AvailableRamMb
+    DCS-->>API: profile=1/0, cores, ramMb
+    API->>HTTP: POST /api/analytics/devices/profile { deviceId, profile, cores, ramMb }
+    HTTP->>AC: UpsertDeviceProfile(req)
+    AC->>AS: UpsertDeviceProfileAsync(deviceId, profile, cores, ramMb)
+    AS->>DB: SELECT * FROM DeviceProfiles WHERE DeviceId = ?
+    alt Chưa có bản ghi
+        DB-->>AS: null
+        AS->>DB: INSERT INTO DeviceProfiles(...)
+    else Đã có
+        DB-->>AS: existing row
+        AS->>DB: UPDATE DeviceProfiles SET Profile=?, Cores=?, RamMb=?, UpdatedAt=NOW()
+    end
+    DB-->>AS: OK
+    AS-->>AC: done
+    AC-->>HTTP: 200 { ok: true, profile: "Strong" }
+
+    Note over App,DB: ── Admin mở trang Devices ──
+
+    participant WC as DevicesController (Web)
+    participant WAC as AnalyticsController (API)
+    participant WAS as AnalyticsService
+
+    WC->>WAC: GET /api/analytics/devices?page=1&pageSize=50
+    WAC->>WAS: GetDeviceStatsAsync(page, pageSize)
+    WAS->>DB: SELECT UserId, VisitTime, POId FROM VisitLogs WHERE UserId NOT LIKE 'dev_SIM%'
+    DB-->>WAS: logs[]
+    WAS->>DB: SELECT * FROM DeviceProfiles
+    DB-->>WAS: profiles[]
+    WAS->>WAS: GroupBy(UserId) → DeviceRow + LeftJoin profiles by DeviceId
+    WAS-->>WAC: { Total, Items[DeviceId, VisitCount, DeviceProfile, Cores, RamMb, ...] }
+    WAC-->>WC: 200 JSON
+    WC-->>WC: Render Devices/Index.cshtml → badge Mạnh/Yếu mỗi row
+```
+
+| Bước | Hành động | Giải thích |
+|------|-----------|------------|
+| 1 | `DeviceCapabilityService()` | Chạy trong constructor, không async — kết quả có ngay trước khi app render UI. |
+| 2 | Ngưỡng phân loại | `Strong` = CPU ≥ 4 core **VÀ** RAM ≥ 1.500 MB; thiếu một trong hai → `Weak`. |
+| 3 | Android vs. khác | Android dùng `ActivityManager.GetMemoryInfo().TotalMem` (chính xác RAM vật lý); fallback dùng GC API. |
+| 4 | `PushDeviceProfileAsync` | Fire-and-forget từ `App.xaml.cs`; dùng `DeviceId = "dev_" + DeviceKey` — cùng key với VisitLogs. |
+| 5 | Upsert `DeviceProfiles` | Nếu DeviceId chưa có → INSERT; đã có → UPDATE profile + timestamp. |
+| 6 | `POIService` phân nhánh | `IsStrong` → khởi tạo SQLite + sync khi startup; `IsWeak` → skip SQLite, luôn fetch API. |
+| 7 | Web Admin hiển thị | `GetDeviceStatsAsync` join in-memory với `DeviceProfiles` → badge Mạnh/Yếu trong bảng Devices. |
 
 ---
 

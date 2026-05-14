@@ -14,6 +14,18 @@ public class User
 
     /// <summary>Duyệt đăng ký ShopOwner: Pending → Admin duyệt → Approved. Admin/Tourist dùng <see cref="AccountApprovalStatus.NotApplicable"/>.</summary>
     public AccountApprovalStatus ApprovalStatus { get; set; } = AccountApprovalStatus.Approved;
+
+    // Device capability — được cập nhật sau khi mobile login
+    public MobileDeviceProfile? DeviceProfile { get; set; }
+    public int? DeviceCores { get; set; }
+    public long? DeviceRamMb { get; set; }
+    public DateTime? DeviceProfileAt { get; set; }
+}
+
+public enum MobileDeviceProfile
+{
+    Weak   = 0,
+    Strong = 1,
 }
 
 public enum UserRole

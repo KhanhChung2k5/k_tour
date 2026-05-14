@@ -24,11 +24,13 @@ public class DevicesController : Controller
 
         DeviceSummary? summary = null;
         DevicePageResult pageResult = new();
+        List<TouristRow> tourists = new();
 
-        var summaryTask = client.GetAsync("analytics/devices/summary");
-        var listTask    = client.GetAsync($"analytics/devices?page={page}&pageSize=50");
+        var summaryTask  = client.GetAsync("analytics/devices/summary");
+        var listTask     = client.GetAsync($"analytics/devices?page={page}&pageSize=50");
+        var touristTask  = client.GetAsync("auth/tourists");
 
-        await Task.WhenAll(summaryTask, listTask);
+        await Task.WhenAll(summaryTask, listTask, touristTask);
 
         if (summaryTask.Result.IsSuccessStatusCode)
         {
@@ -46,11 +48,18 @@ public class DevicesController : Controller
             TempData["Error"] = $"Không tải được danh sách thiết bị ({(int)listTask.Result.StatusCode}).";
         }
 
+        if (touristTask.Result.IsSuccessStatusCode)
+        {
+            var json = await touristTask.Result.Content.ReadAsStringAsync();
+            tourists = JsonSerializer.Deserialize<List<TouristRow>>(json, opts) ?? new();
+        }
+
         ViewBag.Summary     = summary;
         ViewBag.CurrentPage = page;
         ViewBag.TotalPages  = pageResult.PageSize > 0
             ? (int)Math.Ceiling((double)pageResult.Total / pageResult.PageSize)
             : 1;
+        ViewBag.Tourists = tourists;
 
         return View(pageResult.Items);
     }

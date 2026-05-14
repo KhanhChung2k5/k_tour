@@ -13,6 +13,7 @@ public static class GeofenceTestCaseIds
     public const string GF008_SamePriority_TwoOverlappingRings_NearestCenterWins = "GF-008";
     public const string GF009_SamePriority_SameDistance_CoincidentCenters_LowestIdWins = "GF-009";
     public const string GF010_SamePriority_SameDistance_SymmetricAroundUser_LowestIdWins = "GF-010";
+    public const string GF011_SameDistance_DifferentPriority_HigherPriorityWins = "GF-011";
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -25,6 +26,7 @@ public static class GeofenceTestCaseIds
         GF007_EmptyPoiList_Null,
         GF008_SamePriority_TwoOverlappingRings_NearestCenterWins,
         GF009_SamePriority_SameDistance_CoincidentCenters_LowestIdWins,
-        GF010_SamePriority_SameDistance_SymmetricAroundUser_LowestIdWins
+        GF010_SamePriority_SameDistance_SymmetricAroundUser_LowestIdWins,
+        GF011_SameDistance_DifferentPriority_HigherPriorityWins
     ];
 }

@@ -109,6 +109,14 @@ builder.Services.AddHttpClient("API", client =>
 
 var app = builder.Build();
 
+{
+    var apiBaseResolved = Environment.GetEnvironmentVariable("API_BASE_URL")
+        ?? app.Configuration["ApiSettings:BaseUrl"]
+        ?? "http://localhost:5000/api/";
+    Console.WriteLine($"[Web] HttpClient \"API\" BaseUrl: {apiBaseResolved}");
+    Console.WriteLine("[Web] If /api/* returns 404, point ngrok at HeriStepAI.API (port 5000), not Web (5001).");
+}
+
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {

@@ -5,6 +5,10 @@
     var summary     = ViewBag.Summary as HeriStepAI.Web.Models.DeviceSummary;
     int currentPage = ViewBag.CurrentPage ?? 1;
     int totalPages  = ViewBag.TotalPages  ?? 1;
+    var tourists    = ViewBag.Tourists as List<HeriStepAI.Web.Models.TouristRow> ?? new();
+    int strongCount = tourists.Count(t => t.DeviceProfile == "Strong");
+    int weakCount   = tourists.Count(t => t.DeviceProfile == "Weak");
+    int unknownCount = tourists.Count(t => t.DeviceProfile == null);
 }
 
 <div class="page-header">
@@ -98,16 +102,18 @@
         <table class="table" style="table-layout:fixed;width:100%;">
             <colgroup>
                 <col style="width:4%;">
-                <col style="width:35%;">
-                <col style="width:12%;">
-                <col style="width:12%;">
-                <col style="width:18%;">
-                <col style="width:19%;">
+                <col style="width:26%;">
+                <col style="width:16%;">
+                <col style="width:10%;">
+                <col style="width:10%;">
+                <col style="width:17%;">
+                <col style="width:17%;">
             </colgroup>
             <thead>
                 <tr>
                     <th style="padding-left:20px;">#</th>
                     <th>Device ID</th>
+                    <th style="text-align:center;">Thiết bị</th>
                     <th style="text-align:center;">Lượt thăm</th>
                     <th style="text-align:center;">POI đã ghé</th>
                     <th>Lần đầu</th>
@@ -132,6 +138,24 @@
                                     @row.DeviceId
                                 </code>
                             </a>
+                        </td>
+                        <td style="text-align:center;">
+                            @if (row.DeviceProfile == "Strong")
+                            {
+                                <span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#4ade80;padding:2px 8px;border-radius:10px;font-size:0.7rem;white-space:nowrap;" title="@row.DeviceCores core · ~@row.DeviceRamMb MB">
+                                    <i class="bi bi-cpu-fill"></i> Mạnh
+                                </span>
+                            }
+                            else if (row.DeviceProfile == "Weak")
+                            {
+                                <span style="background:rgba(234,179,8,0.12);border:1px solid rgba(234,179,8,0.3);color:#facc15;padding:2px 8px;border-radius:10px;font-size:0.7rem;white-space:nowrap;" title="@row.DeviceCores core · ~@row.DeviceRamMb MB">
+                                    <i class="bi bi-wifi"></i> Yếu
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="color:var(--cream-muted);font-size:0.72rem;">—</span>
+                            }
                         </td>
                         <td style="text-align:center;">
                             <span style="font-weight:600;color:var(--cream);">@row.VisitCount</span>
@@ -192,4 +216,122 @@
             </div>
         </div>
     }
+</div>
+
+<!-- TOURIST ACCOUNTS + DEVICE PROFILE -->
+<div style="margin-top:32px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--cream);margin:0;">Tài khoản Du khách</h2>
+            <p style="font-size:0.78rem;color:var(--cream-muted);margin:4px 0 0;">Năng lực thiết bị được gửi tự động sau khi đăng nhập app.</p>
+        </div>
+        <div style="display:flex;gap:10px;">
+            <span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#4ade80;padding:5px 12px;border-radius:20px;font-size:0.78rem;">
+                <i class="bi bi-cpu-fill"></i> Mạnh: @strongCount
+            </span>
+            <span style="background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.3);color:#facc15;padding:5px 12px;border-radius:20px;font-size:0.78rem;">
+                <i class="bi bi-wifi"></i> Yếu: @weakCount
+            </span>
+            @if (unknownCount > 0)
+            {
+                <span style="background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.2);color:var(--cream-muted);padding:5px 12px;border-radius:20px;font-size:0.78rem;">
+                    Chưa rõ: @unknownCount
+                </span>
+            }
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table" style="table-layout:fixed;width:100%;">
+                <colgroup>
+                    <col style="width:4%;">
+                    <col style="width:20%;">
+                    <col style="width:22%;">
+                    <col style="width:14%;">
+                    <col style="width:18%;">
+                    <col style="width:22%;">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th style="padding-left:20px;">#</th>
+                        <th>Tên / Email</th>
+                        <th style="text-align:center;">Thiết bị</th>
+                        <th style="text-align:center;">CPU / RAM</th>
+                        <th>Cập nhật lúc</th>
+                        <th>Ngày đăng ký</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var (t, i) in tourists.Select((r, idx) => (r, idx)))
+                    {
+                        var isStrong  = t.DeviceProfile == "Strong";
+                        var isWeak    = t.DeviceProfile == "Weak";
+                        var hasProfile = t.DeviceProfile != null;
+                        <tr>
+                            <td style="padding-left:20px;color:var(--cream-muted);font-size:0.78rem;">@(i + 1)</td>
+                            <td>
+                                <div style="font-size:0.85rem;color:var(--cream);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@t.FullName">
+                                    @(t.FullName ?? t.Username)
+                                </div>
+                                <div style="font-size:0.72rem;color:var(--cream-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@t.Email">
+                                    @t.Email
+                                </div>
+                            </td>
+                            <td style="text-align:center;">
+                                @if (isStrong)
+                                {
+                                    <span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#4ade80;padding:3px 10px;border-radius:12px;font-size:0.75rem;white-space:nowrap;">
+                                        <i class="bi bi-cpu-fill"></i> Mạnh · Offline
+                                    </span>
+                                }
+                                else if (isWeak)
+                                {
+                                    <span style="background:rgba(234,179,8,0.12);border:1px solid rgba(234,179,8,0.3);color:#facc15;padding:3px 10px;border-radius:12px;font-size:0.75rem;white-space:nowrap;">
+                                        <i class="bi bi-wifi"></i> Yếu · Online only
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span style="color:var(--cream-muted);font-size:0.75rem;">—</span>
+                                }
+                            </td>
+                            <td style="text-align:center;font-size:0.78rem;color:var(--cream-muted);">
+                                @if (hasProfile)
+                                {
+                                    <span>@t.DeviceCores core</span><br>
+                                    <span>~@t.DeviceRamMb MB</span>
+                                }
+                                else
+                                {
+                                    <span>—</span>
+                                }
+                            </td>
+                            <td style="font-size:0.75rem;color:var(--cream-muted);white-space:nowrap;">
+                                @(t.DeviceProfileAt.HasValue
+                                    ? t.DeviceProfileAt.Value.ToLocalTime().ToString("dd/MM HH:mm")
+                                    : "Chưa cập nhật")
+                            </td>
+                            <td style="font-size:0.75rem;color:var(--cream-muted);white-space:nowrap;">
+                                @t.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")
+                                @if (!t.IsActive)
+                                {
+                                    <span style="color:#f87171;font-size:0.68rem;display:block;">Bị khóa</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!tourists.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5" style="color:var(--cream-muted);">
+                                <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:8px;opacity:0.4;"></i>
+                                Chưa có tài khoản du khách nào.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

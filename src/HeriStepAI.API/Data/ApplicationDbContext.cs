@@ -17,6 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Analytics> Analytics { get; set; }
     public DbSet<MobileSubscriptionPayment> MobileSubscriptionPayments { get; set; }
     public DbSet<POIPayment> POIPayments { get; set; }
+    public DbSet<DeviceProfileRecord> DeviceProfiles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -70,6 +71,13 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.TransferRef);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.ReportedAtUtc);
+        });
+
+        modelBuilder.Entity<DeviceProfileRecord>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.DeviceId).IsUnique();
+            entity.Property(e => e.DeviceId).IsRequired().HasMaxLength(128);
         });
 
         modelBuilder.Entity<POIPayment>(entity =>

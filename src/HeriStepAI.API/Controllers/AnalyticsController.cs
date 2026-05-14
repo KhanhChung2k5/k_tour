@@ -82,6 +82,17 @@ public class AnalyticsController : ControllerBase
         _visitQueue = visitQueue;
     }
 
+    [HttpPost("devices/profile")]
+    [AllowAnonymous]
+    public async Task<IActionResult> UpsertDeviceProfile([FromBody] DeviceProfileUpsertRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.DeviceId) || req.DeviceId.Length > 128)
+            return BadRequest(new { Error = "Invalid DeviceId" });
+
+        await _analyticsService.UpsertDeviceProfileAsync(req.DeviceId, req.Profile, req.Cores, req.RamMb);
+        return Ok(new { ok = true, profile = req.Profile.ToString() });
+    }
+
     [HttpPost("heartbeat")]
     [AllowAnonymous]
 
@@ -266,4 +277,16 @@ public class HeartbeatRequest
 {
     [JsonPropertyName("userId")]
     public string? UserId { get; set; }
+}
+
+public class DeviceProfileUpsertRequest
+{
+    [JsonPropertyName("deviceId")]
+    public string DeviceId { get; set; } = string.Empty;
+    [JsonPropertyName("profile")]
+    public MobileDeviceProfile Profile { get; set; }
+    [JsonPropertyName("cores")]
+    public int? Cores { get; set; }
+    [JsonPropertyName("ramMb")]
+    public long? RamMb { get; set; }
 }

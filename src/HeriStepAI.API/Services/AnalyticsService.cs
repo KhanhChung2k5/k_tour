@@ -138,15 +138,26 @@ public class AnalyticsService : IAnalyticsService
             .Select(v => new { v.UserId, v.VisitTime, v.POId })
             .ToListAsync();
 
+        var profiles = await _context.DeviceProfiles
+            .AsNoTracking()
+            .ToDictionaryAsync(p => p.DeviceId, p => p);
+
         var grouped = logs
             .GroupBy(v => v.UserId!)
-            .Select(g => new
+            .Select(g =>
             {
-                DeviceId    = g.Key,
-                VisitCount  = g.Count(),
-                UniquePOIs  = g.Select(v => v.POId).Distinct().Count(),
-                FirstSeen   = g.Min(v => v.VisitTime),
-                LastSeen    = g.Max(v => v.VisitTime),
+                profiles.TryGetValue(g.Key, out var prof);
+                return new
+                {
+                    DeviceId    = g.Key,
+                    VisitCount  = g.Count(),
+                    UniquePOIs  = g.Select(v => v.POId).Distinct().Count(),
+                    FirstSeen   = g.Min(v => v.VisitTime),
+                    LastSeen    = g.Max(v => v.VisitTime),
+                    DeviceProfile = prof?.Profile.ToString(),
+                    DeviceCores   = prof?.Cores,
+                    DeviceRamMb   = prof?.RamMb,
+                };
             })
             .OrderByDescending(d => d.LastSeen)
             .ToList();
@@ -155,6 +166,33 @@ public class AnalyticsService : IAnalyticsService
         var items = grouped.Skip(skip).Take(pageSize).ToList();
 
         return new { Total = total, Page = page, PageSize = pageSize, Items = items };
+    }
+
+    public async Task UpsertDeviceProfileAsync(string deviceId, MobileDeviceProfile profile, int? cores, long? ramMb)
+    {
+        var existing = await _context.DeviceProfiles
+            .FirstOrDefaultAsync(p => p.DeviceId == deviceId);
+
+        if (existing == null)
+        {
+            _context.DeviceProfiles.Add(new DeviceProfileRecord
+            {
+                DeviceId  = deviceId,
+                Profile   = profile,
+                Cores     = cores,
+                RamMb     = ramMb,
+                UpdatedAt = DateTime.UtcNow
+            });
+        }
+        else
+        {
+            existing.Profile   = profile;
+            existing.Cores     = cores;
+            existing.RamMb     = ramMb;
+            existing.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync();
     }
 
     /// <summary>

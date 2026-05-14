@@ -14,4 +14,5 @@ public interface IAnalyticsService
     Task<object> GetDeviceSummaryAsync();
     Task<object?> GetDeviceDetailAsync(string deviceId);
     Task<List<double[]>> GetHeatmapDataAsync(DateTime? startDate, DateTime? endDate);
+    Task UpsertDeviceProfileAsync(string deviceId, MobileDeviceProfile profile, int? cores, long? ramMb);
 }

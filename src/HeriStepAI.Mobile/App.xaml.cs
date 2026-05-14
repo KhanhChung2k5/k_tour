@@ -49,6 +49,21 @@ public partial class App : Application
                     LogToDebug($"App: POI sync failed: {ex.Message}");
                 }
             });
+
+            // Gửi năng lực thiết bị lên server (fire-and-forget)
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var apiService = serviceProvider.GetService<IApiService>();
+                    if (apiService != null)
+                        await apiService.PushDeviceProfileAsync();
+                }
+                catch (Exception ex)
+                {
+                    LogToDebug($"App: PushDeviceProfile failed: {ex.Message}");
+                }
+            });
         }
         catch (Exception ex)
         {
